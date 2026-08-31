@@ -1,0 +1,29 @@
+{
+  "_bootstrap-DUr89oQr.js": {
+    "file": "assets/bootstrap-DUr89oQr.js",
+    "name": "bootstrap"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-DHjGflE5.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-OPIfoYSg.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_bootstrap-DUr89oQr.js"
+    ]
+  },
+  "resources/js/app.tsx": {
+    "file": "assets/app-Cv89ylv3.js",
+    "name": "app",
+    "src": "resources/js/app.tsx",
+    "isEntry": true,
+    "imports": [
+      "_bootstrap-DUr89oQr.js"
+    ]
+  }
+}

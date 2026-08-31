@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model barangs {
+  id                BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  kode_barang       String          @unique(map: "barangs_kode_barang_unique") @db.VarChar(255)
+  nama_barang       String          @db.VarChar(255)
+  kategori          String          @db.VarChar(255)
+  merk              String?         @db.VarChar(255)
+  nomor_seri        String?         @db.VarChar(255)
+  jumlah            Int             @default(1)
+  satuan            String          @default("Unit") @db.VarChar(255)
+  kondisi           barangs_kondisi @default(Baik)
+  kondisi_per_unit  String?         @db.Text
+  lokasi            String?         @db.VarChar(255)
+  penanggung_jawab  String?         @db.VarChar(255)
+  laboratorium      String?         @db.VarChar(255)
+  tahun_pembelian   Int?            @db.Year
+  tanggal_pembelian DateTime?       @db.Date
+  harga             Decimal?        @db.Decimal(15, 2)
+  sumber_dana       String?         @db.VarChar(255)
+  deskripsi         String?         @db.Text
+  foto              String?         @db.VarChar(255)
+  created_at        DateTime?       @db.Timestamp(0)
+  updated_at        DateTime?       @db.Timestamp(0)
+  maintenances      maintenances[]
+  peminjamans       peminjamans[]
+}
+
+model beritas {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  judul        String    @db.VarChar(255)
+  isi          String    @db.Text
+  target_kelas String?   @db.VarChar(100)
+  user_id      BigInt    @db.UnsignedBigInt
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+  users        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "beritas_user_id_foreign")
+
+  @@index([user_id], map: "beritas_user_id_foreign")
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model kelas {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  nama_kelas String    @unique(map: "kelas_nama_kelas_unique") @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model maintenances {
+  id                  BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  laboratorium        String              @default("Laboratorium TKJ") @db.VarChar(255)
+  barang_id           BigInt?             @db.UnsignedBigInt
+  unit_index          String?             @db.VarChar(255)
+  user_id             BigInt              @db.UnsignedBigInt
+  teknisi             String?             @db.VarChar(255)
+  tanggal_maintenance DateTime            @db.Date
+  jenis               maintenances_jenis  @default(Korektif)
+  deskripsi_kerusakan String              @db.Text
+  tindakan            String?             @db.Text
+  biaya               Decimal?            @db.Decimal(15, 2)
+  status              maintenances_status @default(Pending)
+  catatan             String?             @db.Text
+  created_at          DateTime?           @db.Timestamp(0)
+  updated_at          DateTime?           @db.Timestamp(0)
+  barangs             barangs?            @relation(fields: [barang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "maintenances_barang_id_foreign")
+  users               users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "maintenances_user_id_foreign")
+
+  @@index([barang_id], map: "maintenances_barang_id_foreign")
+  @@index([user_id], map: "maintenances_user_id_foreign")
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model peminjamans {
+  id                                   BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  barang_id                            BigInt                       @db.UnsignedBigInt
+  user_id                              BigInt                       @db.UnsignedBigInt
+  kode_peminjaman                      String?                      @unique(map: "peminjamans_kode_peminjaman_unique") @db.VarChar(255)
+  nama_peminjam                        String                       @db.VarChar(255)
+  kelas_atau_jabatan                   String?                      @db.VarChar(255)
+  kontak                               String?                      @db.VarChar(255)
+  keperluan                            String                       @db.Text
+  jumlah_pinjam                        Int                          @default(1)
+  unit_index                           String?                      @db.VarChar(255)
+  tanggal_pinjam                       DateTime                     @db.Date
+  tanggal_kembali_rencana              DateTime                     @db.Date
+  tanggal_kembali_aktual               DateTime?                    @db.Date
+  status                               peminjamans_status           @default(Dipinjam)
+  kondisi_kembali                      peminjamans_kondisi_kembali?
+  catatan                              String?                      @db.Text
+  alasan_penolakan                     String?                      @db.Text
+  approved_by                          BigInt?                      @db.UnsignedBigInt
+  created_at                           DateTime?                    @db.Timestamp(0)
+  updated_at                           DateTime?                    @db.Timestamp(0)
+  users_peminjamans_approved_byTousers users?                       @relation("peminjamans_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction, map: "peminjamans_approved_by_foreign")
+  barangs                              barangs                      @relation(fields: [barang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "peminjamans_barang_id_foreign")
+  users_peminjamans_user_idTousers     users                        @relation("peminjamans_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "peminjamans_user_id_foreign")
+
+  @@index([approved_by], map: "peminjamans_approved_by_foreign")
+  @@index([barang_id], map: "peminjamans_barang_id_foreign")
+  @@index([user_id], map: "peminjamans_user_id_foreign")
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.VarChar(255)
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model users {
+  id                                         BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  name                                       String                    @db.VarChar(255)
+  email                                      String                    @unique(map: "users_email_unique") @db.VarChar(255)
+  foto                                       String?                   @db.VarChar(255)
+  email_verified_at                          DateTime?                 @db.Timestamp(0)
+  password                                   String                    @db.VarChar(255)
+  read_beritas                               String?                   @db.Text
+  role                                       String                    @default("siswa") @db.VarChar(50)
+  nomor_induk                                String?                   @db.VarChar(255)
+  kelas_atau_jabatan                         users_kelas_atau_jabatan?
+  laboratorium_penugasan                     String?                   @db.VarChar(255)
+  telepon                                    String?                   @db.VarChar(255)
+  remember_token                             String?                   @db.VarChar(100)
+  created_at                                 DateTime?                 @db.Timestamp(0)
+  updated_at                                 DateTime?                 @db.Timestamp(0)
+  beritas                                    beritas[]
+  maintenances                               maintenances[]
+  peminjamans_peminjamans_approved_byTousers peminjamans[]             @relation("peminjamans_approved_byTousers")
+  peminjamans_peminjamans_user_idTousers     peminjamans[]             @relation("peminjamans_user_idTousers")
+}
+
+enum maintenances_jenis {
+  Preventif
+  Korektif
+  Penggantian
+}
+
+enum barangs_kondisi {
+  Baik
+  Perawatan
+  Perbaikan
+  Rusak_Berat @map("Rusak Berat")
+  Hilang
+}
+
+enum users_kelas_atau_jabatan {
+  Kepala_Lab_TKJ     @map("Kepala Lab TKJ")
+  Guru_Produktif_TKJ @map("Guru Produktif TKJ")
+  Teknisi_Lab_TKJ    @map("Teknisi Lab TKJ")
+  Staf___Karyawan    @map("Staf / Karyawan")
+  X_TKJ_1            @map("X TKJ 1")
+  X_TKJ_2            @map("X TKJ 2")
+  XI_TKJ_1           @map("XI TKJ 1")
+  XI_TKJ_2           @map("XI TKJ 2")
+  XII_TKJ_1          @map("XII TKJ 1")
+  XII_TKJ_2          @map("XII TKJ 2")
+}
+
+enum maintenances_status {
+  Selesai
+  Proses
+  Pending
+}
+
+enum peminjamans_status {
+  Menunggu_Persetujuan @map("Menunggu Persetujuan")
+  Dipinjam
+  Dikembalikan
+  Terlambat
+  Ditolak
+}
+
+enum peminjamans_kondisi_kembali {
+  Baik
+  Perawatan
+  Perbaikan
+  Rusak_Berat @map("Rusak Berat")
+  Hilang
+}
