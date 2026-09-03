@@ -42,7 +42,11 @@ class BarangController extends Controller
         }
 
         if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
+            $konFilter = $request->kondisi;
+            $query->where(function ($q) use ($konFilter) {
+                $q->where('kondisi', $konFilter)
+                  ->orWhere('kondisi_per_unit', 'like', '%"' . $konFilter . '"%');
+            });
         }
 
         if ($request->filled('kategori')) {
@@ -97,6 +101,7 @@ class BarangController extends Controller
             $validated['foto'] = $this->safeSaveFoto($request->file('foto'), 'barang');
         }
 
+        $validated['laboratorium'] = $validated['laboratorium'] ?? 'Laboratorium TKJ';
         $validated['kode_barang'] = $this->generateKode($validated['kategori']);
 
         // Default JSON kondisi seluruh unit
@@ -155,6 +160,8 @@ class BarangController extends Controller
             $this->safeDeleteFoto($barang->foto);
             $validated['foto'] = $this->safeSaveFoto($request->file('foto'), 'barang');
         }
+
+        $validated['laboratorium'] = $validated['laboratorium'] ?? 'Laboratorium TKJ';
 
         $oldJumlah = (int)$barang->jumlah;
         $newJumlah = (int)$validated['jumlah'];

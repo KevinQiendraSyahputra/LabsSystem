@@ -53,7 +53,7 @@
         @php
             $info     = $rekapLab[$lab] ?? ['jumlah_jenis'=>0,'total_unit'=>0,'total_nilai'=>0];
             $isActive = ($activeLab === $lab);
-            $labShort = str_replace('Laboratorium ', '', $lab);
+            $labShort = $lab;
             $colors   = ['Laboratorium TKJ'=>'indigo','Laboratorium AKL'=>'emerald','Laboratorium Pemasaran'=>'violet'];
             $c        = $colors[$lab] ?? 'indigo';
         @endphp

@@ -109,8 +109,8 @@
             <div class="xl:col-span-2 space-y-10 sm:space-y-12">
                 
                 <!-- Section 1: Identitas -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-40">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl">
                         <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">1. Identitas Barang</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Informasi nama, kategori, dan identifikasi alat</p>
                     </div>
@@ -189,8 +189,8 @@
                 </div>
 
                 <!-- Section 2: Kondisi & Lokasi -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-30">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl">
                         <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">2. Kondisi & Lokasi</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Status kelayakan fisik dan posisi penyimpanan</p>
                     </div>
@@ -288,8 +288,8 @@
                 </div>
 
                 <!-- Section 3: Stok & Satuan -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-20">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl">
                         <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">3. Stok & Satuan</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Jumlah kuantitas dan satuan barang</p>
                     </div>
@@ -329,7 +329,7 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                  x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                 class="absolute z-30 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 max-h-60 overflow-auto focus:outline-none"
+                                 class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 max-h-60 overflow-auto focus:outline-none"
                                  style="display: none;">
                                 @foreach(['Unit', 'Meter', 'Box', 'Set', 'Buah', 'Lembar', 'Paket'] as $satuan)
                                     <button type="button" @click="selected = '{{ $satuan }}'; open = false"
@@ -348,9 +348,9 @@
                     </div>
                 </div>
 
-                <!-- Section 4: Data Pembelian & Finansial -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white">
+                <!-- Section 4: Data Perolehan & Finansial -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-10">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl">
                         <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">4. Data Perolehan & Finansial (Opsional)</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Informasi anggaran, harga, dan waktu pembelian</p>
                     </div>

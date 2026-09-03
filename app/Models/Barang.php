@@ -35,6 +35,11 @@ class Barang extends Model
         'harga'             => 'decimal:2',
     ];
 
+    public function getLaboratoriumAttribute($value)
+    {
+        return $value ?: 'Laboratorium TKJ';
+    }
+
     public static $laboratoriumList = [
         'Laboratorium TKJ',
         'Laboratorium AKL',

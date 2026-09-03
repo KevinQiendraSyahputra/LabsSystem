@@ -358,13 +358,17 @@
                 {{-- Deskripsi Kerusakan --}}
                 <div class="sm:col-span-2">
                     <label for="deskripsi_kerusakan" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Deskripsi Kerusakan / Perawatan <span class="text-rose-500">*</span></label>
-                    <textarea id="deskripsi_kerusakan" name="deskripsi_kerusakan" rows="3" required x-model="formFields.deskripsi_kerusakan" class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full p-3">{{ old('deskripsi_kerusakan', $maintenance->deskripsi_kerusakan) }}</textarea>
+                    <textarea id="deskripsi_kerusakan" name="deskripsi_kerusakan" rows="3" required x-model="formFields.deskripsi_kerusakan" 
+                              placeholder="Contoh: Kabel power terkelupas, pembersihan debu kipas pendingin, konektor kendor..."
+                              class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full p-3 placeholder:text-slate-400">{{ old('deskripsi_kerusakan', $maintenance->deskripsi_kerusakan) }}</textarea>
                 </div>
 
                 {{-- Tindakan --}}
                 <div class="sm:col-span-2">
                     <label for="tindakan" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tindakan yang Dilakukan</label>
-                    <textarea id="tindakan" name="tindakan" rows="3" x-model="formFields.tindakan" class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full p-3">{{ old('tindakan', $maintenance->tindakan) }}</textarea>
+                    <textarea id="tindakan" name="tindakan" rows="3" x-model="formFields.tindakan" 
+                              placeholder="Contoh: Penggantian kabel power baru, solder ulang konektor, dan pengujian listrik..."
+                              class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full p-3 placeholder:text-slate-400">{{ old('tindakan', $maintenance->tindakan) }}</textarea>
                 </div>
 
                 {{-- Biaya Maintenance (Otomatis Format Rp. 12.345) --}}
@@ -375,14 +379,16 @@
                            id="biaya_display" 
                            x-model="formFields.displayBiaya"
                            @input="formatRupiah($event)"
-                           class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full px-3.5 py-2.5 font-mono font-bold" 
-                           placeholder="Rp. 0 atau -">
+                           class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full px-3.5 py-2.5 font-mono font-bold placeholder:text-slate-400" 
+                           placeholder="Contoh: 150000 atau ketik 0">
                 </div>
 
                 {{-- Catatan --}}
                 <div class="sm:col-span-2">
                     <label for="catatan" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Catatan Tambahan</label>
-                    <textarea id="catatan" name="catatan" rows="2" x-model="formFields.catatan" class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full p-3">{{ old('catatan', $maintenance->catatan) }}</textarea>
+                    <textarea id="catatan" name="catatan" rows="2" x-model="formFields.catatan" 
+                              placeholder="Contoh: Masa garansi servis 1 bulan dari vendor, perlu kalibrasi ulang bulan depan..."
+                              class="bg-slate-50/70 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none block w-full p-3 placeholder:text-slate-400">{{ old('catatan', $maintenance->catatan) }}</textarea>
                 </div>
             </div>
 

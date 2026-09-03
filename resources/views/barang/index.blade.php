@@ -1,16 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full max-w-9xl mx-auto space-y-4 sm:space-y-6" x-data="{ 
-    deleteModal: false, 
-    deleteActionUrl: '', 
-    deleteItemName: '',
-    confirmDelete(url, name) {
-        this.deleteActionUrl = url;
-        this.deleteItemName = name;
-        this.deleteModal = true;
-    }
-}">
+<div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full max-w-9xl mx-auto space-y-4 sm:space-y-6" x-data="barangIndexData()">
 
     {{-- Header Page --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
@@ -36,7 +27,7 @@
 
     {{-- Search & Filter Bar (Auto-Submit tanpa Tombol Filter) --}}
     <div class="bg-white p-4 sm:p-5 border border-slate-200/80 rounded-2xl sm:rounded-3xl shadow-xs relative z-30">
-        <form id="filterBarangForm" action="{{ route('barang.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
+        <form id="filterBarangForm" action="{{ route('barang.index') }}" method="GET" @submit.prevent="fetchData()" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
 
             {{-- Input Pencarian (Tekan Enter untuk Mencari) --}}
             <div class="lg:col-span-4 relative">
@@ -45,10 +36,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input type="search" name="search" value="{{ request('search') }}" 
+                <input type="search" name="search" x-model="search" @input.debounce.400ms="fetchData()" 
                        aria-label="Cari nama barang, kode, atau merk"
                        class="block w-full min-h-[42px] pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-800 bg-slate-50/80 border border-slate-300/80 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none transition shadow-xs" 
-                       placeholder="Cari nama barang, kode, merk... (Enter)">
+                       placeholder="Cari nama barang, kode, merk...">
             </div>
 
             {{-- Custom Dropdown Laboratorium (Auto Submit) --}}
@@ -361,6 +352,38 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($barangs as $barang)
+                    @php
+                        $reqKondisi = request('kondisi');
+                        $kondisiPerUnit = [];
+                        if ($barang->kondisi_per_unit) {
+                            $kondisiPerUnit = is_array($barang->kondisi_per_unit) 
+                                ? $barang->kondisi_per_unit 
+                                : (json_decode($barang->kondisi_per_unit, true) ?: []);
+                        }
+
+                        $matchingUnitIndices = [];
+                        for ($i = 1; $i <= (int)$barang->jumlah; $i++) {
+                            $unitKon = $kondisiPerUnit[$i] ?? $barang->kondisi;
+                            if (!$reqKondisi || $unitKon === $reqKondisi) {
+                                $matchingUnitIndices[] = $i;
+                            }
+                        }
+
+                        $activeKondisi = $reqKondisi ?: $barang->kondisi;
+                        $kBadgeText = match($activeKondisi) {
+                            'Baik' => 'text-emerald-600',
+                            'Perawatan' => 'text-amber-600',
+                            'Perbaikan' => 'text-orange-600',
+                            'Rusak Berat' => 'text-rose-600',
+                            'Hilang' => 'text-slate-600',
+                            default => 'text-slate-600'
+                        };
+
+                        $unitTagStr = '';
+                        if ($reqKondisi && count($matchingUnitIndices) < (int)$barang->jumlah) {
+                            $unitTagStr = 'Unit ' . implode(', ', $matchingUnitIndices);
+                        }
+                    @endphp
                     <tr class="hover:bg-slate-50/80 transition">
                         <td class="px-6 py-3.5 whitespace-nowrap">
                             <div class="flex items-center gap-3">
@@ -372,8 +395,13 @@
                                     @endif
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="font-extrabold text-slate-900 text-xs sm:text-sm truncate">{{ $barang->nama_barang }}</div>
-                                    <div class="text-[10px] sm:text-xs font-mono font-bold text-indigo-600 mt-0.5">{{ $barang->kode_barang }}</div>
+                                    <div class="font-extrabold text-slate-900 text-xs sm:text-sm truncate">
+                                        {{ $barang->nama_barang }}
+                                        @if($unitTagStr)
+                                            <span class="inline-block ml-1 text-xs font-extrabold text-slate-900">({{ $unitTagStr }})</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-[10px] sm:text-xs font-mono font-bold text-slate-800 mt-0.5">{{ $barang->kode_barang }}</div>
                                     @if($barang->merk)
                                     <div class="text-[10px] text-slate-400 font-medium truncate">{{ $barang->merk }}</div>
                                     @endif
@@ -381,27 +409,21 @@
                             </div>
                         </td>
                         <td class="px-6 py-3.5 whitespace-nowrap">
-                            <span class="bg-indigo-50 text-indigo-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-100 inline-block mb-1">{{ $barang->kategori }}</span>
+                            <span class="text-slate-900 text-xs font-extrabold inline-block mb-1">{{ $barang->kategori }}</span>
                             <div class="text-[11px] text-slate-500 font-medium flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 <span>{{ $barang->lokasi ?? 'Lab TKJ 1' }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-3.5 whitespace-nowrap">
-                            @php
-                                $kBadge = match($barang->kondisi) {
-                                    'Baik' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                    'Perawatan' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                    'Perbaikan' => 'bg-orange-50 text-orange-700 border-orange-200',
-                                    'Rusak Berat' => 'bg-rose-50 text-rose-700 border-rose-200',
-                                    'Hilang' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                    default => 'bg-slate-100 text-slate-700 border-slate-200'
-                                };
-                            @endphp
-                            <span class="{{ $kBadge }} border text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full inline-block">{{ $barang->kondisi }}</span>
+                            <span class="text-slate-900 text-xs sm:text-sm font-extrabold inline-block">{{ $activeKondisi }}</span>
                         </td>
                         <td class="px-6 py-3.5 whitespace-nowrap">
-                            <div class="font-extrabold text-slate-800 text-xs sm:text-sm">{{ $barang->stok_tersedia ?? $barang->jumlah }} / {{ $barang->jumlah }} <span class="text-[10px] font-normal text-slate-400">{{ $barang->satuan }}</span></div>
+                            @if($reqKondisi)
+                                <div class="font-extrabold text-indigo-900 text-xs sm:text-sm">{{ count($matchingUnitIndices) }} <span class="text-[10px] font-normal text-slate-500">{{ $barang->satuan }} ({{ $reqKondisi }})</span></div>
+                            @else
+                                <div class="font-extrabold text-slate-800 text-xs sm:text-sm">{{ $barang->stok_tersedia ?? $barang->jumlah }} / {{ $barang->jumlah }} <span class="text-[10px] font-normal text-slate-400">{{ $barang->satuan }}</span></div>
+                            @endif
                         </td>
                         <td class="px-6 py-3.5 whitespace-nowrap text-right font-medium">
                             <div class="flex justify-end items-center gap-2">

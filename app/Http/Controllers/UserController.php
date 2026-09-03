@@ -74,6 +74,10 @@ class UserController extends Controller
         if (!in_array($validated['role'], ['kepala_lab', 'koordinator_lab'])) {
             $validated['laboratorium_penugasan'] = null;
         }
+        if ($validated['role'] === 'admin') {
+            $validated['kelas_atau_jabatan'] = null;
+            $validated['laboratorium_penugasan'] = null;
+        }
 
         User::create($validated);
 
@@ -105,6 +109,10 @@ class UserController extends Controller
         }
 
         if (!in_array($validated['role'], ['kepala_lab', 'koordinator_lab'])) {
+            $validated['laboratorium_penugasan'] = null;
+        }
+        if ($validated['role'] === 'admin') {
+            $validated['kelas_atau_jabatan'] = null;
             $validated['laboratorium_penugasan'] = null;
         }
 

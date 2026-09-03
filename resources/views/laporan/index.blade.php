@@ -8,12 +8,13 @@
 
 <div class="space-y-4 sm:space-y-6" x-data="laporanFilter()" x-init="initPage()">
 
-    {{-- Filter & Actions Bar (Real-time Instant Filter dengan Animasi Dropdown & Fade In) --}}
+    {{-- Filter & Actions Bar (Staggered Entrance 1) --}}
     <div x-show="isLoaded"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 translate-y-3"
+         x-transition:enter="transition ease-out duration-500"
+         x-transition:enter-start="opacity-0 -translate-y-2"
          x-transition:enter-end="opacity-100 translate-y-0"
-         class="bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 p-4 sm:p-5 no-print relative z-30">
+         class="bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 p-4 sm:p-5 no-print relative z-30"
+         style="display: none;">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 flex-1">
                 
@@ -22,7 +23,8 @@
                     <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Laboratorium</label>
                     
                     <button type="button" @click="open = !open"
-                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs">
+                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white': open}">
                         <span x-text="filterLaboratorium ? filterLaboratorium : 'Semua Laboratorium'" :class="{'font-bold text-indigo-700': filterLaboratorium}"></span>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="{'rotate-180 text-indigo-600': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -60,7 +62,8 @@
                     <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kategori</label>
                     
                     <button type="button" @click="open = !open"
-                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs">
+                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white': open}">
                         <span x-text="filterKategori ? filterKategori : 'Semua Kategori'" :class="{'font-bold text-indigo-700': filterKategori}"></span>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="{'rotate-180 text-indigo-600': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -98,7 +101,8 @@
                     <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kondisi</label>
                     
                     <button type="button" @click="open = !open"
-                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs">
+                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white': open}">
                         <span x-text="filterKondisi ? filterKondisi : 'Semua Kondisi'" :class="{'font-bold text-indigo-700': filterKondisi}"></span>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="{'rotate-180 text-indigo-600': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -139,7 +143,8 @@
                     <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Sumber Dana</label>
                     
                     <button type="button" @click="open = !open"
-                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs">
+                            class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white': open}">
                         <span x-text="filterSumberDana ? filterSumberDana : 'Semua Sumber Dana'" :class="{'font-bold text-indigo-700': filterSumberDana}"></span>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="{'rotate-180 text-indigo-600': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -205,42 +210,46 @@
         <p class="text-xs text-slate-500 mt-1">Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }}</p>
     </div>
 
-    {{-- Stat Summaries (Animasi Masuk Bertingkat + Number Counter) --}}
+    {{-- Stat Summaries (Staggered Entrance 2 + Smooth Number Counter) --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <div x-show="isLoaded"
-             x-transition:enter="transition ease-out duration-300 delay-100"
-             x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-700 delay-100"
+             x-transition:enter-start="opacity-0 translate-y-6 scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200/60 shadow-xs">
+             class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200/60 shadow-xs hover:shadow-md transition-shadow"
+             style="display: none;">
             <p class="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider">Total Jenis Barang Terfilter</p>
-            <p class="text-2xl sm:text-3xl font-black text-slate-800 mt-1 tracking-tight" x-text="displayStats.jenis">0</p>
+            <p class="text-2xl sm:text-3xl font-black text-slate-800 mt-1 tracking-tight font-mono" x-text="displayStats.jenis">0</p>
         </div>
         <div x-show="isLoaded"
-             x-transition:enter="transition ease-out duration-300 delay-150"
-             x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-700 delay-150"
+             x-transition:enter-start="opacity-0 translate-y-6 scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200/60 shadow-xs">
+             class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200/60 shadow-xs hover:shadow-md transition-shadow"
+             style="display: none;">
             <p class="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider">Total Unit Barang Terfilter</p>
-            <p class="text-2xl sm:text-3xl font-black text-indigo-600 mt-1 tracking-tight" x-text="displayStats.unit">0</p>
+            <p class="text-2xl sm:text-3xl font-black text-indigo-600 mt-1 tracking-tight font-mono" x-text="displayStats.unit">0</p>
         </div>
         <div x-show="isLoaded"
-             x-transition:enter="transition ease-out duration-300 delay-200"
-             x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-700 delay-200"
+             x-transition:enter-start="opacity-0 translate-y-6 scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200/60 shadow-xs">
+             class="bg-white rounded-2xl sm:rounded-3xl p-5 border border-slate-200/60 shadow-xs hover:shadow-md transition-shadow"
+             style="display: none;">
             <p class="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider">Total Nilai Aset Terfilter</p>
-            <p class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 tracking-tight" x-text="'Rp ' + displayStats.nilai.toLocaleString('id-ID')">Rp 0</p>
+            <p class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 tracking-tight font-mono" x-text="'Rp ' + displayStats.nilai.toLocaleString('id-ID')">Rp 0</p>
         </div>
     </div>
 
-    {{-- Rekap Per Kategori & Rekap Kondisi --}}
+    {{-- Rekap Per Kategori & Rekap Kondisi (Staggered Entrance 3) --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {{-- Rekap per Kategori --}}
         <div x-show="isLoaded"
-             x-transition:enter="transition ease-out duration-300 delay-250"
-             x-transition:enter-start="opacity-0 translate-y-3"
+             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-700 delay-250"
+             x-transition:enter-start="opacity-0 translate-y-6"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 overflow-hidden">
+             class="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 overflow-hidden"
+             style="display: none;">
             <div class="px-5 py-4 border-b border-slate-800 bg-slate-900 text-white">
                 <h3 class="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Rekapitulasi Per Kategori</h3>
             </div>
@@ -260,15 +269,28 @@
                                 <td class="px-5 py-3.5 font-bold text-slate-800">{{ $kategori }}</td>
                                 <td class="px-5 py-3.5 text-center text-slate-600 font-semibold row-kat-jenis">{{ $items->count() }}</td>
                                 <td class="px-5 py-3.5 text-center text-slate-600 font-semibold row-kat-unit">{{ $items->sum('jumlah') }}</td>
-                                <td class="px-5 py-3.5 text-right font-extrabold text-slate-800 row-kat-nilai">
+                                <td class="px-5 py-3.5 text-right font-extrabold text-slate-800 font-mono row-kat-nilai">
                                     Rp {{ number_format($items->sum(fn($b) => ($b->harga ?? 0) * $b->jumlah), 0, ',', '.') }}
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="4" class="px-5 py-6 text-center text-slate-400 text-xs">Tidak ada data kategori.</td>
+                            <tr id="empty-kat-row">
+                                <td colspan="4" class="px-5 py-8 text-center bg-slate-50/50">
+                                    <div class="py-2">
+                                        <p class="text-xs sm:text-sm font-bold text-slate-700">Tidak ada rekapitulasi kategori</p>
+                                        <p class="text-[11px] text-slate-400 mt-0.5">Belum ada barang terdaftar pada laboratorium ini.</p>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
+                        <tr id="empty-kat-row-js" style="display: none;">
+                            <td colspan="4" class="px-5 py-8 text-center bg-slate-50/50">
+                                <div class="py-2">
+                                    <p class="text-xs sm:text-sm font-bold text-slate-700">Tidak ada rekapitulasi kategori</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Tidak ditemukan data rekapitulasi untuk filter yang Anda pilih.</p>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -276,10 +298,11 @@
 
         {{-- Rekap per Kondisi dengan Animasi Garis Bar --}}
         <div x-show="isLoaded"
-             x-transition:enter="transition ease-out duration-300 delay-300"
-             x-transition:enter-start="opacity-0 translate-y-3"
+             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-700 delay-300"
+             x-transition:enter-start="opacity-0 translate-y-6"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 overflow-hidden">
+             class="bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 overflow-hidden"
+             style="display: none;">
             <div class="px-5 py-4 border-b border-slate-800 bg-slate-900 text-white">
                 <h3 class="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Status Kondisi Barang</h3>
             </div>
@@ -296,11 +319,11 @@
                                 <span class="w-2 h-2 rounded-full bg-{{ $color }}-500"></span>
                                 <span>{{ $status }}</span>
                             </span>
-                            <span class="kondisi-text-unit font-bold text-slate-800">{{ $unitKondisi }} unit ({{ $persen }}%)</span>
+                            <span class="kondisi-text-unit font-bold text-slate-800 font-mono">{{ $unitKondisi }} unit ({{ $persen }}%)</span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                            {{-- Line bar animated with smooth transition --}}
-                            <div class="kondisi-bar-fill bg-{{ $color }}-500 h-2 rounded-full transition-all duration-700 ease-out" 
+                            {{-- Smooth Expansion Progress Line --}}
+                            <div class="kondisi-bar-fill bg-{{ $color }}-500 h-2 rounded-full transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1)" 
                                  style="width: 0%"></div>
                         </div>
                     </div>
@@ -309,33 +332,34 @@
         </div>
     </div>
 
-    {{-- Tabel Inventaris Lengkap --}}
+    {{-- Tabel Inventaris Lengkap (Staggered Entrance 4) --}}
     <div x-show="isLoaded"
-         x-transition:enter="transition ease-out duration-300 delay-350"
-         x-transition:enter-start="opacity-0 translate-y-3"
+         x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-700 delay-350"
+         x-transition:enter-start="opacity-0 translate-y-6"
          x-transition:enter-end="opacity-100 translate-y-0"
-         class="bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 overflow-hidden">
+         class="bg-white rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/60 overflow-hidden"
+         style="display: none;">
         <div class="px-5 py-4 border-b border-slate-800 bg-slate-900 text-white flex items-center justify-between">
             <h3 class="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Rincian Seluruh Barang</h3>
-            <span class="text-xs text-slate-300 font-medium" id="count-terfilter">{{ $barangs->count() }} barang ditampilkan</span>
+            <span class="text-xs sm:text-sm text-slate-300 font-bold" id="count-terfilter">{{ $barangs->count() }} barang ditampilkan</span>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse" id="table-laporan">
                 <thead class="bg-slate-50/90 text-slate-600 border-b border-slate-200">
-                    <tr class="text-[10px] sm:text-[11px] uppercase tracking-wider font-bold text-slate-600">
-                        <th class="px-4 py-3.5 font-bold">No</th>
-                        <th class="px-4 py-3.5 font-bold">Kode</th>
-                        <th class="px-4 py-3.5 font-bold">Nama Barang</th>
-                        <th class="px-4 py-3.5 font-bold">Laboratorium</th>
-                        <th class="px-4 py-3.5 font-bold">Kategori</th>
-                        <th class="px-4 py-3.5 text-center font-bold">Kondisi</th>
-                        <th class="px-4 py-3.5 text-center font-bold">Jumlah</th>
-                        <th class="px-4 py-3.5 font-bold">Lokasi</th>
-                        <th class="px-4 py-3.5 text-right font-bold">Harga Satuan</th>
-                        <th class="px-4 py-3.5 text-right font-bold">Nilai Total</th>
+                    <tr class="text-xs sm:text-sm uppercase tracking-wider font-extrabold text-slate-700">
+                        <th class="px-4 py-3.5 font-extrabold">No</th>
+                        <th class="px-4 py-3.5 font-extrabold">Kode</th>
+                        <th class="px-4 py-3.5 font-extrabold">Nama Barang</th>
+                        <th class="px-4 py-3.5 font-extrabold">Laboratorium</th>
+                        <th class="px-4 py-3.5 font-extrabold">Kategori</th>
+                        <th class="px-4 py-3.5 text-center font-extrabold">Kondisi</th>
+                        <th class="px-4 py-3.5 text-center font-extrabold">Jumlah</th>
+                        <th class="px-4 py-3.5 font-extrabold">Lokasi</th>
+                        <th class="px-4 py-3.5 text-right font-extrabold">Harga Satuan</th>
+                        <th class="px-4 py-3.5 text-right font-extrabold">Nilai Total</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs bg-white">
+                <tbody class="divide-y divide-slate-100 text-sm bg-white">
                     @forelse($barangs as $index => $b)
                         <tr class="barang-row hover:bg-slate-50/50 transition-colors"
                             data-laboratorium="{{ $b->laboratorium }}"
@@ -344,47 +368,64 @@
                             data-kondisi-per-unit="{{ $b->kondisi_per_unit }}"
                             data-sumber-dana="{{ $b->sumber_dana }}"
                             data-jumlah="{{ $b->jumlah }}"
-                            data-harga="{{ $b->harga ?? 0 }}">
-                            <td class="px-4 py-3.5 text-slate-400 font-medium row-number">{{ $index + 1 }}</td>
-                            <td class="px-4 py-3.5 font-mono font-bold text-indigo-700">{{ $b->kode_barang }}</td>
-                            <td class="px-4 py-3.5">
-                                <p class="font-bold text-slate-800">{{ $b->nama_barang }}</p>
-                                @if($b->merk)<p class="text-[10px] text-slate-400 mt-0.5">{{ $b->merk }}</p>@endif
+                            data-harga="{{ $b->harga ?? 0 }}"
+                            data-nama="{{ $b->nama_barang }}"
+                            data-merk="{{ $b->merk }}"
+                            data-satuan="{{ $b->satuan }}">
+                            <td class="px-4 py-4 text-slate-500 font-bold row-number">{{ $index + 1 }}</td>
+                            <td class="px-4 py-4 font-mono font-extrabold text-indigo-700 text-sm sm:text-base">{{ $b->kode_barang }}</td>
+                            <td class="px-4 py-4 row-nama">
+                                <p class="font-extrabold text-slate-900 text-sm sm:text-base">{{ $b->nama_barang }}</p>
+                                @if($b->merk)<p class="text-xs text-slate-400 font-medium mt-0.5">{{ $b->merk }}</p>@endif
                             </td>
-                            <td class="px-4 py-3.5">
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 @if($b->laboratorium)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                        {{ str_replace('Laboratorium ', '', $b->laboratorium) }}
-                                    </span>
+                                    <span class="font-bold text-slate-900 text-xs sm:text-sm">{{ $b->laboratorium }}</span>
                                 @else
                                     <span class="text-slate-300">—</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3.5 text-slate-600 font-medium">{{ $b->kategori }}</td>
-                            <td class="px-4 py-3.5 text-center">
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold inline-block
-                                    @if($b->kondisi == 'Baik') bg-emerald-50 text-emerald-700 border border-emerald-200
-                                    @elseif($b->kondisi == 'Perawatan') bg-yellow-50 text-yellow-700 border border-yellow-200
-                                    @elseif($b->kondisi == 'Perbaikan') bg-orange-50 text-orange-700 border border-orange-200
-                                    @elseif($b->kondisi == 'Rusak Berat') bg-red-50 text-red-700 border border-red-200
-                                    @else bg-slate-50 text-slate-700 border border-slate-200 @endif">
+                            <td class="px-4 py-4 text-slate-700 font-bold text-sm">{{ $b->kategori }}</td>
+                            <td class="px-4 py-4 text-center row-kondisi whitespace-nowrap">
+                                <span class="font-extrabold text-xs sm:text-sm text-slate-900 inline-block">
                                     {{ $b->kondisi }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3.5 text-center font-bold text-slate-700">{{ $b->jumlah }} <span class="text-[10px] font-normal text-slate-400">{{ $b->satuan }}</span></td>
-                            <td class="px-4 py-3.5 text-slate-600">{{ $b->lokasi ?? '—' }}</td>
-                            <td class="px-4 py-3.5 text-right text-slate-600 font-mono">
+                            <td class="px-4 py-4 text-center font-extrabold text-slate-900 text-sm sm:text-base row-jumlah">
+                                {{ $b->jumlah }} <span class="text-xs font-medium text-slate-500">{{ $b->satuan }}</span>
+                            </td>
+                            <td class="px-4 py-4 text-slate-700 font-medium text-sm">{{ $b->lokasi ?? '—' }}</td>
+                            <td class="px-4 py-4 text-right text-slate-700 font-mono font-bold text-sm">
                                 {{ $b->harga ? 'Rp '.number_format($b->harga, 0, ',', '.') : '—' }}
                             </td>
-                            <td class="px-4 py-3.5 text-right font-extrabold text-slate-800 font-mono">
+                            <td class="px-4 py-4 text-right font-black text-slate-900 font-mono text-sm sm:text-base row-nilai">
                                 {{ $b->harga ? 'Rp '.number_format($b->harga * $b->jumlah, 0, ',', '.') : '—' }}
                             </td>
                         </tr>
                     @empty
                         <tr id="empty-row">
-                            <td colspan="10" class="px-5 py-8 text-center text-slate-400">Tidak ada data inventaris.</td>
+                            <td colspan="10" class="px-5 py-12 text-center bg-slate-50/50">
+                                <div class="py-4 max-w-md mx-auto">
+                                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100/80 shadow-xs">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                                    </div>
+                                    <p class="font-extrabold text-slate-800 text-sm sm:text-base">Tidak ada data inventaris barang</p>
+                                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Belum ada perangkat atau alat laboratorium yang terdaftar untuk kategori ini.</p>
+                                </div>
+                            </td>
                         </tr>
                     @endforelse
+                    <tr id="empty-row-js" style="display: none;">
+                        <td colspan="10" class="px-5 py-12 text-center bg-slate-50/50">
+                            <div class="py-4 max-w-md mx-auto">
+                                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-amber-100/80 shadow-xs">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+                                <p class="font-extrabold text-slate-800 text-sm sm:text-base">Tidak ada barang yang cocok dengan filter</p>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Silakan sesuaikan pilihan laboratorium, kategori, kondisi barang, atau tekan tombol Reset.</p>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -392,209 +433,260 @@
 </div>
 
 <script>
-function laporanFilter() {
-    return {
-        isLoaded: false,
-        filterLaboratorium: '',
-        filterKategori: '',
-        filterKondisi: '',
-        filterSumberDana: '',
+(function() {
+    function createLaporanFilter() {
+        return {
+            isLoaded: false,
+            filterLaboratorium: '',
+            filterKategori: '',
+            filterKondisi: '',
+            filterSumberDana: '',
+            animationFrameId: null,
 
-        rawStats: {
-            jenis: {{ $barangs->count() }},
-            unit: {{ $barangs->sum('jumlah') }},
-            nilai: {{ (float) $totalNilai }}
-        },
+            rawStats: {
+                jenis: {{ $barangs->count() }},
+                unit: {{ $barangs->sum('jumlah') }},
+                nilai: {{ (float) $totalNilai }}
+            },
 
-        displayStats: {
-            jenis: 0,
-            unit: 0,
-            nilai: 0
-        },
+            displayStats: {
+                jenis: 0,
+                unit: 0,
+                nilai: 0
+            },
 
-        initPage() {
-            setTimeout(() => {
-                this.isLoaded = true;
-                this.animateCounters(this.rawStats.jenis, this.rawStats.unit, this.rawStats.nilai);
-                this.animateProgressBars();
-            }, 80);
-        },
+            initPage() {
+                setTimeout(() => {
+                    this.isLoaded = true;
+                    this.animateCounters(this.rawStats.jenis, this.rawStats.unit, this.rawStats.nilai, 1000);
+                    setTimeout(() => {
+                        this.animateProgressBars();
+                    }, 250);
+                }, 50);
+            },
 
-        animateCounters(targetJenis, targetUnit, targetNilai) {
-            const duration = 650;
-            const startTime = performance.now();
-            const startJenis = this.displayStats.jenis;
-            const startUnit = this.displayStats.unit;
-            const startNilai = this.displayStats.nilai;
-
-            const step = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                // Ease-out cubic formula
-                const easeProgress = 1 - Math.pow(1 - progress, 3);
-
-                this.displayStats.jenis = Math.round(startJenis + (targetJenis - startJenis) * easeProgress);
-                this.displayStats.unit = Math.round(startUnit + (targetUnit - startUnit) * easeProgress);
-                this.displayStats.nilai = Math.round(startNilai + (targetNilai - startNilai) * easeProgress);
-
-                if (progress < 1) {
-                    requestAnimationFrame(step);
-                } else {
-                    this.displayStats.jenis = targetJenis;
-                    this.displayStats.unit = targetUnit;
-                    this.displayStats.nilai = targetNilai;
+            animateCounters(targetJenis, targetUnit, targetNilai, duration = 750) {
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
                 }
-            };
-            requestAnimationFrame(step);
-        },
 
-        animateProgressBars() {
-            document.querySelectorAll('.rekap-kondisi-block').forEach(cBlock => {
-                const percent = cBlock.getAttribute('data-percent') || 0;
-                const bar = cBlock.querySelector('.kondisi-bar-fill');
-                if (bar) {
-                    bar.style.width = percent + '%';
-                }
-            });
-        },
+                const startTime = performance.now();
+                const startJenis = this.displayStats.jenis;
+                const startUnit = this.displayStats.unit;
+                const startNilai = this.displayStats.nilai;
 
-        selectLaboratorium(val) {
-            this.filterLaboratorium = val;
-            this.applyFilter();
-        },
+                const step = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutProgress = 1 - Math.pow(1 - progress, 3);
 
-        selectKategori(val) {
-            this.filterKategori = val;
-            this.applyFilter();
-        },
+                    this.displayStats.jenis = Math.round(startJenis + (targetJenis - startJenis) * easeOutProgress);
+                    this.displayStats.unit = Math.round(startUnit + (targetUnit - startUnit) * easeOutProgress);
+                    this.displayStats.nilai = Math.round(startNilai + (targetNilai - startNilai) * easeOutProgress);
 
-        selectKondisi(val) {
-            this.filterKondisi = val;
-            this.applyFilter();
-        },
+                    if (progress < 1) {
+                        this.animationFrameId = requestAnimationFrame(step);
+                    } else {
+                        this.displayStats.jenis = targetJenis;
+                        this.displayStats.unit = targetUnit;
+                        this.displayStats.nilai = targetNilai;
+                        this.animationFrameId = null;
+                    }
+                };
 
-        selectSumberDana(val) {
-            this.filterSumberDana = val;
-            this.applyFilter();
-        },
+                this.animationFrameId = requestAnimationFrame(step);
+            },
 
-        resetFilter() {
-            this.filterLaboratorium = '';
-            this.filterKategori = '';
-            this.filterKondisi = '';
-            this.filterSumberDana = '';
-            this.applyFilter();
-        },
+            animateProgressBars() {
+                document.querySelectorAll('.rekap-kondisi-block').forEach(cBlock => {
+                    const percent = cBlock.getAttribute('data-percent') || 0;
+                    const bar = cBlock.querySelector('.kondisi-bar-fill');
+                    if (bar) {
+                        bar.style.width = percent + '%';
+                    }
+                });
+            },
 
-        applyFilter() {
-            const lab = this.filterLaboratorium;
-            const kat = this.filterKategori;
-            const kon = this.filterKondisi;
-            const sd = this.filterSumberDana;
+            selectLaboratorium(val) {
+                this.filterLaboratorium = val;
+                this.applyFilter();
+            },
 
-            const rows = document.querySelectorAll('.barang-row');
-            let visibleCount = 0;
-            let visibleUnits = 0;
-            let visibleNilai = 0;
+            selectKategori(val) {
+                this.filterKategori = val;
+                this.applyFilter();
+            },
 
-            const katStats = {};
-            const konStats = { 'Baik': 0, 'Perawatan': 0, 'Perbaikan': 0, 'Rusak Berat': 0, 'Hilang': 0 };
+            selectKondisi(val) {
+                this.filterKondisi = val;
+                this.applyFilter();
+            },
 
-            rows.forEach(row => {
-                const rLab = row.getAttribute('data-laboratorium');
-                const rKat = row.getAttribute('data-kategori');
-                const rKon = row.getAttribute('data-kondisi');
-                const rSd = row.getAttribute('data-sumber-dana');
-                const rJumlah = parseInt(row.getAttribute('data-jumlah')) || 0;
-                const rHarga = parseFloat(row.getAttribute('data-harga')) || 0;
+            selectSumberDana(val) {
+                this.filterSumberDana = val;
+                this.applyFilter();
+            },
 
-                const rKondisiPerUnitStr = row.getAttribute('data-kondisi-per-unit');
-                let rKondisiPerUnit = {};
-                try {
-                    rKondisiPerUnit = JSON.parse(rKondisiPerUnitStr) || {};
-                } catch(e) {}
+            resetFilter() {
+                this.filterLaboratorium = '';
+                this.filterKategori = '';
+                this.filterKondisi = '';
+                this.filterSumberDana = '';
+                this.applyFilter();
+            },
 
-                let hasMatchingCondition = false;
-                if (!kon) {
-                    hasMatchingCondition = true;
-                } else {
-                    if (rKon === kon) hasMatchingCondition = true;
+            applyFilter() {
+                const lab = this.filterLaboratorium;
+                const kat = this.filterKategori;
+                const kon = this.filterKondisi;
+                const sd = this.filterSumberDana;
+
+                const rows = document.querySelectorAll('.barang-row');
+                let visibleCount = 0;
+                let visibleUnits = 0;
+                let visibleNilai = 0;
+
+                const katStats = {};
+                const konStats = { 'Baik': 0, 'Perawatan': 0, 'Perbaikan': 0, 'Rusak Berat': 0, 'Hilang': 0 };
+
+                rows.forEach(row => {
+                    const rLab = row.getAttribute('data-laboratorium');
+                    const rKat = row.getAttribute('data-kategori');
+                    const rKon = row.getAttribute('data-kondisi');
+                    const rSd = row.getAttribute('data-sumber-dana');
+                    const rJumlah = parseInt(row.getAttribute('data-jumlah')) || 0;
+                    const rHarga = parseFloat(row.getAttribute('data-harga')) || 0;
+                    const rNama = row.getAttribute('data-nama') || '';
+                    const rMerk = row.getAttribute('data-merk') || '';
+                    const rSatuan = row.getAttribute('data-satuan') || 'Unit';
+
+                    const rKondisiPerUnitStr = row.getAttribute('data-kondisi-per-unit');
+                    let rKondisiPerUnit = {};
+                    try {
+                        rKondisiPerUnit = JSON.parse(rKondisiPerUnitStr) || {};
+                    } catch(e) {}
+
+                    // Calculate matching units
+                    let matchingUnits = [];
                     for (let i = 1; i <= rJumlah; i++) {
                         const unitKon = rKondisiPerUnit[i] || rKon;
-                        if (unitKon === kon) {
-                            hasMatchingCondition = true;
-                            break;
-                        }
-                    }
-                }
-
-                const matchLab = !lab || rLab === lab;
-                const matchKat = !kat || rKat === kat;
-                const matchKon = hasMatchingCondition;
-                const matchSd = !sd || rSd === sd;
-
-                if (matchLab && matchKat && matchKon && matchSd) {
-                    row.style.display = '';
-                    visibleCount++;
-                    visibleUnits += rJumlah;
-                    visibleNilai += (rHarga * rJumlah);
-
-                    if (!katStats[rKat]) {
-                        katStats[rKat] = { jenis: 0, unit: 0, nilai: 0 };
-                    }
-                    katStats[rKat].jenis++;
-                    katStats[rKat].unit += rJumlah;
-                    katStats[rKat].nilai += (rHarga * rJumlah);
-
-                    for (let i = 1; i <= rJumlah; i++) {
-                        const unitKon = rKondisiPerUnit[i] || rKon;
-                        if (konStats.hasOwnProperty(unitKon)) {
-                            konStats[unitKon]++;
+                        if (!kon || unitKon === kon) {
+                            matchingUnits.push({ index: i, kondisi: unitKon });
                         }
                     }
 
-                    const numCell = row.querySelector('.row-number');
-                    if (numCell) numCell.textContent = visibleCount;
-                } else {
-                    row.style.display = 'none';
+                    const matchLab = !lab || rLab === lab;
+                    const matchKat = !kat || rKat === kat;
+                    const matchKon = matchingUnits.length > 0;
+                    const matchSd = !sd || rSd === sd;
+
+                    if (matchLab && matchKat && matchKon && matchSd) {
+                        row.style.display = '';
+                        visibleCount++;
+                        const countForThisRow = kon ? matchingUnits.length : rJumlah;
+                        visibleUnits += countForThisRow;
+                        visibleNilai += (rHarga * countForThisRow);
+
+                        if (!katStats[rKat]) {
+                            katStats[rKat] = { jenis: 0, unit: 0, nilai: 0 };
+                        }
+                        katStats[rKat].jenis++;
+                        katStats[rKat].unit += countForThisRow;
+                        katStats[rKat].nilai += (rHarga * countForThisRow);
+
+                        // Update DOM cell contents for unit level clarity
+                        const namaCell = row.querySelector('.row-nama');
+                        if (namaCell) {
+                            let unitBadge = '';
+                            if (kon && countForThisRow < rJumlah) {
+                                const unitListStr = matchingUnits.map(u => 'Unit ' + u.index).join(', ');
+                                unitBadge = `<span class="inline-block mt-1 px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-100">${unitListStr}</span>`;
+                            }
+                            namaCell.innerHTML = `<p class="font-extrabold text-slate-900 text-sm sm:text-base">${rNama}</p>${rMerk ? `<p class="text-xs text-slate-400 font-medium">${rMerk}</p>` : ''}${unitBadge}`;
+                        }
+
+                        const kondisiCell = row.querySelector('.row-kondisi');
+                        if (kondisiCell) {
+                            const activeKondisi = kon || rKon;
+                            kondisiCell.innerHTML = `<span class="font-extrabold text-xs sm:text-sm text-slate-900 inline-block">${activeKondisi}</span>`;
+                        }
+
+                        const jumlahCell = row.querySelector('.row-jumlah');
+                        if (jumlahCell) {
+                            jumlahCell.innerHTML = `<span class="font-extrabold text-slate-900 text-sm sm:text-base">${countForThisRow}</span> <span class="text-xs font-medium text-slate-500">${rSatuan}</span>`;
+                        }
+
+                        const nilaiCell = row.querySelector('.row-nilai');
+                        if (nilaiCell) {
+                            nilaiCell.textContent = rHarga ? 'Rp ' + (rHarga * countForThisRow).toLocaleString('id-ID') : '—';
+                        }
+
+                        matchingUnits.forEach(u => {
+                            if (konStats.hasOwnProperty(u.kondisi)) {
+                                konStats[u.kondisi]++;
+                            }
+                        });
+
+                        const numCell = row.querySelector('.row-number');
+                        if (numCell) numCell.textContent = visibleCount;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                this.animateCounters(visibleCount, visibleUnits, visibleNilai, 550);
+
+                const countEl = document.getElementById('count-terfilter');
+                if (countEl) countEl.textContent = visibleCount + ' barang ditampilkan';
+
+                document.querySelectorAll('.rekap-kategori-row').forEach(kRow => {
+                    const kName = kRow.getAttribute('data-kategori');
+                    if (katStats[kName]) {
+                        kRow.style.display = '';
+                        kRow.querySelector('.row-kat-jenis').textContent = katStats[kName].jenis;
+                        kRow.querySelector('.row-kat-unit').textContent = katStats[kName].unit;
+                        kRow.querySelector('.row-kat-nilai').textContent = 'Rp ' + katStats[kName].nilai.toLocaleString('id-ID');
+                    } else {
+                        kRow.style.display = 'none';
+                    }
+                });
+
+                const emptyKatJs = document.getElementById('empty-kat-row-js');
+                if (emptyKatJs) {
+                    emptyKatJs.style.display = (Object.keys(katStats).length === 0 && visibleCount === 0) ? '' : 'none';
                 }
-            });
 
-            // Jalankan animasi angka yang dihitung ulang
-            this.animateCounters(visibleCount, visibleUnits, visibleNilai);
-
-            const countEl = document.getElementById('count-terfilter');
-            if (countEl) countEl.textContent = visibleCount + ' barang ditampilkan';
-
-            // Update Rekap Kategori
-            document.querySelectorAll('.rekap-kategori-row').forEach(kRow => {
-                const kName = kRow.getAttribute('data-kategori');
-                if (katStats[kName]) {
-                    kRow.style.display = '';
-                    kRow.querySelector('.row-kat-jenis').textContent = katStats[kName].jenis;
-                    kRow.querySelector('.row-kat-unit').textContent = katStats[kName].unit;
-                    kRow.querySelector('.row-kat-nilai').textContent = 'Rp ' + katStats[kName].nilai.toLocaleString('id-ID');
-                } else {
-                    kRow.style.display = 'none';
+                const emptyRowJs = document.getElementById('empty-row-js');
+                if (emptyRowJs) {
+                    emptyRowJs.style.display = (visibleCount === 0) ? '' : 'none';
                 }
-            });
 
-            // Update & Animate Rekap Kondisi Progress Bars
-            const totalForProgress = visibleUnits || 1;
-            document.querySelectorAll('.rekap-kondisi-block').forEach(cBlock => {
-                const cStatus = cBlock.getAttribute('data-status');
-                const cUnit = konStats[cStatus] || 0;
-                const cPercent = Math.round((cUnit / totalForProgress) * 100);
+                const totalForProgress = visibleUnits || 1;
+                document.querySelectorAll('.rekap-kondisi-block').forEach(cBlock => {
+                    const cStatus = cBlock.getAttribute('data-status');
+                    const cUnit = konStats[cStatus] || 0;
+                    const cPercent = Math.round((cUnit / totalForProgress) * 100);
 
-                const txt = cBlock.querySelector('.kondisi-text-unit');
-                if (txt) txt.textContent = cUnit + ' unit (' + cPercent + '%)';
+                    const txt = cBlock.querySelector('.kondisi-text-unit');
+                    if (txt) txt.textContent = cUnit + ' unit (' + cPercent + '%)';
 
-                const bar = cBlock.querySelector('.kondisi-bar-fill');
-                if (bar) bar.style.width = cPercent + '%';
-            });
-        }
-    };
-}
+                    const bar = cBlock.querySelector('.kondisi-bar-fill');
+                    if (bar) bar.style.width = cPercent + '%';
+                });
+            }
+        };
+    }
+
+    window.laporanFilter = createLaporanFilter;
+
+    if (window.Alpine) {
+        Alpine.data('laporanFilter', createLaporanFilter);
+    } else {
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('laporanFilter', createLaporanFilter);
+        });
+    }
+})();
 </script>
 
 @endsection

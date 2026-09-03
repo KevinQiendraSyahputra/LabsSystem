@@ -466,10 +466,27 @@
                         <span>Kelola Peminjaman</span>
                     </div>
                     @php
-                        $pendingCount = \App\Models\Peminjaman::where('status', 'like', '%Menunggu%')->orWhereNull('status')->count();
+                        if (request()->routeIs('peminjaman.*')) {
+                            session(['peminjaman_last_read_at' => now()->toDateTimeString()]);
+                        }
+
+                        $lastReadAt = session('peminjaman_last_read_at');
+
+                        if (request()->routeIs('peminjaman.*')) {
+                            $pendingCount = 0;
+                        } else {
+                            $pendingQuery = \App\Models\Peminjaman::where(function($q) {
+                                $q->where('status', 'like', '%Menunggu%')->orWhereNull('status');
+                            });
+
+                            if ($lastReadAt) {
+                                $pendingQuery->where('created_at', '>', $lastReadAt);
+                            }
+                            $pendingCount = $pendingQuery->count();
+                        }
                     @endphp
                     @if($pendingCount > 0)
-                        <span class="bg-rose-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-sm animate-pulse ml-auto">
+                        <span class="bg-rose-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-xs animate-pulse ml-auto">
                             {{ $pendingCount }}
                         </span>
                     @endif
@@ -571,7 +588,7 @@
 
             @elseif(Auth::user()->isKoordinatorLab())
                 {{-- MENU KHUSUS KOORDINATOR LAB --}}
-                @php $userLabLabel = Auth::user()->laboratorium_penugasan ? str_replace('Laboratorium ', '', Auth::user()->laboratorium_penugasan) : 'Lab'; @endphp
+                @php $userLabLabel = Auth::user()->laboratorium_penugasan ?: 'Laboratorium TKJ'; @endphp
                 
                 {{-- 1. Layanan Praktikum --}}
                 <div class="sidebar-group-label flex items-center gap-2 text-slate-400 mt-2">
@@ -776,7 +793,7 @@
 
         {{-- Topbar (Sembunyikan di halaman Live Chat / Bantuan agar menjadi workspace full-bleed sesuai Foto 1) --}}
         @unless(request()->routeIs('bantuan*'))
-        <header class="bg-white border-b border-slate-200 px-4 lg:px-6 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-sm no-print flex-shrink-0">
+        <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs no-print flex-shrink-0">
             <div class="flex items-center gap-3">
                 <button @click="sidebarOpen = true" class="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1191,6 +1208,12 @@
                         s.src = src;
                         document.head.appendChild(s);
                     }
+                }
+
+                const introEl = document.getElementById('introScreen');
+                if (introEl) {
+                    introEl.style.display = 'none';
+                    introEl.classList.remove('is-active', 'no-transition');
                 }
 
                 const inlineScripts = currentMain.querySelectorAll('script');

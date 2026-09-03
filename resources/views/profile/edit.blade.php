@@ -30,7 +30,7 @@
     } else {
         $pilihanOpsi = [
             'Jabatan Pengelola / Guru' => [
-                'Kepala Lab TKJ',
+                'Kepala Lab',
                 'Guru Produktif TKJ',
                 'Teknisi Lab TKJ',
                 'Staf / Karyawan',
@@ -604,7 +604,7 @@
 
                 @if($roleName === 'admin')
                     {{-- Khusus Admin Murni: Bisa mengatur jabatannya sendiri --}}
-                    <div class="relative" x-data="{ openJabatan: false, selectedJabatan: '{{ old('kelas_atau_jabatan', $user->kelas_atau_jabatan ?? 'Kepala Lab TKJ') }}' }" @click.outside="openJabatan = false">
+                    <div class="relative" x-data="{ openJabatan: false, selectedJabatan: '{{ old('kelas_atau_jabatan', $user->kelas_atau_jabatan ?? 'Kepala Lab') }}' }" @click.outside="openJabatan = false">
                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                             Jabatan / Keterangan
                         </label>

@@ -9,7 +9,7 @@
 @php
     $daftarJabatanKelas = [
         'Jabatan Pengelola / Guru' => [
-            'Kepala Lab TKJ',
+            'Kepala Lab',
             'Guru Produktif TKJ',
             'Teknisi Lab TKJ',
             'Staf / Karyawan',
@@ -32,7 +32,140 @@
 @endphp
 
 {{-- Container Utama dengan Alpine.js AJAX State --}}
-<div x-data="penggunaIndex()">
+<div x-data="{
+    initLoading: true,
+    isDataReady: false,
+    deleteModal: false,
+    isDeleting: false,
+    deleteActionUrl: '',
+    deleteUserName: '',
+    _loadingDone: false,
+    search: @js(request('search', '')),
+    role: @js(request('role', '')),
+    openRoleFilter: false,
+
+    init() {
+        if (this._loadingDone) return;
+        document.body.style.overflow = 'hidden';
+        this.verifyAndCompleteLoading();
+    },
+
+    verifyAndCompleteLoading() {
+        const startTime = Date.now();
+        const minDuration = 1000;
+
+        const checkReady = () => {
+            const tableBody = document.querySelector('tbody');
+            const mobileCards = document.querySelector('.space-y-3.md\\:hidden');
+            const images = Array.from(document.querySelectorAll('#usersDataContainer img'));
+            
+            const isDomMounted = (tableBody && tableBody.children.length > 0) || (mobileCards && mobileCards.children.length > 0);
+            const areImagesLoaded = images.length === 0 || images.every(img => img.complete);
+            const elapsedTime = Date.now() - startTime;
+
+            if (isDomMounted && areImagesLoaded && elapsedTime >= minDuration) {
+                this._loadingDone = true;
+                this.isDataReady = true;
+                this.initLoading = false;
+                document.body.style.overflow = '';
+            } else {
+                setTimeout(checkReady, 80);
+            }
+        };
+
+        setTimeout(() => {
+            if (!this._loadingDone) {
+                this._loadingDone = true;
+                this.isDataReady = true;
+                this.initLoading = false;
+                document.body.style.overflow = '';
+            }
+        }, 2200);
+
+        setTimeout(checkReady, 150);
+    },
+
+    async fetchData(customUrl = null) {
+        this.initLoading = true;
+        this._loadingDone = false;
+        document.body.style.overflow = 'hidden';
+
+        let url = customUrl;
+        if (!url) {
+            const params = new URLSearchParams();
+            if (this.search) params.append('search', this.search);
+            if (this.role) params.append('role', this.role);
+            url = '{{ route('pengguna.index') }}' + (params.toString() ? '?' + params.toString() : '');
+        }
+        window.history.pushState({}, '', url);
+
+        try {
+            const res = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const html = await res.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContainer = doc.getElementById('usersDataContainer');
+
+            if (newContainer) {
+                const currentContainer = document.getElementById('usersDataContainer');
+                if (currentContainer) {
+                    currentContainer.innerHTML = newContainer.innerHTML;
+                    if (window.Alpine) {
+                        window.Alpine.initTree(currentContainer);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Gagal memuat data pengguna secara live:', err);
+        } finally {
+            this.verifyAndCompleteLoading();
+        }
+    },
+
+    selectRole(r) {
+        this.role = r;
+        this.openRoleFilter = false;
+        this.fetchData();
+    },
+
+    resetFilters() {
+        this.search = '';
+        this.role = '';
+        this.openRoleFilter = false;
+        this.fetchData();
+    },
+
+    confirmDelete(url, name) {
+        this.deleteActionUrl = url;
+        this.deleteUserName = name;
+        this.isDeleting = false;
+        this.deleteModal = true;
+    }
+}" @open-delete-user.window="confirmDelete($event.detail.url, $event.detail.name)">
+
+    {{-- Screen Loading Memuat Data Satu Halaman (Di luar Sidebar) --}}
+    <div x-show="initLoading"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 lg:left-64 z-[9999] flex items-center justify-center bg-slate-50/90 backdrop-blur-md"
+         style="display: none;">
+        <div class="inline-flex items-center gap-3.5 px-6 py-4 bg-white text-slate-800 rounded-2xl shadow-xl border border-slate-200/90">
+            <svg class="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <div class="text-left">
+                <div class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-900">Memuat Data Pengguna</div>
+                <div class="text-[11px] text-slate-500 font-medium">Mohon tunggu sebentar...</div>
+            </div>
+        </div>
+    </div>
 
     {{-- Header, Filter & Add Button --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6">
@@ -41,49 +174,65 @@
                 <input type="text" 
                        name="search" 
                        x-model="search"
-                       @input.debounce.400ms="fetchData()"
                        placeholder="Cari nama, email, NIS, NIP, kelas..."
                        class="bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full shadow-sm">
             </div>
 
             <div class="flex items-center gap-2">
                 {{-- Animated Dropdown: Filter Role --}}
-                <div class="relative flex-1 sm:flex-none w-full sm:w-52" @click.outside="openRoleFilter = false">
-                    <button type="button" @click="openRoleFilter = !openRoleFilter"
-                            class="w-full flex items-center justify-between bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium shadow-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20': openRoleFilter}">
-                        <span class="truncate text-slate-700" x-text="getRoleLabel()"></span>
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180 text-indigo-600': openRoleFilter}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="relative flex-1 sm:flex-none w-full sm:w-56" @click.outside="openRoleFilter = false">
+                    <input type="hidden" name="role" :value="role">
+                    <button type="button" @click.stop="openRoleFilter = !openRoleFilter"
+                            class="w-full flex items-center justify-between bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold shadow-xs transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20': openRoleFilter}">
+                        <span class="truncate text-slate-800" x-text="{
+                            '': 'Semua Peran (Role)',
+                            'admin': 'Admin',
+                            'kepala_lab': 'Kepala Laboratorium',
+                            'koordinator_lab': 'Koordinator Lab',
+                            'guru': 'Guru',
+                            'siswa': 'Siswa'
+                        }[role] || 'Semua Peran (Role)'">Semua Peran (Role)</span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform duration-200 shrink-0 ml-1.5" :class="{'rotate-180 text-indigo-600': openRoleFilter}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
 
                     <div x-show="openRoleFilter"
                          x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-start="opacity-0 translate-y-1.5 scale-95"
                          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                         class="absolute z-30 w-full mt-1.5 bg-white rounded-xl shadow-xl border border-slate-200/80 py-1 overflow-hidden"
+                         x-transition:leave-end="opacity-0 translate-y-1.5 scale-95"
+                         class="absolute left-0 z-50 w-full mt-1.5 bg-white rounded-xl shadow-xl border border-slate-200/90 py-1 overflow-hidden"
                          style="display: none;">
                         <button type="button" @click="selectRole('')"
-                                class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 hover:text-indigo-600"
-                                :class="{'bg-indigo-50/70 text-indigo-600': role === '', 'text-slate-700': role !== ''}">
+                                class="w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between transition hover:bg-slate-100 text-slate-800"
+                                :class="{'bg-slate-100 font-bold': role === ''}">
                             <span>Semua Peran (Role)</span>
+                            <svg x-show="role === ''" class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
                         </button>
                         @foreach(['admin' => 'Admin', 'kepala_lab' => 'Kepala Laboratorium', 'koordinator_lab' => 'Koordinator Lab', 'guru' => 'Guru', 'siswa' => 'Siswa'] as $rVal => $rLabel)
                             <button type="button" @click="selectRole('{{ $rVal }}')"
-                                    class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 hover:text-indigo-600"
-                                    :class="{'bg-indigo-50/70 text-indigo-600': role === '{{ $rVal }}', 'text-slate-700': role !== '{{ $rVal }}'}">
+                                    class="w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between transition hover:bg-slate-100 text-slate-800"
+                                    :class="{'bg-slate-100 font-bold': role === '{{ $rVal }}'}">
                                 <span>{{ $rLabel }}</span>
-                                <svg x-show="role === '{{ $rVal }}'" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg x-show="role === '{{ $rVal }}'" class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </button>
                         @endforeach
                     </div>
                 </div>
+
+                {{-- Dedicated Cari Button --}}
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Cari</span>
+                </button>
 
                 <div x-show="search || role">
                     <button type="button" @click="resetFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium px-3.5 py-2.5 rounded-xl text-sm transition">
@@ -167,7 +316,7 @@
                         </div>
 
                         {{-- Field Lab Penugasan: Tambah (Soft Blue Theme) --}}
-                        <div x-show="selectedRole === 'kepala_lab' || selectedRole === 'koordinator_lab'"
+                        <div x-show="selectedRole === 'koordinator_lab'"
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 -translate-y-2"
                              x-transition:enter-end="opacity-100 translate-y-0"
@@ -223,8 +372,11 @@
                             </div>
 
                             {{-- Animated Dropdown: Kelas / Jabatan (Tambah) --}}
-                            <div class="relative" x-data="{ openJabatan: false, selectedJabatan: 'X TKJ 1' }" @click.outside="openJabatan = false">
-                                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Kelas / Jabatan</label>
+                            <div class="relative" x-data="{ openJabatan: false, selectedJabatan: 'X TKJ 1' }" x-show="selectedRole === 'siswa' || selectedRole === 'guru'" @click.outside="openJabatan = false">
+                                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                    <span x-text="selectedRole === 'siswa' ? 'Kelas' : 'Wali Kelas / Jabatan (Opsional)'"></span>
+                                    <span x-show="selectedRole === 'siswa'" class="text-red-500">*</span>
+                                </label>
                                 <input type="hidden" name="kelas_atau_jabatan" :value="selectedJabatan">
 
                                 <button type="button" @click="openJabatan = !openJabatan"
@@ -289,16 +441,15 @@
         </div>
     </div>
 
-    {{-- Kontainer Dinamis Data Pengguna --}}
-    <div id="penggunaContainer" class="relative transition-opacity duration-200" :class="{'opacity-50 pointer-events-none': isLoading}">
-
+    {{-- Kontainer Dinamis Data Pengguna (Live Update) --}}
+    <div id="usersDataContainer" @click="const a = $event.target.closest('a'); if (a && a.href && (a.closest('nav') || a.closest('.pagination'))) { $event.preventDefault(); fetchData(a.href); }">
         {{-- 1. Mobile Cards View --}}
         <div class="space-y-3 md:hidden">
             @forelse($users as $u)
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm" x-data="{ editModal: false, isSubmittingEdit: false }">
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-2xl overflow-hidden shadow-sm border border-indigo-100 bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                            <div class="w-11 h-11 rounded-2xl overflow-hidden shadow-xs border border-slate-700/80 bg-slate-900 text-indigo-100 flex items-center justify-center flex-shrink-0 text-sm font-black">
                                 @if(!empty($u->foto))
                                     <img src="{{ asset('storage/' . $u->foto) }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -313,20 +464,12 @@
                             </div>
                         </div>
 
-                        <div>
-                            @if($u->role == 'admin')
-                                <span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Admin</span>
-                            @elseif($u->role == 'kepala_lab')
-                                <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Kepala Lab</span>
-                            @elseif($u->role == 'koordinator_lab')
-                                <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Koordinator</span>
-                            @elseif($u->role == 'guru')
-                                <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Guru</span>
-                            @else
-                                <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Siswa</span>
-                            @endif
-                            @if($u->laboratorium_penugasan)
-                                <div class="text-[9px] text-indigo-600 font-semibold mt-0.5">{{ str_replace('Laboratorium ', '', $u->laboratorium_penugasan) }}</div>
+                        <div class="text-right">
+                            <span class="inline-block px-2.5 py-0.5 rounded-md border border-slate-300/80 bg-slate-50 text-[11px] font-black text-slate-900 tracking-wide uppercase">
+                                {{ match($u->role) { 'admin' => 'ADMIN', 'koordinator_lab' => 'KOORDINATOR', 'guru' => 'GURU', default => 'SISWA' } }}
+                            </span>
+                            @if($u->role !== 'admin' && $u->laboratorium_penugasan)
+                                <div class="text-[11px] text-slate-800 font-bold mt-1">{{ $u->laboratorium_penugasan }}</div>
                             @endif
                         </div>
                     </div>
@@ -358,7 +501,7 @@
                             Edit
                         </button>
                         @if($u->id !== Auth::id())
-                            <button type="button" @click="confirmDelete('{{ route('pengguna.destroy', $u->id) }}', '{{ $u->name }}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs transition flex items-center gap-1.5">
+                            <button type="button" @click.stop="$dispatch('open-delete-user', { url: '{{ route('pengguna.destroy', $u->id) }}', name: '{{ addslashes($u->name) }}' })" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs transition flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
@@ -386,23 +529,54 @@
                                         <p class="text-xs text-slate-400">{{ $u->name }}</p>
                                     </div>
                                 </div>
-                                <button type="button" @click="editModal = false" :disabled="isSubmittingEdit" class="text-slate-400 hover:text-slate-600">✕</button>
+                                <button type="button" @click="editModal = false" :disabled="isSubmittingEdit" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
                             </div>
 
                             <form action="{{ route('pengguna.update', $u->id) }}" method="POST" class="space-y-3.5 text-xs"
                                   @submit="isSubmittingEdit = true"
-                                  x-data="{ openRoleMob: false, selectedRoleMob: '{{ old('role', $u->role) }}', openLabMob: false, selectedLabMob: '{{ old('laboratorium_penugasan', $u->laboratorium_penugasan) }}' }">
+                                  x-data="{
+                                      openRoleMob: false,
+                                      selectedRoleMob: '{{ old('role', $u->role) }}',
+                                      openLabMob: false,
+                                      selectedLabMob: '{{ old('laboratorium_penugasan', $u->laboratorium_penugasan) }}',
+                                      openJabatanMob: false,
+                                      selectedJabatanMob: '{{ old('kelas_atau_jabatan', $u->kelas_atau_jabatan ?? '') }}',
+                                      name: @js(old('name', $u->name)),
+                                      email: @js(old('email', $u->email)),
+                                      nomor_induk: @js(old('nomor_induk', $u->nomor_induk ?? '')),
+                                      telepon: @js(old('telepon', $u->telepon ?? '')),
+                                      password: '',
+                                      initial: {
+                                          name: @js(old('name', $u->name)),
+                                          email: @js(old('email', $u->email)),
+                                          role: '{{ old('role', $u->role) }}',
+                                          nomor_induk: @js(old('nomor_induk', $u->nomor_induk ?? '')),
+                                          telepon: @js(old('telepon', $u->telepon ?? '')),
+                                          selectedJabatanMob: '{{ old('kelas_atau_jabatan', $u->kelas_atau_jabatan ?? '') }}',
+                                          selectedLabMob: '{{ old('laboratorium_penugasan', $u->laboratorium_penugasan ?? '') }}'
+                                      },
+                                      get isChanged() {
+                                          return this.name !== this.initial.name ||
+                                                 this.email !== this.initial.email ||
+                                                 this.selectedRoleMob !== this.initial.role ||
+                                                 this.nomor_induk !== this.initial.nomor_induk ||
+                                                 this.telepon !== this.initial.telepon ||
+                                                 this.selectedJabatanMob !== this.initial.selectedJabatanMob ||
+                                                 this.selectedLabMob !== this.initial.selectedLabMob ||
+                                                 this.password.trim().length > 0;
+                                      }
+                                  }">
                                 @csrf
                                 @method('PUT')
                                 <div>
                                     <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                                    <input type="text" name="name" value="{{ old('name', $u->name) }}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <input type="text" name="name" x-model="name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Alamat Email <span class="text-red-500">*</span></label>
-                                        <input type="email" name="email" value="{{ old('email', $u->email) }}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        <input type="email" name="email" x-model="email" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                     </div>
                                     
                                     {{-- Dropdown Role Modal Edit (Mobile) --}}
@@ -449,7 +623,7 @@
                                 </div>
 
                                 {{-- Lab Penugasan: Edit Mobile (Soft Blue Theme) --}}
-                                <div x-show="selectedRoleMob === 'kepala_lab' || selectedRoleMob === 'koordinator_lab'"
+                                <div x-show="selectedRoleMob === 'koordinator_lab'"
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -501,12 +675,15 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">NIS / NIP</label>
-                                        <input type="text" name="nomor_induk" value="{{ old('nomor_induk', $u->nomor_induk) }}" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        <input type="text" name="nomor_induk" x-model="nomor_induk" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                     </div>
 
                                     {{-- Animated Dropdown: Kelas / Jabatan (Edit Mobile) --}}
-                                    <div class="relative" x-data="{ openJabatanMob: false, selectedJabatanMob: '{{ old('kelas_atau_jabatan', $u->kelas_atau_jabatan ?? 'X TKJ 1') }}' }" @click.outside="openJabatanMob = false">
-                                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Kelas / Jabatan</label>
+                                    <div class="relative" x-show="selectedRoleMob === 'siswa' || selectedRoleMob === 'guru'" @click.outside="openJabatanMob = false">
+                                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                            <span x-text="selectedRoleMob === 'siswa' ? 'Kelas' : 'Wali Kelas / Jabatan (Opsional)'"></span>
+                                            <span x-show="selectedRoleMob === 'siswa'" class="text-red-500">*</span>
+                                        </label>
                                         <input type="hidden" name="kelas_atau_jabatan" :value="selectedJabatanMob">
 
                                         <button type="button" @click="openJabatanMob = !openJabatanMob"
@@ -547,17 +724,17 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">No. WhatsApp / HP</label>
-                                        <input type="text" name="telepon" value="{{ old('telepon', $u->telepon) }}" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        <input type="text" name="telepon" x-model="telepon" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                     </div>
                                     <div>
                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Password Baru (Opsional)</label>
-                                        <input type="password" name="password" placeholder="Kosongkan jika tetap" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        <input type="password" name="password" x-model="password" placeholder="Kosongkan jika tetap" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                                     <button type="button" @click="editModal = false" :disabled="isSubmittingEdit" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl font-medium disabled:opacity-50">Batal</button>
-                                    <button type="submit" :disabled="isSubmittingEdit" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition active:scale-95">
+                                    <button type="submit" :disabled="isSubmittingEdit || !isChanged" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:bg-slate-300 text-white rounded-xl font-bold transition active:scale-95 shadow-sm">
                                         <svg x-show="isSubmittingEdit" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -576,70 +753,62 @@
             @endforelse
         </div>
 
-        {{-- 2. Desktop Table View (Layar >= md) --}}
-        <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
+        {{-- 2. Desktop Table View --}}
+        <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden mt-4">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-200 text-[11px] uppercase tracking-wider font-bold text-slate-600 bg-slate-50/90">
-                            <th class="px-5 py-4 text-slate-600 font-bold">Nama & Kontak</th>
-                            <th class="px-5 py-4 text-slate-600 font-bold">Nomor Induk (NIS/NIP)</th>
-                            <th class="px-5 py-4 text-slate-600 font-bold">Kelas / Jabatan</th>
-                            <th class="px-5 py-4 text-center text-slate-600 font-bold">Peran (Role)</th>
-                            <th class="px-5 py-4 text-center text-slate-600 font-bold">Total Pinjam</th>
-                            <th class="px-5 py-4 text-right text-slate-600 font-bold">Aksi</th>
+                    <thead class="bg-slate-50/90 text-slate-700 border-b border-slate-200">
+                        <tr class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                            <th class="px-5 py-4 font-black">Nama & Kontak</th>
+                            <th class="px-5 py-4 font-black">Nomor Induk (NIS/NIP)</th>
+                            <th class="px-5 py-4 font-black">Kelas / Jabatan</th>
+                            <th class="px-5 py-4 text-center font-black">Peran (Role)</th>
+                            <th class="px-5 py-4 text-center font-black">Total Pinjam</th>
+                            <th class="px-5 py-4 text-right font-black">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs">
+                    <tbody class="divide-y divide-slate-100 bg-white">
                         @forelse($users as $u)
                             <tr class="hover:bg-slate-50/50 transition-colors" x-data="{ editModal: false, isSubmittingEditDesk: false }">
-                                <td class="px-5 py-3.5">
+                                <td class="px-5 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-2xl overflow-hidden shadow-sm border border-indigo-100 bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                                        <div class="w-10 h-10 rounded-2xl overflow-hidden shadow-xs border border-slate-700/80 bg-slate-900 text-indigo-100 flex items-center justify-center shrink-0 text-sm font-black">
                                             @if(!empty($u->foto))
                                                 <img src="{{ asset('storage/' . $u->foto) }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
                                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                <span style="display: none;" class="w-full h-full flex items-center justify-center font-bold text-xs">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                                                <span style="display: none;" class="w-full h-full flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
                                             @else
                                                 <span>{{ strtoupper(substr($u->name, 0, 1)) }}</span>
                                             @endif
                                         </div>
                                         <div>
-                                            <p class="font-bold text-slate-800">{{ $u->name }}</p>
-                                            <p class="text-slate-400 text-[11px]">{{ $u->email }}</p>
-                                            @if($u->telepon)<p class="text-slate-400 text-[10px]">WA: {{ $u->telepon }}</p>@endif
+                                            <p class="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">{{ $u->name }}</p>
+                                            <p class="text-slate-500 text-xs sm:text-sm">{{ $u->email }}</p>
+                                            @if($u->telepon)<p class="text-slate-400 text-xs">WA: {{ $u->telepon }}</p>@endif
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-3.5 font-mono text-slate-600">{{ $u->nomor_induk ?? '—' }}</td>
-                                <td class="px-5 py-3.5 text-slate-700 font-medium">{{ $u->kelas_atau_jabatan ?? '—' }}</td>
-                                <td class="px-5 py-3.5 text-center">
-                                    @if($u->role == 'admin')
-                                        <span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Admin</span>
-                                    @elseif($u->role == 'kepala_lab')
-                                        <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Kepala Lab</span>
-                                    @elseif($u->role == 'koordinator_lab')
-                                        <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Koordinator</span>
-                                    @elseif($u->role == 'guru')
-                                        <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Guru</span>
-                                    @else
-                                        <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Siswa</span>
-                                    @endif
-                                    @if($u->laboratorium_penugasan)
-                                        <div class="text-[9px] text-indigo-600 font-semibold mt-0.5">{{ str_replace('Laboratorium ', '', $u->laboratorium_penugasan) }}</div>
+                                <td class="px-5 py-4 font-mono font-bold text-slate-800 text-xs sm:text-sm">{{ $u->nomor_induk ?? '—' }}</td>
+                                <td class="px-5 py-4 text-slate-800 font-bold text-xs sm:text-sm">{{ $u->kelas_atau_jabatan ?? '—' }}</td>
+                                <td class="px-5 py-4 text-center whitespace-nowrap">
+                                    <span class="inline-block px-2.5 py-0.5 rounded-md border border-slate-300/80 bg-slate-50 text-xs font-black text-slate-900 tracking-wide uppercase">
+                                        {{ match($u->role) { 'admin' => 'ADMIN', 'koordinator_lab' => 'KOORDINATOR', 'guru' => 'GURU', default => 'SISWA' } }}
+                                    </span>
+                                    @if($u->role !== 'admin' && $u->laboratorium_penugasan)
+                                        <div class="text-xs sm:text-sm text-slate-800 font-bold mt-1">{{ $u->laboratorium_penugasan }}</div>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3.5 text-center font-bold text-slate-700">{{ $u->peminjamans_count }} kali</td>
-                                <td class="px-5 py-3.5 text-right">
+                                <td class="px-5 py-4 text-center font-extrabold text-slate-900 text-xs sm:text-sm">{{ $u->peminjamans_count }} kali</td>
+                                <td class="px-5 py-4 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
                                         <button @click="editModal = true" title="Edit Pengguna" class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition active:scale-95 shadow-sm border border-blue-100/80">
-                                            <svg class="w-4 h-4 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                                             </svg>
                                         </button>
                                         
                                         @if($u->id !== Auth::id())
-                                            <button type="button" @click="confirmDelete('{{ route('pengguna.destroy', $u->id) }}', '{{ $u->name }}')" title="Hapus Pengguna" class="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition active:scale-95 shadow-sm border border-rose-100/80">
+                                            <button type="button" @click.stop="$dispatch('open-delete-user', { url: '{{ route('pengguna.destroy', $u->id) }}', name: '{{ addslashes($u->name) }}' })" title="Hapus Pengguna" class="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition active:scale-95 shadow-sm border border-rose-100/80">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
@@ -671,18 +840,49 @@
 
                                             <form action="{{ route('pengguna.update', $u->id) }}" method="POST" class="space-y-4 text-xs"
                                                   @submit="isSubmittingEditDesk = true"
-                                                  x-data="{ openRole: false, selectedRole: '{{ old('role', $u->role) }}', openLabDesk: false, selectedLabDesk: '{{ old('laboratorium_penugasan', $u->laboratorium_penugasan) }}' }">
+                                                  x-data="{
+                                                      openRole: false,
+                                                      selectedRole: '{{ old('role', $u->role) }}',
+                                                      openLabDesk: false,
+                                                      selectedLabDesk: '{{ old('laboratorium_penugasan', $u->laboratorium_penugasan) }}',
+                                                      openJabatanDesk: false,
+                                                      selectedJabatanDesk: '{{ old('kelas_atau_jabatan', $u->kelas_atau_jabatan ?? '') }}',
+                                                      name: @js(old('name', $u->name)),
+                                                      email: @js(old('email', $u->email)),
+                                                      nomor_induk: @js(old('nomor_induk', $u->nomor_induk ?? '')),
+                                                      telepon: @js(old('telepon', $u->telepon ?? '')),
+                                                      password: '',
+                                                      initial: {
+                                                          name: @js(old('name', $u->name)),
+                                                          email: @js(old('email', $u->email)),
+                                                          role: '{{ old('role', $u->role) }}',
+                                                          nomor_induk: @js(old('nomor_induk', $u->nomor_induk ?? '')),
+                                                          telepon: @js(old('telepon', $u->telepon ?? '')),
+                                                          selectedJabatanDesk: '{{ old('kelas_atau_jabatan', $u->kelas_atau_jabatan ?? '') }}',
+                                                          selectedLabDesk: '{{ old('laboratorium_penugasan', $u->laboratorium_penugasan ?? '') }}'
+                                                      },
+                                                      get isChanged() {
+                                                          return this.name !== this.initial.name ||
+                                                                 this.email !== this.initial.email ||
+                                                                 this.selectedRole !== this.initial.role ||
+                                                                 this.nomor_induk !== this.initial.nomor_induk ||
+                                                                 this.telepon !== this.initial.telepon ||
+                                                                 this.selectedJabatanDesk !== this.initial.selectedJabatanDesk ||
+                                                                 this.selectedLabDesk !== this.initial.selectedLabDesk ||
+                                                                 this.password.trim().length > 0;
+                                                      }
+                                                  }">
                                                 @csrf
                                                 @method('PUT')
                                                 <div>
                                                     <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                                                    <input type="text" name="name" value="{{ old('name', $u->name) }}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                                    <input type="text" name="name" x-model="name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                                 </div>
 
                                                 <div class="grid grid-cols-2 gap-3">
                                                     <div>
                                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Alamat Email <span class="text-red-500">*</span></label>
-                                                        <input type="email" name="email" value="{{ old('email', $u->email) }}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                                        <input type="email" name="email" x-model="email" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                                     </div>
 
                                                     {{-- Dropdown Role Modal Edit (Desktop) --}}
@@ -729,7 +929,7 @@
                                                 </div>
 
                                                 {{-- Lab Penugasan: Edit Desktop (Soft Blue Theme) --}}
-                                                <div x-show="selectedRole === 'kepala_lab' || selectedRole === 'koordinator_lab'"
+                                                <div x-show="selectedRole === 'koordinator_lab'"
                                                      x-transition:enter="transition ease-out duration-200"
                                                      x-transition:enter-start="opacity-0 -translate-y-2"
                                                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -781,12 +981,15 @@
                                                 <div class="grid grid-cols-2 gap-3">
                                                     <div>
                                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">NIS / NIP</label>
-                                                        <input type="text" name="nomor_induk" value="{{ old('nomor_induk', $u->nomor_induk) }}" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                                        <input type="text" name="nomor_induk" x-model="nomor_induk" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                                     </div>
 
                                                     {{-- Animated Dropdown: Kelas / Jabatan (Edit Desktop) --}}
-                                                    <div class="relative" x-data="{ openJabatanDesk: false, selectedJabatanDesk: '{{ old('kelas_atau_jabatan', $u->kelas_atau_jabatan ?? 'X TKJ 1') }}' }" @click.outside="openJabatanDesk = false">
-                                                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Kelas / Jabatan</label>
+                                                    <div class="relative" x-show="selectedRole === 'siswa' || selectedRole === 'guru'" @click.outside="openJabatanDesk = false">
+                                                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                                            <span x-text="selectedRole === 'siswa' ? 'Kelas' : 'Wali Kelas / Jabatan (Opsional)'"></span>
+                                                            <span x-show="selectedRole === 'siswa'" class="text-red-500">*</span>
+                                                        </label>
                                                         <input type="hidden" name="kelas_atau_jabatan" :value="selectedJabatanDesk">
 
                                                         <button type="button" @click="openJabatanDesk = !openJabatanDesk"
@@ -827,17 +1030,17 @@
                                                 <div class="grid grid-cols-2 gap-3">
                                                     <div>
                                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">No. WhatsApp / HP</label>
-                                                        <input type="text" name="telepon" value="{{ old('telepon', $u->telepon) }}" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                                        <input type="text" name="telepon" x-model="telepon" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                                     </div>
                                                     <div>
                                                         <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Password Baru (Opsional)</label>
-                                                        <input type="password" name="password" placeholder="Kosongkan jika tetap" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                                        <input type="password" name="password" x-model="password" placeholder="Kosongkan jika tetap" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                                     </div>
                                                 </div>
 
                                                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
                                                     <button type="button" @click="editModal = false" :disabled="isSubmittingEditDesk" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl font-medium disabled:opacity-50">Batal</button>
-                                                    <button type="submit" :disabled="isSubmittingEditDesk" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition active:scale-95">
+                                                    <button type="submit" :disabled="isSubmittingEditDesk || !isChanged" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed disabled:hover:bg-slate-300 text-white rounded-xl font-bold transition active:scale-95 shadow-sm">
                                                         <svg x-show="isSubmittingEditDesk" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -852,7 +1055,18 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-5 py-8 text-center text-slate-400">Tidak ada data pengguna.</td>
+                                <td colspan="6" class="px-5 py-12 text-center">
+                                    <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    </div>
+                                    <p class="font-extrabold text-slate-800 text-sm sm:text-base">Tidak ada data pengguna</p>
+                                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Tidak ditemukan pengguna yang sesuai dengan pencarian atau peran yang Anda pilih.</p>
+                                    <div x-show="search || role">
+                                        <button type="button" @click="resetFilters()" class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition active:scale-95">
+                                            <span>Reset Filter</span>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -893,14 +1107,14 @@
                 Anda akan menghapus data akun <span class="font-bold text-slate-800" x-text="deleteUserName"></span>. Tindakan ini tidak dapat dibatalkan.
             </p>
 
-            <form id="globalDeletePenggunaForm" :action="deleteActionUrl" method="POST" class="mt-6 flex items-center justify-center gap-3">
+            <form id="globalDeletePenggunaForm" :action="deleteActionUrl" method="POST" @submit="isDeleting = true" class="mt-6 flex items-center justify-center gap-3">
                 @csrf
                 @method('DELETE')
                 
                 <button type="button" :disabled="isDeleting" @click="deleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition">
                     Batal
                 </button>
-                <button type="button" :disabled="isDeleting" @click="submitDeleteAction()" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
+                <button type="submit" :disabled="isDeleting" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
                     <svg x-show="isDeleting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -912,90 +1126,4 @@
     </div>
 
 </div>
-
-@push('scripts')
-<script>
-function penggunaIndex() {
-    return {
-        deleteModal: false,
-        isDeleting: false,
-        deleteActionUrl: '',
-        deleteUserName: '',
-        openRoleFilter: false,
-        isLoading: false,
-
-        search: @json(request('search', '')),
-        role: @json(request('role', '')),
-
-        confirmDelete(url, name) {
-            this.deleteActionUrl = url;
-            this.deleteUserName = name;
-            this.isDeleting = false;
-            this.deleteModal = true;
-        },
-
-        submitDeleteAction() {
-            this.isDeleting = true;
-            setTimeout(() => {
-                const form = document.getElementById('globalDeletePenggunaForm');
-                if (form) form.submit();
-            }, 300);
-        },
-
-        getRoleLabel() {
-            const labels = {
-                'admin': 'Admin',
-                'kepala_lab': 'Kepala Laboratorium',
-                'koordinator_lab': 'Koordinator Lab',
-                'guru': 'Guru',
-                'siswa': 'Siswa'
-            };
-            return labels[this.role] || 'Semua Peran (Role)';
-        },
-
-        selectRole(r) {
-            this.role = r;
-            this.openRoleFilter = false;
-            this.fetchData();
-        },
-
-        resetFilters() {
-            this.search = '';
-            this.role = '';
-            this.fetchData();
-        },
-
-        async fetchData() {
-            this.isLoading = true;
-
-            const params = new URLSearchParams();
-            if (this.search) params.append('search', this.search);
-            if (this.role) params.append('role', this.role);
-
-            const url = `{{ route('pengguna.index') }}?${params.toString()}`;
-            window.history.pushState({}, '', url);
-
-            try {
-                const res = await fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const htmlText = await res.text();
-
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-                const newContainer = doc.getElementById('penggunaContainer');
-
-                if (newContainer) {
-                    document.getElementById('penggunaContainer').innerHTML = newContainer.innerHTML;
-                }
-            } catch (err) {
-                console.error("Gagal memuat filter pengguna:", err);
-            } finally {
-                this.isLoading = false;
-            }
-        }
-    };
-}
-</script>
-@endpush
 @endsection

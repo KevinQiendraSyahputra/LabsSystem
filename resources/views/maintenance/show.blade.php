@@ -244,7 +244,7 @@
                 <div>
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Biaya Maintenance</span>
                     <p class="font-extrabold text-emerald-700 font-mono text-base mt-0.5">
-                        {{ $maintenance->biaya ? 'Rp ' . number_format($maintenance->biaya, 0, ',', '.') : 'Rp 0 (Gratis/Garansi)' }}
+                        {{ $maintenance->biaya ? 'Rp ' . number_format($maintenance->biaya, 0, ',', '.') : 'Rp 0 ' }}
                     </p>
                 </div>
                 <div>

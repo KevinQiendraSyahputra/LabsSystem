@@ -74,15 +74,9 @@
                         </h4>
                     </div>
                     <div class="shrink-0">
-                        @if($pinjam->status === 'Dikembalikan')
-                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">Dikembalikan</span>
-                        @elseif($pinjam->status === 'Menunggu Persetujuan')
-                            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">Menunggu</span>
-                        @elseif($pinjam->isTerlambat())
-                            <span class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full">Terlambat</span>
-                        @else
-                            <span class="bg-sky-100 text-sky-800 text-xs font-bold px-2.5 py-1 rounded-full">Dipinjam</span>
-                        @endif
+                        <span class="text-xs font-black text-slate-900">
+                            {{ $pinjam->isTerlambat() && $pinjam->status !== 'Dikembalikan' ? 'Terlambat' : ($pinjam->status === 'Menunggu Persetujuan' ? 'Menunggu' : $pinjam->status) }}
+                        </span>
                     </div>
                 </div>
 
@@ -93,15 +87,13 @@
                     </div>
                     @if($pinjam->unit_index)
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Unit:</span>
-                            <span class="font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 text-xs">
-                                Unit {{ implode(', ', array_map('trim', explode(',', $pinjam->unit_index))) }}
-                            </span>
+                            <span class="text-slate-500">Unit Spesifik:</span>
+                            <span class="font-bold text-slate-900">Unit {{ implode(', ', array_map('trim', explode(',', $pinjam->unit_index))) }}</span>
                         </div>
                     @endif
                     <div class="flex items-center justify-between pt-1 border-t border-slate-200 text-xs">
                         <span class="text-slate-500">Batas Kembali:</span>
-                        <span class="font-bold {{ $pinjam->isTerlambat() ? 'text-rose-700' : 'text-slate-800' }}">
+                        <span class="font-bold text-slate-800">
                             {{ $pinjam->tanggal_kembali_rencana->format('d M Y') }}
                         </span>
                     </div>
@@ -150,35 +142,21 @@
                         <td class="px-6 py-4 text-center">
                             <p class="font-bold text-slate-700">{{ $pinjam->jumlah_pinjam }} {{ $pinjam->barang->satuan ?? 'Unit' }}</p>
                             @if($pinjam->unit_index)
-                                <p class="text-xs font-bold text-indigo-700">Unit {{ implode(', ', array_map('trim', explode(',', $pinjam->unit_index))) }}</p>
+                                <p class="text-xs font-bold text-slate-900">Unit {{ implode(', ', array_map('trim', explode(',', $pinjam->unit_index))) }}</p>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-slate-600">
                             {{ $pinjam->tanggal_pinjam->format('d M Y') }}
                         </td>
                         <td class="px-6 py-4">
-                            <span class="font-bold {{ $pinjam->isTerlambat() ? 'text-rose-700' : 'text-slate-700' }}">
+                            <span class="font-bold text-slate-800">
                                 {{ $pinjam->tanggal_kembali_rencana->format('d M Y') }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            @if($pinjam->status === 'Dikembalikan')
-                                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                                    Dikembalikan
-                                </span>
-                            @elseif($pinjam->status === 'Menunggu Persetujuan')
-                                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                                    Menunggu Persetujuan
-                                </span>
-                            @elseif($pinjam->isTerlambat())
-                                <span class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                                    Terlambat
-                                </span>
-                            @else
-                                <span class="bg-sky-100 text-sky-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                                    Dipinjam
-                                </span>
-                            @endif
+                            <span class="text-xs font-black text-slate-900">
+                                {{ $pinjam->isTerlambat() && $pinjam->status !== 'Dikembalikan' ? 'Terlambat' : $pinjam->status }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <a href="{{ route('peminjaman.show', $pinjam->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 shadow-xs transition active:scale-95">

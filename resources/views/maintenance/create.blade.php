@@ -19,8 +19,8 @@
     </div>
 
     {{-- Card Form Utama --}}
-    <div class="bg-white shadow-xs border border-slate-200/80 rounded-2xl sm:rounded-3xl overflow-hidden">
-        <div class="px-5 py-2.5 sm:py-3 border-b border-slate-800 bg-slate-900 text-white">
+    <div class="bg-white shadow-xs border border-slate-200/80 rounded-2xl sm:rounded-3xl relative z-10">
+        <div class="px-5 py-2.5 sm:py-3 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl sm:rounded-t-3xl">
             <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">Form Catat Maintenance</h2>
             <p class="text-xs text-slate-300 mt-0.5">Isi rincian perbaikan, teknisi, dan barang yang dirawat</p>
         </div>
@@ -257,16 +257,16 @@
                 <div class="sm:col-span-2">
                     <label for="deskripsi_kerusakan" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Deskripsi Kerusakan / Perawatan <span class="text-rose-500">*</span></label>
                     <textarea id="deskripsi_kerusakan" name="deskripsi_kerusakan" rows="3" required 
-                              class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-3 transition-colors" 
-                              placeholder="Jelaskan kendala, kerusakan, atau rencana pembersihan/perawatan...">{{ old('deskripsi_kerusakan') }}</textarea>
+                              class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-3 transition-colors placeholder:text-slate-400" 
+                              placeholder="Contoh: Kabel power terkelupas, pembersihan debu kipas pendingin, konektor kendor...">{{ old('deskripsi_kerusakan') }}</textarea>
                 </div>
 
                 {{-- Tindakan --}}
                 <div class="sm:col-span-2">
                     <label for="tindakan" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tindakan yang Dilakukan</label>
                     <textarea id="tindakan" name="tindakan" rows="3" 
-                              class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-3 transition-colors" 
-                              placeholder="Tindakan yang telah atau akan diambil...">{{ old('tindakan') }}</textarea>
+                              class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-3 transition-colors placeholder:text-slate-400" 
+                              placeholder="Contoh: Penggantian kabel power baru, solder ulang konektor, dan pengujian listrik...">{{ old('tindakan') }}</textarea>
                 </div>
 
                 {{-- Biaya Maintenance --}}
@@ -277,8 +277,8 @@
                            id="biaya_display" 
                            x-model="displayBiaya"
                            @input="formatRupiah($event)"
-                           class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full px-3.5 py-2.5 font-mono font-semibold transition-colors" 
-                           placeholder="Rp 0 atau -">
+                           class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full px-3.5 py-2.5 font-mono font-semibold transition-colors placeholder:text-slate-400" 
+                           placeholder="Contoh: 150000 atau ketik 0">
                     <p class="text-[11px] text-slate-500 mt-1">Ketik angka untuk format rupiah otomatis atau tanda <strong>-</strong> jika tanpa biaya.</p>
                 </div>
 
@@ -286,8 +286,8 @@
                 <div class="sm:col-span-2">
                     <label for="catatan" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Catatan Tambahan</label>
                     <textarea id="catatan" name="catatan" rows="2" 
-                              class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-3 transition-colors" 
-                              placeholder="Informasi tambahan atau rekomendasi selanjutnya...">{{ old('catatan') }}</textarea>
+                              class="bg-slate-50/60 focus:bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-3 transition-colors placeholder:text-slate-400" 
+                              placeholder="Contoh: Masa garansi servis 1 bulan dari vendor, perlu kalibrasi ulang bulan depan...">{{ old('catatan') }}</textarea>
                 </div>
             </div>
 

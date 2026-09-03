@@ -81,7 +81,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama alat, merk, lokasi rak, atau kode barang..." class="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none transition">
+            <input type="text" name="search" value="{{ request('search') }}" @input.debounce.400ms="$el.form.submit()" placeholder="Cari nama alat, merk, lokasi rak, atau kode barang..." class="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none transition">
         </div>
 
         {{-- Dropdown Kategori dengan Animasi --}}

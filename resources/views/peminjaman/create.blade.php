@@ -13,8 +13,8 @@
         </a>
     </div>
 
-    <div class="bg-white shadow-xs border border-slate-200/80 rounded-2xl sm:rounded-3xl overflow-hidden">
-        <div class="px-5 py-2.5 sm:py-3 border-b border-slate-800 bg-slate-900 text-white">
+    <div class="bg-white shadow-xs border border-slate-200/80 rounded-2xl sm:rounded-3xl relative z-20">
+        <div class="px-5 py-2.5 sm:py-3 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl sm:rounded-t-3xl">
             <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">Form Catat Peminjaman</h2>
             <p class="text-xs text-slate-300 mt-0.5">Isi data barang, peminjam, dan durasi peminjaman</p>
         </div>
@@ -29,7 +29,7 @@
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Barang & Kategori <span class="text-rose-500">*</span></label>
                     <input type="hidden" name="barang_id" :value="selectedBarangId" required>
 
-                    <button type="button" @click="toggle('barang')"
+                    <button type="button" @click.stop="toggle('barang')"
                             class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-4 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs">
                         <span x-text="currentBarangLabel" :class="{'font-bold text-indigo-900': selectedBarangId, 'text-slate-400': !selectedBarangId}">-- Pilih Barang --</span>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{'rotate-180 text-indigo-600': openDropdown === 'barang'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@
                     </div>
                     <input type="hidden" name="unit_index" :value="selectedUnitsString">
 
-                    <button type="button" @click="toggle('unit')"
+                    <button type="button" @click.stop="toggle('unit')"
                             class="w-full bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl px-4 py-2.5 flex items-center justify-between text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs">
                         <span x-text="currentUnitLabel" :class="{'font-bold text-indigo-700': selectedUnits.length > 0}"></span>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{'rotate-180 text-indigo-600': openDropdown === 'unit'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +147,7 @@
                 {{-- Keperluan --}}
                 <div class="sm:col-span-2">
                     <label for="keperluan" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Keperluan <span class="text-rose-500">*</span></label>
-                    <textarea id="keperluan" name="keperluan" rows="3" required class="bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-4" placeholder="Jelaskan kebutuhan peminjaman alat untuk praktikum atau tugas...">{{ old('keperluan') }}</textarea>
+                    <textarea id="keperluan" name="keperluan" rows="3" required class="bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-4 placeholder:text-slate-400" placeholder="Contoh: Untuk praktikum jaringan komputer modul Mikrotik semester genap...">{{ old('keperluan') }}</textarea>
                     @error('keperluan')
                         <p class="mt-1 text-xs text-rose-600 font-medium">{{ $message }}</p>
                     @enderror
@@ -187,7 +187,7 @@
                 {{-- Catatan Tambahan --}}
                 <div class="sm:col-span-2">
                     <label for="catatan" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Catatan Tambahan</label>
-                    <textarea id="catatan" name="catatan" rows="2" class="bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-4" placeholder="Informasi tambahan terkait peminjaman barang...">{{ old('catatan') }}</textarea>
+                    <textarea id="catatan" name="catatan" rows="2" class="bg-slate-50/70 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full p-4 placeholder:text-slate-400" placeholder="Contoh: Barang akan dikembalikan setelah jam praktikum selesai pukul 15.00 WIB...">{{ old('catatan') }}</textarea>
                     @error('catatan')
                         <p class="mt-1 text-xs text-rose-600 font-medium">{{ $message }}</p>
                     @enderror
@@ -205,11 +205,11 @@
             </div>
         </form>
     </div>
+    </div>
 </div>
 
-@push('scripts')
 <script>
-function peminjamanCreate() {
+window.peminjamanCreate = function() {
     return {
         openDropdown: null,
         selectedBarangId: @json(old('barang_id', request('barang_id', ''))),
@@ -299,7 +299,6 @@ function peminjamanCreate() {
             this.jumlahPinjam = 1;
         }
     };
-}
+};
 </script>
-@endpush
 @endsection

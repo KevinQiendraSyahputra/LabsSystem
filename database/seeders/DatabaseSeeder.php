@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('admin123'),
                 'role' => 'admin',
                 'nomor_induk' => '198507152010011002',
-                'kelas_atau_jabatan' => 'Kepala Lab TKJ',
+                'kelas_atau_jabatan' => 'Kepala Lab',
                 'telepon' => '081234567890',
             ]
         );

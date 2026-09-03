@@ -314,21 +314,14 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-100 text-xs sm:text-sm">
                             @forelse($maintenances as $maintenance)
+                            @php
+                                $canManageThis = Auth::user()->isAdmin() || (Auth::user()->isKoordinatorLab() && Auth::user()->laboratorium_penugasan === $maintenance->laboratorium);
+                            @endphp
                             <tr class="hover:bg-slate-50/70 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($maintenance->laboratorium === 'Laboratorium AKL')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                            Laboratorium AKL
-                                        </span>
-                                    @elseif($maintenance->laboratorium === 'Laboratorium Pemasaran')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                            Laboratorium Pemasaran
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                            {{ $maintenance->laboratorium ?: 'Laboratorium TKJ' }}
-                                        </span>
-                                    @endif
+                                    <span class="font-bold text-slate-900 text-xs sm:text-sm">
+                                        {{ $maintenance->laboratorium ?: 'Laboratorium TKJ' }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($maintenance->barang)
@@ -336,7 +329,7 @@
                                         <div class="text-xs font-mono text-slate-500">
                                             {{ $maintenance->barang->kode_barang }}
                                             @if(!empty($maintenance->unit_index))
-                                                <span class="text-indigo-700 font-bold">• Unit: {{ $maintenance->unit_index }}</span>
+                                                <span class="text-slate-900 font-bold">• Unit {{ $maintenance->unit_index }}</span>
                                             @endif
                                         </div>
                                     @else
@@ -349,30 +342,15 @@
                                     <div class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($maintenance->tanggal_maintenance)->translatedFormat('d M Y') }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($maintenance->jenis === 'Preventif')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">Preventif</span>
-                                    @elseif($maintenance->jenis === 'Korektif')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Korektif</span>
-                                    @elseif($maintenance->jenis === 'Penggantian')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">Penggantian</span>
-                                    @endif
+                                    <span class="text-xs font-bold text-slate-900">{{ $maintenance->jenis }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap font-mono font-medium text-slate-700">
                                     {{ $maintenance->biaya ? 'Rp ' . number_format($maintenance->biaya, 0, ',', '.') : '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($maintenance->status === 'Selesai')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Selesai</span>
-                                    @elseif($maintenance->status === 'Proses')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Proses</span>
-                                    @elseif($maintenance->status === 'Pending')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">Pending</span>
-                                    @endif
+                                    <span class="text-xs font-black text-slate-900">{{ $maintenance->status }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    @php
-                                        $canManageThis = Auth::user()->isAdmin() || (Auth::user()->isKoordinatorLab() && Auth::user()->laboratorium_penugasan === $maintenance->laboratorium);
-                                    @endphp
                                     <div class="flex justify-end items-center gap-2">
                                         <a href="{{ route('maintenance.show', $maintenance->id) }}" 
                                            title="Detail Maintenance" 

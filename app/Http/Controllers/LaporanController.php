@@ -17,7 +17,11 @@ class LaporanController extends Controller
             $query->where('kategori', $request->kategori);
         }
         if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
+            $konFilter = $request->kondisi;
+            $query->where(function ($q) use ($konFilter) {
+                $q->where('kondisi', $konFilter)
+                  ->orWhere('kondisi_per_unit', 'like', '%"' . $konFilter . '"%');
+            });
         }
         if ($request->filled('sumber_dana')) {
             $query->where('sumber_dana', $request->sumber_dana);
@@ -66,7 +70,7 @@ class LaporanController extends Controller
     public function maintenance(Request $request)
     {
         $user     = auth()->user();
-        $labScope = $user->laboratorium_penugasan ?? null;
+        $labScope = ($user && $user->role !== 'admin' && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
 
         $query = Maintenance::with('barang', 'user');
 
@@ -119,7 +123,7 @@ class LaporanController extends Controller
     public function maintenanceJson(Request $request)
     {
         $user     = auth()->user();
-        $labScope = $user->laboratorium_penugasan ?? null;
+        $labScope = ($user && $user->role !== 'admin' && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
 
         $query = Maintenance::with('barang', 'user');
 
@@ -158,7 +162,7 @@ class LaporanController extends Controller
                 'no'                  => $index + 1,
                 'id'                  => $m->id,
                 'tanggal'             => $m->tanggal_maintenance ? \Carbon\Carbon::parse($m->tanggal_maintenance)->format('d/m/Y') : '—',
-                'laboratorium'        => $m->laboratorium ? str_replace('Laboratorium ', 'Lab ', $m->laboratorium) : null,
+                'laboratorium'        => $m->laboratorium ?: null,
                 'nama_barang'         => $m->barang->nama_barang ?? 'Umum / Fasilitas',
                 'kode_barang'         => $m->barang->kode_barang ?? null,
                 'teknisi'             => $m->teknisi ?? '—',
@@ -197,7 +201,11 @@ class LaporanController extends Controller
             $query->where('kategori', $request->kategori);
         }
         if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
+            $konFilter = $request->kondisi;
+            $query->where(function ($q) use ($konFilter) {
+                $q->where('kondisi', $konFilter)
+                  ->orWhere('kondisi_per_unit', 'like', '%"' . $konFilter . '"%');
+            });
         }
 
         $barangs    = $query->orderBy('laboratorium')->orderBy('kategori')->orderBy('nama_barang')->get();
@@ -228,7 +236,7 @@ class LaporanController extends Controller
     public function maintenancePdf(Request $request)
     {
         $user     = auth()->user();
-        $labScope = $user->laboratorium_penugasan ?? null;
+        $labScope = ($user && $user->role !== 'admin' && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
 
         $query = Maintenance::with('barang', 'user');
 
