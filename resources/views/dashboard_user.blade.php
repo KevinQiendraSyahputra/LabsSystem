@@ -6,33 +6,57 @@
 
 @push('styles')
 <style>
-    @keyframes kenBurnsSlow {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.10); }
-        100% { transform: scale(1); }
-    }
-
-    .animate-ken-burns {
-        animation: kenBurnsSlow 10s ease-in-out infinite alternate;
-    }
-
-    @keyframes csPulseRing {
+    /* Ultra-smooth GPU-accelerated Horizontal Rightward Slide Motion */
+    @keyframes heroSlideRightSlow1 {
         0% {
-            transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5);
-        }
-        70% {
-            transform: scale(1);
-            box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            transform: scale3d(1.08, 1.08, 1) translate3d(-4%, 0, 0);
         }
         100% {
-            transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            transform: scale3d(1.08, 1.08, 1) translate3d(2%, 0, 0);
         }
     }
 
-    .cs-glow-pulse {
-        animation: csPulseRing 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    @keyframes heroSlideRightSlow2 {
+        0% {
+            transform: scale3d(1.08, 1.08, 1) translate3d(-3.5%, 0, 0);
+        }
+        100% {
+            transform: scale3d(1.08, 1.08, 1) translate3d(2.5%, 0, 0);
+        }
+    }
+
+    @keyframes heroSlideRightSlow3 {
+        0% {
+            transform: scale3d(1.08, 1.08, 1) translate3d(-3%, 0, 0);
+        }
+        100% {
+            transform: scale3d(1.08, 1.08, 1) translate3d(3%, 0, 0);
+        }
+    }
+
+    .hero-slide-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        will-change: opacity, transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transform: translate3d(0, 0, 0);
+        transition: opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hero-slide-img-1 {
+        animation: heroSlideRightSlow1 18s ease-in-out infinite alternate;
+    }
+
+    .hero-slide-img-2 {
+        animation: heroSlideRightSlow2 20s ease-in-out infinite alternate;
+    }
+
+    .hero-slide-img-3 {
+        animation: heroSlideRightSlow3 22s ease-in-out infinite alternate;
     }
 
     /* Animasi masuk halaman */
@@ -225,10 +249,18 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+        .hero-slide-img-1,
+        .hero-slide-img-2,
+        .hero-slide-img-3,
         .animate-ken-burns,
         .cs-glow-pulse,
         .number-flow.number-flow-running {
             animation: none !important;
+            transform: none !important;
+        }
+
+        .hero-slide-img {
+            transition: none !important;
         }
 
         .org-chart.org-animate-ready .org-reveal,
@@ -280,29 +312,44 @@
      x-data="{
         currentSlide: 1,
         totalSlides: 3,
-        init() {
-            setInterval(() => {
+        timer: null,
+        startAutoplay() {
+            this.stopAutoplay();
+            this.timer = setInterval(() => {
                 this.currentSlide = this.currentSlide >= this.totalSlides ? 1 : this.currentSlide + 1;
             }, 6000);
+        },
+        stopAutoplay() {
+            if (this.timer) {
+                clearInterval(this.timer);
+                this.timer = null;
+            }
+        },
+        goToSlide(index) {
+            this.currentSlide = index;
+            this.startAutoplay();
+        },
+        init() {
+            this.startAutoplay();
         }
      }">
 
-    {{-- 1. Lapisan Paling Dasar: Foto dengan Animasi Ken Burns --}}
+    {{-- 1. Lapisan Paling Dasar: Foto dengan Animasi Slide Halus ke Kanan & Hardware-Accelerated --}}
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <img src="{{ asset('uploads/hero1.webp') }}" 
-             alt="Hero 1"
-             class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
-             :class="currentSlide === 1 ? 'opacity-100 animate-ken-burns' : 'opacity-0'">
+             alt="Laboratorium TKJ 1"
+             class="hero-slide-img hero-slide-img-1"
+             :class="currentSlide === 1 ? 'opacity-100' : 'opacity-0'">
 
         <img src="{{ asset('uploads/hero2.webp') }}" 
-             alt="Hero 2"
-             class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
-             :class="currentSlide === 2 ? 'opacity-100 animate-ken-burns' : 'opacity-0'">
+             alt="Laboratorium TKJ 2"
+             class="hero-slide-img hero-slide-img-2"
+             :class="currentSlide === 2 ? 'opacity-100' : 'opacity-0'">
 
         <img src="{{ asset('uploads/hero3.webp') }}" 
-             alt="Hero 3"
-             class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
-             :class="currentSlide === 3 ? 'opacity-100 animate-ken-burns' : 'opacity-0'">
+             alt="Laboratorium TKJ 3"
+             class="hero-slide-img hero-slide-img-3"
+             :class="currentSlide === 3 ? 'opacity-100' : 'opacity-0'">
     </div>
 
     {{-- 2. Lapisan Tengah: Deep Slate Gradient Overlay --}}
@@ -342,6 +389,28 @@
                 Scan QR Code
             </a>
         </div>
+    </div>
+
+    {{-- 4. Indikator Slide Halus (Hanya Desktop, Dihapus di Tampilan Mobile Sesuai Permintaan) --}}
+    <div class="hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-8 z-[3] items-center gap-2 pointer-events-auto">
+        <button type="button" 
+                @click="goToSlide(1)"
+                aria-label="Slide 1"
+                class="h-1.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+                :class="currentSlide === 1 ? 'w-6 bg-white shadow-xs' : 'w-2 bg-white/30 hover:bg-white/50'">
+        </button>
+        <button type="button" 
+                @click="goToSlide(2)"
+                aria-label="Slide 2"
+                class="h-1.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+                :class="currentSlide === 2 ? 'w-6 bg-white shadow-xs' : 'w-2 bg-white/30 hover:bg-white/50'">
+        </button>
+        <button type="button" 
+                @click="goToSlide(3)"
+                aria-label="Slide 3"
+                class="h-1.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+                :class="currentSlide === 3 ? 'w-6 bg-white shadow-xs' : 'w-2 bg-white/30 hover:bg-white/50'">
+        </button>
     </div>
 </div>
 
@@ -937,7 +1006,7 @@
 </script>
 
 {{-- ===== FLOATING CUSTOMER SERVICE WIDGET ===== --}}
-<aside x-data="{ csOpen: false, hovered: false }"
+<aside x-data="{ csOpen: false }"
        @click.outside="csOpen = false"
        @keydown.escape.window="csOpen = false"
        aria-label="Layanan Bantuan Customer Service"
@@ -945,13 +1014,13 @@
 
     {{-- DROP-UP POPUP MENU --}}
     <div x-show="csOpen"
-         x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-300 transform"
-         x-transition:enter-start="opacity-0 translate-y-6 scale-90"
+         x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-250 transform"
+         x-transition:enter-start="opacity-0 translate-y-4 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-         x-transition:leave="transition ease-in duration-200 transform"
+         x-transition:leave="transition ease-in duration-150 transform"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="mb-3 w-72 sm:w-80 rounded-2xl bg-white/95 backdrop-blur-xl border border-slate-200/90 p-3.5 shadow-2xl shadow-indigo-950/20 ring-1 ring-black/5"
+         x-transition:leave-end="opacity-0 translate-y-3 scale-95"
+         class="mb-3 w-72 sm:w-80 rounded-2xl bg-white/95 backdrop-blur-xl border border-slate-200 p-3.5 shadow-xl shadow-slate-900/10 ring-1 ring-black/5"
          style="display: none;"
          role="menu"
          aria-orientation="vertical">
@@ -965,30 +1034,30 @@
                 </span>
                 <span class="text-xs font-bold text-slate-800">Layanan Bantuan Lab</span>
             </div>
-            <span class="text-[10px] font-medium text-emerald-600 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-full">
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                 Online
             </span>
         </div>
 
         <div class="space-y-1.5">
-            {{-- Option 1: Pusat Bantuan AI / FAQ --}}
+            {{-- Option 1: Pusat Bantuan & Panduan --}}
             <a href="{{ route('bantuan.index') }}"
                @click="csOpen = false"
                role="menuitem"
-               class="group flex items-center gap-3 p-2.5 rounded-xl transition-all duration-150 hover:bg-indigo-50/80 active:scale-[0.98]">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-md shadow-indigo-500/25 transition-transform duration-200 group-hover:scale-105">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+               class="group flex items-center gap-3 p-2.5 rounded-xl transition-all duration-150 hover:bg-slate-50 active:scale-[0.98]">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 transition-colors duration-200 group-hover:bg-indigo-600 group-hover:text-white">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                     </svg>
                 </div>
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between">
-                        <p class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Pusat Bantuan Lab</p>
+                        <p class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Pusat Bantuan & Panduan</p>
                         <svg class="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-all group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </div>
-                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Panduan sistem & live chat otomatis</p>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Panduan sistem & tiket bantuan</p>
                 </div>
             </a>
 
@@ -998,8 +1067,8 @@
                rel="noopener noreferrer"
                @click="csOpen = false"
                role="menuitem"
-               class="group flex items-center gap-3 p-2.5 rounded-xl transition-all duration-150 hover:bg-emerald-50/80 active:scale-[0.98]">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25 transition-transform duration-200 group-hover:scale-105">
+               class="group flex items-center gap-3 p-2.5 rounded-xl transition-all duration-150 hover:bg-slate-50 active:scale-[0.98]">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 transition-colors duration-200 group-hover:bg-emerald-600 group-hover:text-white">
                     <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                     </svg>
@@ -1011,7 +1080,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </div>
-                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Chat langsung dengan pengurus lab</p>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Hubungi langsung pengurus lab</p>
                 </div>
             </a>
         </div>
@@ -1019,13 +1088,11 @@
 
     {{-- TOMBOL TRIGGER UTAMA --}}
     <button @click="csOpen = !csOpen"
-            @mouseenter="hovered = true"
-            @mouseleave="hovered = false"
             type="button"
             :aria-expanded="csOpen"
             aria-haspopup="true"
             aria-label="Buka layanan bantuan customer service"
-            class="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl shadow-indigo-950/30 ring-2 ring-white/90 transition-all duration-300 active:scale-95 hover:scale-105 hover:ring-indigo-400 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400 cs-glow-pulse">
+            class="relative flex h-11 w-11 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-gradient-to-tr from-sky-500 to-sky-400 hover:from-sky-600 hover:to-sky-500 text-white shadow-xl shadow-sky-500/30 ring-2 ring-white transition-all duration-200 active:scale-95 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
 
         {{-- Live Online Dot Indicator --}}
         <span class="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 z-10">
@@ -1039,17 +1106,16 @@
              x-transition:enter-start="opacity-0 rotate-45 scale-75"
              x-transition:enter-end="opacity-100 rotate-0 scale-100"
              class="flex items-center justify-center">
-            <svg class="h-6 w-6 sm:h-7 sm:w-7 text-indigo-200 transition-transform duration-300" 
+            <svg class="h-5 w-5 sm:h-6 sm:w-6 text-white" 
                  fill="none" 
                  viewBox="0 0 24 24" 
                  stroke="currentColor" 
-                 stroke-width="1.8" 
+                 stroke-width="1.9" 
                  stroke-linecap="round" 
                  stroke-linejoin="round"
                  aria-hidden="true">
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-                <path d="M14 19h7"></path>
+                <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
+                <path d="M21 16v2a4 4 0 0 1-4 4h-5"/>
             </svg>
         </div>
 
@@ -1060,11 +1126,11 @@
              x-transition:enter-end="opacity-100 rotate-0 scale-100"
              style="display: none;"
              class="flex items-center justify-center">
-            <svg class="h-6 w-6 sm:h-6.5 sm:w-6.5 text-slate-200 transition-transform duration-200" 
+            <svg class="h-5 w-5 sm:h-6 sm:w-6 text-white" 
                  fill="none" 
                  viewBox="0 0 24 24" 
                  stroke="currentColor" 
-                 stroke-width="2.2" 
+                 stroke-width="2" 
                  stroke-linecap="round" 
                  stroke-linejoin="round"
                  aria-hidden="true">

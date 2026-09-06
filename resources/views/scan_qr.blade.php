@@ -183,8 +183,8 @@
 </div>
 
 @push('scripts')
-{{-- Bundled Local Zero-Latency Library --}}
-<script src="{{ asset('js/jsQR.min.js') }}"></script>
+{{-- jsQR Library (Official Stable CDN) --}}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
 <script>
     const resultBox = document.getElementById('scanResult');

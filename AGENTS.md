@@ -1,65 +1,48 @@
-# UI, Spacing & Layout Rules
+# UI, Spacing & Layout Rules — Laravel & PHP Edition
 
-Aturan layout, container sizing, dan spacing desain untuk seluruh UI proyek (Native C++ ImGui, Web / Vercel, dan Browser Extension):
+Pedoman arsitektur kode, penulisan antarmuka Blade/Tailwind, dan standarisasi sistem untuk Inventaris Codebase:
 
 ## 1. Anti-Cropping & Container Auto-Resize (Wajib Mutlak)
-- **Dilarang keras memotong elemen secara vertikal (Crop Size Y)**:
-  - Dilarang memberi fixed height sempit pada card konfigurasi yang berisi kontrol bertingkat.
-  - Untuk setiap card konfigurasi/pengaturan, **wajib** menggunakan mode Auto-Resize vertikal:
-    `ImGui::BeginChild("card_name", ImVec2(-1, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);`
-  - Seluruh elemen kontrol di dalamnya harus dapat bernapas lega dengan padding vertikal kelipatan 4px/8px.
-- **Dilarang Nested Scrollframe (Scrollframe di dalam Scrollframe)**:
-  - Container card harus mengembang secara alami (AutoResizeY) mengikuti kontennya, sehingga hanya ada 1 scrollbar utama di halaman/tab (kecuali untuk listbox multi-select khusus dengan item ratusan baris).
-- **Anti-Cropping Horizontal (Lebar Kanan)**:
-  - Dilarang keras membiarkan tombol atau input terpotong di sebelah kanan window.
-  - Jika satu baris kontrol/tombol melebihi lebar kontainer yang tersedia (`GetContentRegionAvail().x`), **wajib** dipindahkan ke baris baru di bawahnya (`ImGui::Dummy(ImVec2(0.0f, 4.0f));`), bukan dipaksa `SameLine` sampai terpotong.
+- **Dilarang Keras Memotong Elemen Vertikal (Crop Height)**:
+  - Dilarang memberi fixed height sempit (misal `h-32`, `h-48`) pada card data inventaris atau container form input dinamis.
+  - Gunakan tinggi fleksibel alami: `h-auto` dengan padding vertikal (`p-4`, `p-6`). Konten di dalamnya harus bernapas lega mengikuti tinggi dinamis elemen anak.
+- **Dilarang Nested Scrollbar**:
+  - Hindari membungkus card kecil di dalam card lain dengan `overflow-y-scroll` ganda. Cukup sediakan satu scrollbar utama pada viewport halaman dashboard (`main` content area). Tabel inventaris data besar wajib menggunakan pagination Laravel standar (`->paginate()`), bukan card sempit dengan scrollbar mikro.
+- **Anti-Cropping Horizontal & Responsivitas**:
+  - Dilarang membiarkan tombol aksi tabel (Edit, Hapus, Detail) terpotong di layar tablet/mobile.
+  - Gunakan `flex-wrap`, `break-words`, dan responsive wrapper `overflow-x-auto` khusus untuk tag `<table>`.
 
 ## 2. Jarak ke Bawah (Vertical Spacing) — Kelipatan 4px
-- Semua jarak vertikal / margin bawah / padding vertikal antar elemen **wajib** menggunakan kelipatan **4px**.
-- Skala ukuran vertikal yang diizinkan:
-  - `4px` (`4.0f`) : Micro spacing (jarak antara label & sub-label, jarak internal badge)
-  - `8px` (`8.0f`) : Compact vertical spacing (jarak antara input field & button, antar baris kontrol)
-  - `12px` (`12.0f`) : Medium vertical spacing (jarak sebelum/sesudah separator)
-  - `16px` (`16.0f`) : Standard vertical spacing (jarak antar card/section kecil)
-  - `20px` (`20.0f`) : Large vertical spacing
-  - `24px` (`24.0f`) : Section divider spacing
-  - `32px` (`32.0f`) : Major component break
-- Implementasi Native C++ (ImGui):
-  - Gunakan `ImGui::Dummy(ImVec2(0.0f, 4.0f))`, `ImGui::Dummy(ImVec2(0.0f, 8.0f))`, `ImGui::Dummy(ImVec2(0.0f, 12.0f))`, `ImGui::Dummy(ImVec2(0.0f, 16.0f))`, `ImGui::Dummy(ImVec2(0.0f, 24.0f))`.
+- Semua margin vertikal (`mb-*`, `my-*`) dan padding vertikal (`py-*`) wajib kelipatan 4px.
+- Gunakan skala: `4px` (`1`), `8px` (`2`), `12px` (`3`), `16px` (`4`), `20px` (`5`), `24px` (`6`), `32px` (`8`).
 
-## 3. Spacing Elemen Utama (Main Component & Container Spacing) — Kelipatan 8px
-- Semua container utama, window padding, layout grid, dan jarak antar komponen utama **wajib** menggunakan kelipatan **8px**.
-- Skala ukuran elemen utama yang diizinkan:
-  - `8px` (`8.0f`) : Spacing dasar antar elemen dalam satu grup / card
-  - `16px` (`16.0f`) : Standard container padding, modal/dialog inner padding, gap antar card utama
-  - `24px` (`24.0f`) : Large container padding, header-to-content distance
-  - `32px` (`32.0f`) : Page/Screen outer margin, padding layout dashboard utama
-  - `40px` (`40.0f`) : Screen boundary safe zone
-  - `48px` (`48.0f`) : Hero/Banner container separation
+## 3. Spacing Elemen Utama — Kelipatan 8px
+- Semua padding card, dialog modal, dan gap layout grid wajib kelipatan 8px:
+  - `p-2` (8px), `p-4` (16px), `p-6` (24px), `p-8` (32px).
+  - `gap-2` (8px), `gap-4` (16px), `gap-6` (24px), `gap-8` (32px).
+
 ## 4. Larangan Emotikon & Emoji Grafis (Wajib Mutlak)
-- **Dilarang keras menggunakan emotikon atau karakter emoji grafis Unicode** (seperti emoji roket, perisai, mahkota, sirine/alarm, petir, kotak/paket, permata, api, stop, komputer, grafik, dll.) di dalam seluruh teks antarmuka (UI), dialog pesan, toast notification, status loading, log sistem, webhook payload, maupun respon percakapan kepada pengguna.
+- **Dilarang keras menggunakan emoji grafis Unicode** (seperti 🚀, 📦, ⚠️, 🔒, 🔥, dll.) di dalam antarmuka UI, teks notifikasi flash session, validasi form request, response JSON API, maupun pesan log sistem.
 - Gunakan bahasa profesional, bersih, lugas, dan formal.
-- Untuk ikon visual native pada tombol atau header ImGui C++, gunakan ikon resmi dari font glyph FontAwesome (`ICON_FA_*`), jangan pernah mencampur dengan emoji grafis Unicode.
+- Untuk kebutuhan ikon visual, gunakan library ikon SVG resmi (seperti Blade UI Kit, Heroicons, atau FontAwesome SVG components).
 
-## 5. Larangan Menyebutkan Nama Brand / Repositori Luar di Seluruh UI & Teks (Wajib Mutlak - Standar Production)
-- **Dilarang keras menampilkan nama proyek referensi, repositori GitHub eksternal, atau brand pihak ketiga** (seperti `OrbitBot`, `sms-parser-android`, `adorsys`, `OP AutoClicker`, `PyMacroRecord`, `Klick'r`, `ZClicker`, `Smart-AutoClicker`, `WinputManager`, dll.) di dalam:
-  - Seluruh teks antarmuka (UI), judul kartu (card header), sub-judul/deskripsi, tombol, modal dialog, status badge, maupun log sistem.
-  - Dokumentasi user-facing dan respon percakapan kepada pengguna.
-- **Seluruh fitur adalah produk resmi dan fitur internal HeLLM** dan wajib menggunakan penamaan native profesional HeLLM (contoh: *HeLLM WhatsApp Automation Studio*, *HeLLM Smart Pattern Extractor*, *HeLLM Ultra-Fast Clicker Engine*, *HeLLM Macro Action Sequencer*).
+## 5. Larangan Menyebutkan Brand Luar (Standar Production)
+- **Dilarang keras menampilkan nama modul eksternal, library scraping pihak ketiga, atau brand referensi** di teks antarmuka publik, dialog konfirmasi, maupun notifikasi toast.
+- **Seluruh fitur adalah produk resmi dan fitur internal Inventaris** (contoh: *Inventaris Asset Tracker*, *Inventaris Stock Monitor*, *Inventaris Barcode Management*, *Inventaris Audit Engine*).
 
-## 6. Prinsip Modifikasi Kode Terarah (Targeted / Incremental Upgrades - Dilarang Menimpa File Utuh)
-- **Dilarang keras menimpa (overwrite/re-dump) seluruh isi file kode sumber atau menghapus fitur yang sudah ada** saat melakukan upgrade atau perbaikan bug.
-- Setiap modifikasi kode **wajib dilakukan secara inkremental, terfokus, dan presisi** hanya pada fungsi (*function*), *struct*, atau blok komponen yang bersangkutan.
-- Seluruh struktur yang sudah stabil, tata letak UI yang sudah disetujui, dan fitur-fitur sebelumnya **wajib dipertahankan 100% tanpa regresi**.
+## 6. Modifikasi Kode Terarah (Targeted / Incremental Upgrades)
+- **Dilarang menimpa (overwrite) file class atau controller secara membabi buta**.
+- Setiap penambahan logika harus dilakukan secara modular pada Controller, Model Eloquent, Service Class, Form Request, atau Blade Component terkait.
+- Seluruh method yang sudah berjalan stabil, validation rules, dan relasi database lama **wajib dipertahankan 100% tanpa breaking changes**.
 
-## 7. Perlindungan Mutlak Struktur File Besar & Larangan Pemotongan Baris Kode (Zero-Truncation Guarantee)
-- **Dilarang keras memotong atau mengurangi baris kode file monolitik (`main.cpp`, dll.)**:
-  - File sumber utama memiliki puluhan ribu baris kode fitur lengkap (25.000+ baris).
-  - Setiap modifikasi **wajib mempertahankan seluruh fungsi yang sudah ada**. Dilarang keras merekonstruksi file hanya dari potongan sebagian (partial dump).
-  - Skrip pengubah file wajib memverifikasi bahwa total baris kode tidak mengalami penyusutan abnormal sebelum menyimpan perubahan.
+## 7. Perlindungan Struktur Model & Migrasi Database
+- **Dilarang keras mengubah migration lama yang sudah berjalan di production**:
+  - Setiap perubahan skema tabel wajib dibuat melalui file migrasi baru (`php artisan make:migration add_columns_to_table`).
+  - Raw SQL query dilarang digunakan jika masih bisa dihandle oleh Eloquent ORM atau Query Builder demi proteksi SQL Injection dan konsistensi tipe data.
+- **Arsitektur Standar Laravel**:
+  - Logika bisnis ditempatkan pada **Services / Actions**, bukan menumpuk ribuan baris di controller tunggal.
+  - Validasi form wajib menggunakan Form Request (`app/Http/Requests`).
 
-## 8. Eksekusi Terstruktur, Analisis Mendalam & Larangan Eksekusi Buta (No Blind Trial-and-Error)
-- Setiap tindakan harus diawali analisis akar masalah (root-cause) yang jelas dan tuntas.
-- Modifikasi harus dirancang dalam 1 perencanaan yang matang dan presisi sebelum dieksekusi, tanpa looping/trial-error tanpa arah yang membuang kuota/token.
-
-
+## 8. Eksekusi Terstruktur & Analisis Root-Cause
+- Setiap modifikasi alur sistem inventory (stok masuk, stok keluar, opname) wajib dianalisis dampaknya terhadap integritas database transaction (`DB::transaction`).
+- Hindari loop trial-and-error tanpa memahami relasi model dan flow lifecycle Laravel.

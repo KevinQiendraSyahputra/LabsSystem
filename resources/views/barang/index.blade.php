@@ -1,221 +1,306 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full max-w-9xl mx-auto space-y-4 sm:space-y-6" x-data="barangIndexData()">
+<div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full max-w-9xl mx-auto space-y-4 sm:space-y-6" x-data="{
+    search: @js(request('search', '')),
+    selectedLaboratorium: @js(request('laboratorium', '')),
+    selectedKategori: @js(request('kategori', '')),
+    selectedKondisi: @js(request('kondisi', '')),
+    openDropdown: null,
+    isLoading: false,
+    deleteModal: false,
+    deleteActionUrl: '',
+    deleteItemName: '',
 
-    {{-- Header Page --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
-        <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50 text-indigo-600 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-            </div>
-            <div class="min-w-0 flex-1">
-                <h1 class="text-base sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate sm:whitespace-normal">Daftar Inventaris Lab</h1>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium line-clamp-1 sm:line-clamp-none">Kelola data peralatan, aset, dan stiker QR Code</p>
-            </div>
+    init() {
+        if (typeof this.search !== 'string') this.search = '';
+        if (typeof this.selectedLaboratorium !== 'string') this.selectedLaboratorium = '';
+        if (typeof this.selectedKategori !== 'string') this.selectedKategori = '';
+        if (typeof this.selectedKondisi !== 'string') this.selectedKondisi = '';
+    },
+
+    confirmDelete(url, name) {
+        this.deleteActionUrl = url;
+        this.deleteItemName = name;
+        this.deleteModal = true;
+    },
+
+    toggle(name) {
+        this.openDropdown = (this.openDropdown === name) ? null : name;
+    },
+
+    closeIf(name) {
+        if (this.openDropdown === name) {
+            this.openDropdown = null;
+        }
+    },
+
+    selectLaboratorium(val) {
+        this.selectedLaboratorium = val;
+        this.openDropdown = null;
+        this.fetchData();
+    },
+
+    selectKategori(val) {
+        this.selectedKategori = val;
+        this.openDropdown = null;
+        this.fetchData();
+    },
+
+    selectKondisi(val) {
+        this.selectedKondisi = val;
+        this.openDropdown = null;
+        this.fetchData();
+    },
+
+    resetFilters() {
+        this.search = '';
+        this.selectedLaboratorium = '';
+        this.selectedKategori = '';
+        this.selectedKondisi = '';
+        this.openDropdown = null;
+        this.fetchData();
+    },
+
+    async fetchData(customUrl = null) {
+        this.isLoading = true;
+
+        if (typeof this.search !== 'string') this.search = '';
+        if (typeof this.selectedLaboratorium !== 'string') this.selectedLaboratorium = '';
+        if (typeof this.selectedKategori !== 'string') this.selectedKategori = '';
+        if (typeof this.selectedKondisi !== 'string') this.selectedKondisi = '';
+
+        let url = customUrl;
+        if (!url) {
+            const params = new URLSearchParams();
+            if (this.search) params.append('search', this.search);
+            if (this.selectedLaboratorium) params.append('laboratorium', this.selectedLaboratorium);
+            if (this.selectedKategori) params.append('kategori', this.selectedKategori);
+            if (this.selectedKondisi) params.append('kondisi', this.selectedKondisi);
+            url = '{{ route('barang.index') }}' + (params.toString() ? '?' + params.toString() : '');
+        }
+        window.history.pushState({}, '', url);
+
+        try {
+            const res = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error('Network response error');
+            const htmlText = await res.text();
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const newContainer = doc.getElementById('barangDataContainer');
+
+            if (newContainer) {
+                const currentContainer = document.getElementById('barangDataContainer');
+                if (currentContainer) {
+                    currentContainer.innerHTML = newContainer.innerHTML;
+                    if (window.Alpine) {
+                        window.Alpine.initTree(currentContainer);
+                    }
+                }
+            } else {
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error('Fetch filter error:', err);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+}" @open-delete-barang.window="confirmDelete($event.detail.url, $event.detail.name)">
+
+    {{-- Header Page (Clean Text & Action - No heavy card) --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Data Barang</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Kelola data peralatan, aset, dan stiker QR Code</p>
         </div>
-
         @if(Auth::check() && (Auth::user()->role === 'admin' || Auth::user()->role === 'kepala_lab'))
-        <a href="{{ route('barang.create') }}" class="w-full sm:w-auto inline-flex min-h-[42px] sm:min-h-[44px] items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-xs transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        <a href="{{ route('barang.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition active:scale-95">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
             <span>Tambah Barang</span>
         </a>
         @endif
     </div>
 
-    {{-- Search & Filter Bar (Auto-Submit tanpa Tombol Filter) --}}
+    {{-- Search & Filter Bar --}}
     <div class="bg-white p-4 sm:p-5 border border-slate-200/80 rounded-2xl sm:rounded-3xl shadow-xs relative z-30">
-        <form id="filterBarangForm" action="{{ route('barang.index') }}" method="GET" @submit.prevent="fetchData()" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
+        <form id="filterBarangForm" @submit.prevent="fetchData()" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
 
-            {{-- Input Pencarian (Tekan Enter untuk Mencari) --}}
+            {{-- Input Pencarian --}}
             <div class="lg:col-span-4 relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input type="search" name="search" x-model="search" @input.debounce.400ms="fetchData()" 
+                <input type="text" 
+                       name="search" 
+                       id="barangSearchInput" 
+                       x-model="search" 
+                       @input.debounce.400ms="fetchData()" 
                        aria-label="Cari nama barang, kode, atau merk"
                        class="block w-full min-h-[42px] pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-800 bg-slate-50/80 border border-slate-300/80 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none transition shadow-xs" 
                        placeholder="Cari nama barang, kode, merk...">
             </div>
 
-            {{-- Custom Dropdown Laboratorium (Auto Submit) --}}
-            <div class="lg:col-span-3 relative" x-data="{
-                open: false,
-                selected: @js(request('laboratorium', '')),
-                options: [
-                    { value: '', label: 'Semua Laboratorium' },
-                    { value: 'Laboratorium TKJ', label: 'Laboratorium TKJ' },
-                    { value: 'Laboratorium AKL', label: 'Laboratorium AKL' },
-                    { value: 'Laboratorium Pemasaran', label: 'Laboratorium Pemasaran' }
-                ],
-                get label() {
-                    let item = this.options.find(opt => opt.value === this.selected);
-                    return item ? item.label : 'Semua Laboratorium';
-                }
-            }" @click.outside="open = false" @keydown.escape.stop="open = false">
-                <input type="hidden" name="laboratorium" :value="selected">
-
-                <button type="button" @click="open = !open" 
-                        role="combobox" aria-haspopup="listbox" :aria-expanded="open" aria-label="Filter Laboratorium"
+            {{-- Custom Dropdown Laboratorium --}}
+            <div class="lg:col-span-3 relative" @click.outside="closeIf('laboratorium')">
+                <button type="button" @click="toggle('laboratorium')" 
                         class="w-full min-h-[42px] flex items-center justify-between bg-slate-50/80 border border-slate-300/80 text-slate-800 text-xs sm:text-sm font-semibold rounded-xl sm:rounded-2xl px-3.5 py-2.5 transition shadow-xs hover:bg-slate-100/70 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none">
-                    <span x-text="label" class="truncate" :class="{'text-indigo-700 font-bold': selected}"></span>
-                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180 text-indigo-600': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <span x-text="{
+                        '': 'Semua Laboratorium',
+                        'Laboratorium TKJ': 'Laboratorium TKJ',
+                        'Laboratorium AKL': 'Laboratorium AKL',
+                        'Laboratorium Pemasaran': 'Laboratorium Pemasaran'
+                    }[selectedLaboratorium] || 'Semua Laboratorium'" class="truncate" :class="{'text-indigo-700 font-bold': selectedLaboratorium}"></span>
+                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180 text-indigo-600': openDropdown === 'laboratorium' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
 
-                <div x-show="open" 
+                <div x-show="openDropdown === 'laboratorium'" 
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 translate-y-1 scale-95"
                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                      x-transition:leave="transition ease-in duration-100"
                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                      x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                     role="listbox"
                      class="absolute z-50 mt-1.5 w-full bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-100 py-1.5 max-h-60 overflow-y-auto focus:outline-none"
                      style="display: none;">
-                    <template x-for="item in options" :key="item.value">
-                        <button type="button" 
-                                role="option"
-                                :aria-selected="selected === item.value"
-                                @click="selected = item.value; open = false; $nextTick(() => document.getElementById('filterBarangForm').submit())"
-                                class="w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition"
-                                :class="selected === item.value ? 'bg-indigo-50 text-indigo-900 font-bold border-l-2 border-indigo-600' : 'text-slate-800 hover:bg-slate-100 font-medium'">
-                            <span x-text="item.label"></span>
-                            <svg x-show="selected === item.value" class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </button>
-                    </template>
+                    @foreach(['' => 'Semua Laboratorium', 'Laboratorium TKJ' => 'Laboratorium TKJ', 'Laboratorium AKL' => 'Laboratorium AKL', 'Laboratorium Pemasaran' => 'Laboratorium Pemasaran'] as $val => $lbl)
+                    <button type="button" 
+                            @click="selectLaboratorium('{{ $val }}')"
+                            class="w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition"
+                            :class="selectedLaboratorium === '{{ $val }}' ? 'bg-indigo-50 text-indigo-900 font-bold border-l-2 border-indigo-600' : 'text-slate-800 hover:bg-slate-100 font-medium'">
+                        <span>{{ $lbl }}</span>
+                        <svg x-show="selectedLaboratorium === '{{ $val }}'" class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                    @endforeach
                 </div>
             </div>
 
-            {{-- Custom Dropdown Kategori (Auto Submit) --}}
-            <div class="lg:col-span-2 relative" x-data="{
-                open: false,
-                selected: @js(request('kategori', '')),
-                options: [
-                    { value: '', label: 'Semua Kategori' },
-                    { value: 'Jaringan', label: 'Jaringan' },
-                    { value: 'Komputer', label: 'Komputer' },
-                    { value: 'Perangkat Keras', label: 'Perangkat Keras' },
-                    { value: 'Alat Praktik', label: 'Alat Praktik' },
-                    { value: 'Furniture', label: 'Furniture' },
-                    { value: 'Lainnya', label: 'Lainnya' }
-                ],
-                get label() {
-                    let item = this.options.find(opt => opt.value === this.selected);
-                    return item ? item.label : 'Semua Kategori';
-                }
-            }" @click.outside="open = false" @keydown.escape.stop="open = false">
-                <input type="hidden" name="kategori" :value="selected">
-
-                <button type="button" @click="open = !open" 
-                        role="combobox" aria-haspopup="listbox" :aria-expanded="open" aria-label="Filter Kategori Barang"
+            {{-- Custom Dropdown Kategori --}}
+            <div class="lg:col-span-2 relative" @click.outside="closeIf('kategori')">
+                <button type="button" @click="toggle('kategori')" 
                         class="w-full min-h-[42px] flex items-center justify-between bg-slate-50/80 border border-slate-300/80 text-slate-800 text-xs sm:text-sm font-semibold rounded-xl sm:rounded-2xl px-3.5 py-2.5 transition shadow-xs hover:bg-slate-100/70 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none">
-                    <span x-text="label" class="truncate" :class="{'text-indigo-700 font-bold': selected}"></span>
-                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180 text-indigo-600': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <span x-text="{
+                        '': 'Semua Kategori',
+                        'Jaringan': 'Jaringan',
+                        'Komputer': 'Komputer',
+                        'Perangkat Keras': 'Perangkat Keras',
+                        'Alat Praktik': 'Alat Praktik',
+                        'Furniture': 'Furniture',
+                        'Lainnya': 'Lainnya'
+                    }[selectedKategori] || 'Semua Kategori'" class="truncate" :class="{'text-indigo-700 font-bold': selectedKategori}"></span>
+                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180 text-indigo-600': openDropdown === 'kategori' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
 
-                <div x-show="open" 
+                <div x-show="openDropdown === 'kategori'" 
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 translate-y-1 scale-95"
                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                      x-transition:leave="transition ease-in duration-100"
                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                      x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                     role="listbox"
                      class="absolute z-50 mt-1.5 w-full bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-100 py-1.5 max-h-60 overflow-y-auto focus:outline-none"
                      style="display: none;">
-                    <template x-for="item in options" :key="item.value">
-                        <button type="button" 
-                                role="option"
-                                :aria-selected="selected === item.value"
-                                @click="selected = item.value; open = false; $nextTick(() => document.getElementById('filterBarangForm').submit())"
-                                class="w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition"
-                                :class="selected === item.value ? 'bg-indigo-50 text-indigo-900 font-bold border-l-2 border-indigo-600' : 'text-slate-800 hover:bg-slate-100 font-medium'">
-                            <span x-text="item.label"></span>
-                            <svg x-show="selected === item.value" class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </button>
-                    </template>
+                    @foreach(['' => 'Semua Kategori', 'Jaringan' => 'Jaringan', 'Komputer' => 'Komputer', 'Perangkat Keras' => 'Perangkat Keras', 'Alat Praktik' => 'Alat Praktik', 'Furniture' => 'Furniture', 'Lainnya' => 'Lainnya'] as $val => $lbl)
+                    <button type="button" 
+                            @click="selectKategori('{{ $val }}')"
+                            class="w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition"
+                            :class="selectedKategori === '{{ $val }}' ? 'bg-indigo-50 text-indigo-900 font-bold border-l-2 border-indigo-600' : 'text-slate-800 hover:bg-slate-100 font-medium'">
+                        <span>{{ $lbl }}</span>
+                        <svg x-show="selectedKategori === '{{ $val }}'" class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                    @endforeach
                 </div>
             </div>
 
-            {{-- Custom Dropdown Kondisi (Auto Submit) --}}
-            <div class="lg:col-span-2 relative" x-data="{
-                open: false,
-                selected: @js(request('kondisi', '')),
-                options: [
-                    { value: '', label: 'Semua Kondisi' },
-                    { value: 'Baik', label: 'Baik' },
-                    { value: 'Perawatan', label: 'Perawatan' },
-                    { value: 'Perbaikan', label: 'Perbaikan' },
-                    { value: 'Rusak Berat', label: 'Rusak Berat' },
-                    { value: 'Hilang', label: 'Hilang' }
-                ],
-                get label() {
-                    let item = this.options.find(opt => opt.value === this.selected);
-                    return item ? item.label : 'Semua Kondisi';
-                }
-            }" @click.outside="open = false" @keydown.escape.stop="open = false">
-                <input type="hidden" name="kondisi" :value="selected">
-
-                <button type="button" @click="open = !open" 
-                        role="combobox" aria-haspopup="listbox" :aria-expanded="open" aria-label="Filter Kondisi Barang"
+            {{-- Custom Dropdown Kondisi --}}
+            <div class="lg:col-span-2 relative" @click.outside="closeIf('kondisi')">
+                <button type="button" @click="toggle('kondisi')" 
                         class="w-full min-h-[42px] flex items-center justify-between bg-slate-50/80 border border-slate-300/80 text-slate-800 text-xs sm:text-sm font-semibold rounded-xl sm:rounded-2xl px-3.5 py-2.5 transition shadow-xs hover:bg-slate-100/70 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none">
-                    <span x-text="label" class="truncate" :class="{'text-indigo-700 font-bold': selected}"></span>
-                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180 text-indigo-600': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <span x-text="{
+                        '': 'Semua Kondisi',
+                        'Baik': 'Baik',
+                        'Perawatan': 'Perawatan',
+                        'Perbaikan': 'Perbaikan',
+                        'Rusak Berat': 'Rusak Berat',
+                        'Hilang': 'Hilang'
+                    }[selectedKondisi] || 'Semua Kondisi'" class="truncate" :class="{'text-indigo-700 font-bold': selectedKondisi}"></span>
+                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180 text-indigo-600': openDropdown === 'kondisi' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
 
-                <div x-show="open" 
+                <div x-show="openDropdown === 'kondisi'" 
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 translate-y-1 scale-95"
                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                      x-transition:leave="transition ease-in duration-100"
                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                      x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                     role="listbox"
                      class="absolute z-50 mt-1.5 w-full bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-100 py-1.5 max-h-60 overflow-y-auto focus:outline-none"
                      style="display: none;">
-                    <template x-for="item in options" :key="item.value">
-                        <button type="button" 
-                                role="option"
-                                :aria-selected="selected === item.value"
-                                @click="selected = item.value; open = false; $nextTick(() => document.getElementById('filterBarangForm').submit())"
-                                class="w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition"
-                                :class="selected === item.value ? 'bg-indigo-50 text-indigo-900 font-bold border-l-2 border-indigo-600' : 'text-slate-800 hover:bg-slate-100 font-medium'">
-                            <span x-text="item.label"></span>
-                            <svg x-show="selected === item.value" class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </button>
-                    </template>
+                    @foreach(['' => 'Semua Kondisi', 'Baik' => 'Baik', 'Perawatan' => 'Perawatan', 'Perbaikan' => 'Perbaikan', 'Rusak Berat' => 'Rusak Berat', 'Hilang' => 'Hilang'] as $val => $lbl)
+                    <button type="button" 
+                            @click="selectKondisi('{{ $val }}')"
+                            class="w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition"
+                            :class="selectedKondisi === '{{ $val }}' ? 'bg-indigo-50 text-indigo-900 font-bold border-l-2 border-indigo-600' : 'text-slate-800 hover:bg-slate-100 font-medium'">
+                        <span>{{ $lbl }}</span>
+                        <svg x-show="selectedKondisi === '{{ $val }}'" class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                    @endforeach
                 </div>
             </div>
 
-            {{-- Action Button: Reset Saja --}}
+            {{-- Action Buttons: Reset Saja --}}
             <div class="sm:col-span-2 lg:col-span-1 flex items-center justify-end">
-                <a href="{{ route('barang.index') }}"
-                   title="Reset Filter"
-                   class="w-full min-h-[42px] px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm py-2.5 rounded-xl sm:rounded-2xl border border-slate-300 transition active:scale-[0.98] text-center flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                <button type="button"
+                        @click="resetFilters()"
+                        title="Reset Filter"
+                        class="w-full min-h-[42px] px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm py-2.5 rounded-xl sm:rounded-2xl border border-slate-300 transition active:scale-[0.98] text-center flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                     <span>Reset</span>
-                </a>
+                </button>
             </div>
         </form>
     </div>
+
+    {{-- Data Container --}}
+    <div id="barangDataContainer" class="relative z-10 transition-opacity duration-150" :class="{'opacity-50 pointer-events-none': isLoading}" @click="const a = $event.target.closest('a'); if (a && a.href && (a.closest('nav') || a.closest('.pagination'))) { $event.preventDefault(); fetchData(a.href); }">
+        
+        {{-- Loading Skeleton State --}}
+        <template x-if="isLoading">
+            <div class="p-4 sm:p-6 space-y-4 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
+                <div class="animate-pulse flex justify-between items-center gap-4">
+                    <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                    <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+                </div>
+                <div class="space-y-3 pt-2">
+                    <div class="h-16 bg-slate-100 rounded-xl animate-pulse"></div>
+                    <div class="h-16 bg-slate-100 rounded-xl animate-pulse"></div>
+                    <div class="h-16 bg-slate-100 rounded-xl animate-pulse"></div>
+                    <div class="h-16 bg-slate-100 rounded-xl animate-pulse"></div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Table & Mobile List --}}
+        <div x-show="!isLoading" class="space-y-4 sm:space-y-6">
 
     {{-- Mobile View: Responsive Equipment Cards (Tampil Hanya di Layar Kecil < md) --}}
     <div class="grid grid-cols-1 gap-4 md:hidden">
@@ -478,6 +563,8 @@
             {{ $barangs->withQueryString()->links() }}
         </div>
         @endif
+    </div>
+        </div>
     </div>
 
     {{-- MODAL KONFIRMASI HAPUS --}}

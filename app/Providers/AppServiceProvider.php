@@ -78,6 +78,14 @@ class AppServiceProvider extends ServiceProvider
                         $globalTerlambat = Peminjaman::where('status', 'Terlambat')->count();
                     }
 
+                    // Auto-sync laboratorium default pada data barang lama yang masih NULL
+                    if (Schema::hasTable('barangs') && Schema::hasColumn('barangs', 'laboratorium')) {
+                        \Illuminate\Support\Facades\DB::table('barangs')
+                            ->whereNull('laboratorium')
+                            ->orWhere('laboratorium', '')
+                            ->update(['laboratorium' => 'Laboratorium TKJ']);
+                    }
+
                     $view->with([
                         'globalBeritas'       => $globalBeritas,
                         'unreadBeritasCount'  => $unreadBeritasCount,

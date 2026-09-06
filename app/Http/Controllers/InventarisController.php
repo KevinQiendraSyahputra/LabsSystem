@@ -17,7 +17,15 @@ class InventarisController extends Controller
 
         $query = Barang::query();
         if ($activeLab && $activeLab !== 'Semua') {
-            $query->where('laboratorium', $activeLab);
+            if ($activeLab === 'Laboratorium TKJ') {
+                $query->where(function ($q) use ($activeLab) {
+                    $q->where('laboratorium', $activeLab)
+                      ->orWhereNull('laboratorium')
+                      ->orWhere('laboratorium', '');
+                });
+            } else {
+                $query->where('laboratorium', $activeLab);
+            }
         }
 
         if ($request->filled('kategori')) {
@@ -82,7 +90,15 @@ class InventarisController extends Controller
 
         $query = Barang::query();
         if ($activeLab && $activeLab !== 'Semua') {
-            $query->where('laboratorium', $activeLab);
+            if ($activeLab === 'Laboratorium TKJ') {
+                $query->where(function ($q) use ($activeLab) {
+                    $q->where('laboratorium', $activeLab)
+                      ->orWhereNull('laboratorium')
+                      ->orWhere('laboratorium', '');
+                });
+            } else {
+                $query->where('laboratorium', $activeLab);
+            }
         }
 
         if ($request->filled('kategori')) {

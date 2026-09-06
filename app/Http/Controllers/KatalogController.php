@@ -20,7 +20,15 @@ class KatalogController extends Controller
 
         // Filter berdasarkan lab user (kelas/role based)
         if ($labScope) {
-            $query->where('laboratorium', $labScope);
+            if ($labScope === 'Laboratorium TKJ') {
+                $query->where(function ($q) use ($labScope) {
+                    $q->where('laboratorium', $labScope)
+                      ->orWhereNull('laboratorium')
+                      ->orWhere('laboratorium', '');
+                });
+            } else {
+                $query->where('laboratorium', $labScope);
+            }
         }
 
         // Pencarian multi-kolom

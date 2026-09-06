@@ -27,7 +27,16 @@ class LaporanController extends Controller
             $query->where('sumber_dana', $request->sumber_dana);
         }
         if ($request->filled('laboratorium')) {
-            $query->where('laboratorium', $request->laboratorium);
+            $lab = $request->laboratorium;
+            if ($lab === 'Laboratorium TKJ') {
+                $query->where(function ($q) use ($lab) {
+                    $q->where('laboratorium', $lab)
+                      ->orWhereNull('laboratorium')
+                      ->orWhere('laboratorium', '');
+                });
+            } else {
+                $query->where('laboratorium', $lab);
+            }
         }
 
         $barangs    = $query->orderBy('kategori')->orderBy('nama_barang')->get();
@@ -195,7 +204,16 @@ class LaporanController extends Controller
         $query = Barang::query();
 
         if ($request->filled('laboratorium')) {
-            $query->where('laboratorium', $request->laboratorium);
+            $lab = $request->laboratorium;
+            if ($lab === 'Laboratorium TKJ') {
+                $query->where(function ($q) use ($lab) {
+                    $q->where('laboratorium', $lab)
+                      ->orWhereNull('laboratorium')
+                      ->orWhere('laboratorium', '');
+                });
+            } else {
+                $query->where('laboratorium', $lab);
+            }
         }
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);

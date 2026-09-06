@@ -161,48 +161,19 @@
                 </section>
             @endif
 
-            <header class="animate-enter delay-75 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 lg:p-6 shadow-sm transition-all duration-300 hover:shadow-md">
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div class="min-w-0 flex-1">
-                        <div class="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-700 shadow-sm">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
-                            </span>
-                            Sistem Manajemen Lab TKJ
-                        </div>
-                        <h1 class="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                            Dashboard Admin
-                        </h1>
-                        <p class="mt-1 text-xs sm:text-sm leading-relaxed text-slate-500">
-                            Ringkasan inventaris, kondisi barang, peminjaman, dan aktivitas laboratorium secara realtime.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 w-full lg:w-auto pt-2 lg:pt-0">
-                        <a href="{{ route('barang.create') }}" class="group inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all duration-200 active:scale-[0.97] hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-                            <svg class="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span class="truncate">Tambah Barang</span>
-                        </a>
-
-                        <a href="{{ route('peminjaman.index') }}" class="group inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 active:scale-[0.97] hover:bg-slate-50 hover:border-slate-400 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
-                            <svg class="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            <span class="truncate">Peminjaman</span>
-                        </a>
-                    </div>
-                </div>
-            </header>
-
             <section aria-labelledby="ringkasan-heading">
-                <div class="mb-3 px-1 animate-enter delay-100">
-                    <h2 id="ringkasan-heading" class="text-sm sm:text-base font-semibold text-slate-900">
+                <div class="mb-3 px-1 animate-enter delay-75">
+                    <div class="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-700 shadow-xs mb-2">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                        </span>
+                        SISTEM MANAJEMEN TKJ
+                    </div>
+                    <h2 id="ringkasan-heading" class="text-base sm:text-lg font-bold text-slate-900">
                         Ringkasan Inventaris
                     </h2>
-                    <p class="mt-0.5 text-xs sm:text-sm text-slate-500">
+                    <p class="mt-1 text-xs sm:text-sm text-slate-500">
                         Ikhtisar status aset dan pemakaian sarana laboratorium.
                     </p>
                 </div>

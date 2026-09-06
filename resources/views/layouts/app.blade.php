@@ -36,6 +36,70 @@
         }
     </script>
 
+    <!-- Alpine.js Init & Global Sidebar Store -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('sidebar', {
+                open: false,
+                toggle() {
+                    this.open = !this.open;
+                },
+                close() {
+                    this.open = false;
+                },
+                openSidebar() {
+                    this.open = true;
+                }
+            });
+        });
+
+        window.closeSidebarDrawer = function() {
+            try {
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('sidebar')) {
+                    window.Alpine.store('sidebar').close();
+                }
+            } catch(e) {}
+            const aside = document.getElementById('mainSidebar');
+            if (aside && window.innerWidth < 1024) {
+                aside.classList.remove('translate-x-0');
+                aside.classList.add('-translate-x-full');
+            }
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) {
+                backdrop.classList.remove('is-open');
+            }
+            const mainContentWrapper = document.getElementById('mainLayoutWrapper');
+            if (mainContentWrapper) {
+                mainContentWrapper.classList.remove('is-blurred', 'blur-sm', 'brightness-90', 'pointer-events-none');
+            }
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        window.openSidebarDrawer = function() {
+            try {
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('sidebar')) {
+                    window.Alpine.store('sidebar').openSidebar();
+                }
+            } catch(e) {}
+            const aside = document.getElementById('mainSidebar');
+            if (aside && window.innerWidth < 1024) {
+                aside.classList.remove('-translate-x-full');
+                aside.classList.add('translate-x-0');
+            }
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) {
+                backdrop.classList.add('is-open');
+            }
+            const mainContentWrapper = document.getElementById('mainLayoutWrapper');
+            if (mainContentWrapper && window.innerWidth < 1024) {
+                mainContentWrapper.classList.add('is-blurred');
+            }
+            if (window.innerWidth < 1024) {
+                document.body.classList.add('overflow-hidden');
+            }
+        };
+    </script>
+
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
@@ -45,6 +109,27 @@
 
     <style>
         [x-cloak] { display: none !important; }
+
+        /* Fluid Responsiveness: Menyesuaikan skala elemen secara proporsional sesuai ukuran device */
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+        @media (max-width: 1024px) {
+            html { font-size: 15.5px; }
+        }
+        @media (max-width: 768px) {
+            html { font-size: 15px; }
+        }
+        @media (max-width: 480px) {
+            html { font-size: 14px; }
+        }
+        @media (max-width: 375px) {
+            html { font-size: 13.2px; }
+        }
+        @media (max-width: 320px) {
+            html { font-size: 12.2px; }
+        }
 
         /* Disable hover animations & sticky highlights on non-desktop (touch/mobile) devices */
         @media (hover: none) or (pointer: coarse) {
@@ -134,6 +219,39 @@
 
         .sidebar-scrollable {
             overscroll-behavior: contain;
+        }
+
+        /* Smooth Mobile Backdrop Blur & Fade In */
+        #sidebarBackdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            background-color: rgba(2, 6, 23, 0);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        -webkit-backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #sidebarBackdrop.is-open {
+            background-color: rgba(2, 6, 23, 0.72);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #mainLayoutWrapper {
+            transition: filter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #mainLayoutWrapper.is-blurred {
+            filter: blur(4px) brightness(0.92);
+            pointer-events: none;
         }
 
         /* STANDARD RESPONSIVE BASE */
@@ -248,7 +366,7 @@
     </style>
     @stack('styles')
 </head>
-<body class="bg-slate-100 antialiased text-slate-800" x-data="{ sidebarOpen: false }">
+<body class="bg-slate-100 antialiased text-slate-800" x-data @close-sidebar.window="window.closeSidebarDrawer()">
 
 {{-- SCREEN LOADING INTRO --}}
 <aside id="introScreen" class="intro-screen" style="display: none;" aria-label="Layar Pembuka">
@@ -361,28 +479,24 @@
 </div>
 @endif
 
-<div class="min-h-screen flex flex-col lg:flex-row relative">
+<div class="min-h-screen w-full max-w-full flex flex-col lg:flex-row relative overflow-x-hidden">
 
-    {{-- Mobile overlay --}}
-    <div x-cloak
-         x-show="sidebarOpen"
-         @click="sidebarOpen = false"
-         x-transition:enter="transition-opacity ease-linear duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-linear duration-300"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"></div>
+    {{-- Mobile overlay dengan Backdrop Blur & Darkening (Smooth Fade In) --}}
+    <div id="sidebarBackdrop"
+         onclick="window.closeSidebarDrawer()"
+         @click="window.closeSidebarDrawer()"
+         class="fixed inset-0 z-40 lg:hidden pointer-events-none"
+         aria-hidden="true"></div>
 
     {{-- ====== SIDEBAR ====== --}}
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+    <aside id="mainSidebar"
+           :class="$store.sidebar.open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
            class="-translate-x-full fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 text-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0">
 
         {{-- 1. HEADER --}}
         <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
             <a href="{{ route('dashboard') }}" 
-               @if(request()->routeIs('dashboard')) @click.prevent="sidebarOpen = false" @endif
+               @click="window.closeSidebarDrawer()"
                class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1 shadow-md flex-shrink-0 overflow-hidden">
                     <img src="{{ asset('uploads/Logo/Logo_winshark.webp') }}"
@@ -395,7 +509,7 @@
                     <p class="text-slate-400 text-[10px] font-medium tracking-wide">Winshark Community</p>
                 </div>
             </a>
-            <button @click="sidebarOpen = false" class="lg:hidden p-1 text-slate-400 hover:text-white focus:outline-none">
+            <button type="button" @click="window.closeSidebarDrawer()" class="lg:hidden p-1 text-slate-400 hover:text-white focus:outline-none" aria-label="Tutup Menu">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -403,7 +517,8 @@
         </div>
 
         {{-- 2. NAV MENU --}}
-        <nav id="sidebarNav" class="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto sidebar-scrollable">
+        <nav id="sidebarNav" 
+             class="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto sidebar-scrollable">
 
             {{-- Dashboard --}}
             <div class="sidebar-group-label flex items-center gap-2 text-slate-400">
@@ -413,7 +528,7 @@
                 <span>Utama</span>
             </div>
             <a href="{{ route('dashboard') }}"
-               @if(request()->routeIs('dashboard')) @click.prevent="sidebarOpen = false" @endif
+               @click="window.closeSidebarDrawer()"
                class="sidebar-link flex items-center gap-3 {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -431,7 +546,7 @@
                     <span>Inventaris</span>
                 </div>
                 <a href="{{ route('barang.index') }}"
-                   @if(request()->routeIs('barang.index') || request()->routeIs('barang.show') || request()->routeIs('barang.edit')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ (request()->routeIs('barang.index') || request()->routeIs('barang.show') || request()->routeIs('barang.edit')) ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -440,7 +555,7 @@
                     <span>Data Barang</span>
                 </a>
                 <a href="{{ route('barang.create') }}"
-                   @if(request()->routeIs('barang.create')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('barang.create') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -456,7 +571,7 @@
                     <span>Transaksi</span>
                 </div>
                 <a href="{{ route('peminjaman.index') }}"
-                   @if(request()->routeIs('peminjaman.index')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center justify-between {{ request()->routeIs('peminjaman.index') || request()->routeIs('peminjaman.create') || request()->routeIs('peminjaman.show') ? 'active' : '' }}">
                     <div class="flex items-center gap-3">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,7 +615,7 @@
                     <span>Maintenance</span>
                 </div>
                 <a href="{{ route('maintenance.index') }}"
-                   @if(request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ (request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -517,7 +632,7 @@
                     <span>Laporan</span>
                 </div>
                 <a href="{{ route('laporan.index') }}"
-                   @if(request()->routeIs('laporan.index')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -526,7 +641,7 @@
                     <span>Laporan Inventaris</span>
                 </a>
                 <a href="{{ route('laporan.maintenance') }}"
-                   @if(request()->routeIs('laporan.maintenance*')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('laporan.maintenance*') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -542,7 +657,7 @@
                     <span>Pengguna</span>
                 </div>
                 <a href="{{ route('pengguna.index') }}"
-                   @if(request()->routeIs('pengguna.*')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -560,7 +675,7 @@
                     <span>Laporan</span>
                 </div>
                 <a href="{{ route('laporan.maintenance') }}"
-                   @if(request()->routeIs('laporan.maintenance*')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('laporan.maintenance*') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -576,7 +691,7 @@
                     <span>Maintenance</span>
                 </div>
                 <a href="{{ route('maintenance.index') }}"
-                   @if(request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ (request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -598,7 +713,7 @@
                     <span>Layanan Praktikum</span>
                 </div>
                 <a href="{{ route('katalog.index') }}"
-                   @if(request()->routeIs('katalog.*')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('katalog.*') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -608,7 +723,7 @@
                 </a>
 
                 <a href="{{ route('peminjaman.saya') }}"
-                   @if(request()->routeIs('peminjaman.saya')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('peminjaman.saya') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -619,7 +734,7 @@
 
                 {{-- Scan QR Code --}}
                 <a href="{{ route('scan.qr') }}"
-                   @if(request()->routeIs('scan.qr')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('scan.qr') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -637,7 +752,7 @@
                     <span>Maintenance {{ $userLabLabel }}</span>
                 </div>
                 <a href="{{ route('maintenance.index') }}"
-                   @if(request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ (request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
@@ -645,7 +760,7 @@
                     <span>Riwayat Maintenance</span>
                 </a>
                 <a href="{{ route('maintenance.create') }}"
-                   @if(request()->routeIs('maintenance.create')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('maintenance.create') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -653,7 +768,7 @@
                     <span>Catat Maintenance</span>
                 </a>
                 <a href="{{ route('laporan.maintenance') }}"
-                   @if(request()->routeIs('laporan.maintenance*')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('laporan.maintenance*') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -671,7 +786,7 @@
                     <span>Layanan Praktikum</span>
                 </div>
                 <a href="{{ route('katalog.index') }}"
-                   @if(request()->routeIs('katalog.*')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('katalog.*') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -681,7 +796,7 @@
                 </a>
 
                 <a href="{{ route('peminjaman.saya') }}"
-                   @if(request()->routeIs('peminjaman.saya')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('peminjaman.saya') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -692,7 +807,7 @@
 
                 {{-- Scan QR Code --}}
                 <a href="{{ route('scan.qr') }}"
-                   @if(request()->routeIs('scan.qr')) @click.prevent="sidebarOpen = false" @endif
+                   @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('scan.qr') ? 'active' : '' }}">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -710,7 +825,7 @@
                 <span>Informasi</span>
             </div>
             <a href="{{ route('berita.index') }}"
-               @if(request()->routeIs('berita.*')) @click.prevent="sidebarOpen = false" @endif
+               @click="window.closeSidebarDrawer()"
                class="sidebar-link flex items-center gap-3 {{ request()->routeIs('berita.*') ? 'active' : '' }}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -727,7 +842,7 @@
                 <span>Bantuan</span>
             </div>
             <a href="{{ route('bantuan.index') }}"
-               @if(request()->routeIs('bantuan.*')) @click.prevent="sidebarOpen = false" @endif
+               @click="window.closeSidebarDrawer()"
                class="sidebar-link flex items-center gap-3 {{ request()->routeIs('bantuan.*') ? 'active' : '' }}">
                 <svg class="w-4 h-4 flex-shrink-0 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -744,7 +859,7 @@
                 <span>Akun</span>
             </div>
             <a href="{{ route('profile.edit') }}"
-               @if(request()->routeIs('profile.*')) @click.prevent="sidebarOpen = false" @endif
+               @click="window.closeSidebarDrawer()"
                class="sidebar-link flex items-center gap-3 {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -776,6 +891,7 @@
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit"
+                            @click="window.closeSidebarDrawer()"
                             class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 text-xs font-semibold transition-all duration-150">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -788,15 +904,20 @@
         </div>
     </aside>
 
-    {{-- ====== MAIN CONTENT ====== --}}
-    <div class="flex-1 flex flex-col min-w-0 min-h-screen @if(request()->routeIs('bantuan*')) h-[100dvh] max-h-[100dvh] overflow-hidden @endif">
+    {{-- ====== MAIN CONTENT WRAPPER ====== --}}
+    <div id="mainLayoutWrapper" class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 @if(request()->routeIs('bantuan*')) h-[100dvh] max-h-[100dvh] overflow-hidden @endif">
 
         {{-- Topbar (Sembunyikan di halaman Live Chat / Bantuan agar menjadi workspace full-bleed sesuai Foto 1) --}}
         @unless(request()->routeIs('bantuan*'))
         <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs no-print flex-shrink-0">
             <div class="flex items-center gap-3">
-                <button @click="sidebarOpen = true" class="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button type="button" 
+                        onclick="window.openSidebarDrawer()" 
+                        @click="window.openSidebarDrawer()" 
+                        class="lg:hidden p-2 -ml-1 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 active:scale-95 cursor-pointer flex-shrink-0" 
+                        aria-label="Buka Menu Navigasi" 
+                        title="Buka Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
@@ -1133,7 +1254,10 @@
                 window._laporanMaintenanceInterval = null;
             }
 
-            // 2. Matikan kamera/hardware stream
+            // 2. Tutup sidebar drawer mobile seketika saat navigasi dimulai
+            window.closeSidebarDrawer();
+
+            // 3. Matikan kamera/hardware stream
             if (typeof window.stopQrCamera === 'function') {
                 try { window.stopQrCamera(); } catch(e) {}
             }
@@ -1239,10 +1363,7 @@
 
                 window.scrollTo({ top: 0, behavior: 'instant' });
 
-                const bodyEl = document.querySelector('body');
-                if (bodyEl && bodyEl._x_dataStack && bodyEl._x_dataStack[0]) {
-                    bodyEl._x_dataStack[0].sidebarOpen = false;
-                }
+                window.closeSidebarDrawer();
 
             } catch (err) {
                 console.error('SPA Navigation error, full reload:', err);
@@ -1251,8 +1372,19 @@
                 isNavigating = false;
                 finishProgressBar();
                 if (currentMain) currentMain.style.opacity = '1';
+                window.closeSidebarDrawer();
             }
         }
+
+        // Capture listener untuk menutup drawer sidebar mobile seketika (Touch & Click)
+        ['click', 'touchend'].forEach(evtType => {
+            document.addEventListener(evtType, function(e) {
+                const sidebarItem = e.target.closest('#mainSidebar a, aside a, #sidebarNav a, aside button');
+                if (sidebarItem && window.innerWidth < 1024) {
+                    window.closeSidebarDrawer();
+                }
+            }, { capture: true, passive: true });
+        });
 
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
@@ -1279,10 +1411,12 @@
 
                 if (targetNormalized === currentNormalized) {
                     e.preventDefault();
+                    window.closeSidebarDrawer();
                     return;
                 }
 
                 e.preventDefault();
+                window.closeSidebarDrawer();
                 loadPage(targetNormalized, true);
             } catch(err) {}
         });

@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Asisten Lab Virtual — Winshark Community')
-@section('page_title', 'Asisten Lab')
-@section('page_subtitle', 'Pusat Informasi & Layanan Interaktif Laboratorium TKJ')
+@section('title', 'Pusat Bantuan & Asisten Lab — Winshark Community')
+@section('page_title', 'Pusat Bantuan Lab')
+@section('page_subtitle', 'Layanan Informasi & Asisten Interaktif Laboratorium TKJ')
 
 @push('styles')
 <style>
@@ -10,6 +10,8 @@
     html, body {
         height: 100% !important;
         overflow: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
     }
     
     main {
@@ -17,6 +19,8 @@
         margin: 0 !important;
         height: 100% !important;
         max-height: 100% !important;
+        width: 100% !important;
+        max-width: 100vw !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important;
@@ -33,15 +37,20 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     
-    #chatMessages::-webkit-scrollbar { width: 4px; }
+    #chatMessages::-webkit-scrollbar { width: 5px; }
     #chatMessages::-webkit-scrollbar-track { background: transparent; }
     #chatMessages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    #chatMessages::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .help-sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .help-sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .help-sidebar-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(4px); }
+        from { opacity: 0; transform: translateY(6px); }
         to   { opacity: 1; transform: translateY(0); }
     }
-    .animate-fade-in { animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-fade-in { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 </style>
 @endpush
 
@@ -49,220 +58,348 @@
 
 <div x-data="labChatBot()"
      x-init="init()"
-     class="flex flex-col w-full h-full min-h-0 bg-slate-50 relative select-text border-t sm:border-l border-slate-200">
+     class="flex flex-col w-full max-w-full h-full min-h-0 bg-slate-50 relative select-text overflow-hidden">
     
     {{-- 1. ASSISTANT HEADER --}}
-    <header class="bg-white border-b border-slate-200 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shrink-0 z-20">
-        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+    <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between shrink-0 z-20 shadow-2xs gap-2 w-full max-w-full min-w-0">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {{-- Mobile Sidebar Drawer Toggle Button --}}
-            <button type="button" @click="sidebarOpen = true" class="lg:hidden p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition focus:outline-none shrink-0" aria-label="Buka Menu Navigasi" title="Buka Menu">
+            <button type="button" 
+                    onclick="window.openSidebarDrawer()"
+                    @click="window.openSidebarDrawer()" 
+                    class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none shrink-0 border border-slate-200 shadow-2xs cursor-pointer active:scale-95" 
+                    aria-label="Buka Menu Navigasi" 
+                    title="Buka Menu">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
 
-            {{-- Avatar Bot Header --}}
+            {{-- Avatar Bot Header (Sky Blue Theme) --}}
             <div class="relative shrink-0">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 text-indigo-400 flex items-center justify-center border border-slate-800 shadow-xs">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="10" rx="2"/>
-                        <circle cx="12" cy="5" r="2"/>
-                        <path d="M12 7v4"/>
-                        <line x1="8" y1="16" x2="8" y2="16"/>
-                        <line x1="16" y1="16" x2="16" y2="16"/>
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-200 shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                        <rect x="3" y="8" width="18" height="12" rx="3"/>
+                        <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                        <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                        <path d="M9 17h6"/>
                     </svg>
                 </div>
-                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
             </div>
 
             {{-- Info Asisten --}}
-            <div class="min-w-0">
-                <h1 class="text-xs sm:text-base font-bold text-slate-900 flex items-center gap-1.5 truncate">
-                    <span>Asisten Lab Virtual</span>
-                    <span class="hidden sm:inline-flex px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                    <h1 class="text-xs sm:text-base font-bold text-slate-900 truncate">
+                        Asisten Lab
+                    </h1>
+                    <span class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200 shrink-0">
                         {{ ucfirst(Auth::user()->role ?? 'Siswa') }}
                     </span>
-                </h1>
-                <p class="text-[10px] sm:text-xs text-slate-500 font-medium flex items-center gap-1 mt-0.5 truncate">
+                </div>
+                <p class="text-[9px] sm:text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5 truncate">
                     <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shrink-0"></span>
-                    <span class="truncate">Online · Siap membantu</span>
+                    <span class="truncate">Online • Bantuan Lab</span>
                 </p>
             </div>
         </div>
 
         {{-- Action Buttons --}}
-        <div class="flex items-center gap-1.5 shrink-0 pl-2">
+        <div class="flex items-center gap-1 sm:gap-2 shrink-0">
             <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." 
                target="_blank" 
                rel="noopener noreferrer"
-               title="WhatsApp Admin"
-               class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold transition-colors">
-                <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                <span class="hidden sm:inline">WhatsApp</span>
+               title="Hubungi WhatsApp Teknisi"
+               class="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-[11px] sm:text-xs font-semibold transition-all shadow-2xs">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                <span class="hidden sm:inline">WhatsApp Teknisi</span>
             </a>
             
             <button type="button" 
                     @click="showClearModal = true" 
-                    title="Hapus Percakapan"
-                    class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    title="Bersihkan Percakapan"
+                    class="h-7 w-7 sm:h-8.5 sm:w-8.5 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-200 transition-colors shadow-2xs">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                 </svg>
             </button>
         </div>
     </header>
 
-    {{-- 2. SCROLLABLE CONVERSATION AREA --}}
-    <div id="chatMessages" 
-         @scroll="handleScroll()"
-         class="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 scroll-smooth min-h-0 overscroll-contain">
+    {{-- 2. MAIN SPLIT VIEW (CHAT + SIDE PANEL ON DESKTOP) --}}
+    <div class="flex-1 flex min-h-0 overflow-hidden w-full max-w-full">
         
-        <div class="max-w-3xl mx-auto space-y-4 pb-2">
+        {{-- KOLOM UTAMA: PERCAKAPAN CHAT --}}
+        <div class="flex-1 flex flex-col min-h-0 bg-slate-50 relative w-full max-w-full min-w-0 overflow-hidden">
             
-            {{-- Message Bubbles List --}}
-            <template x-for="(msg, index) in messages" :key="index">
-                <div :class="msg.sender === 'user' ? 'flex items-end justify-end gap-2 animate-fade-in' : 'flex items-end justify-start gap-2 animate-fade-in'">
+            {{-- Scrollable Conversation Stream --}}
+            <div id="chatMessages" 
+                 @scroll="handleScroll()"
+                 class="flex-1 overflow-y-auto px-2.5 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5 scroll-smooth min-h-0 overscroll-contain w-full max-w-full min-w-0">
+                
+                <div class="max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-4 w-full min-w-0">
                     
-                    {{-- Avatar Bot (Kiri Pesan Bot) --}}
-                    <template x-if="msg.sender === 'bot'">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 text-indigo-400 flex items-center justify-center shrink-0 border border-slate-700 shadow-2xs mb-0.5">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
-                            </svg>
-                        </div>
-                    </template>
+                    {{-- Message Bubbles List --}}
+                    <template x-for="(msg, index) in messages" :key="index">
+                        <div :class="msg.sender === 'user' ? 'flex items-start justify-end gap-1.5 sm:gap-2.5 animate-fade-in w-full min-w-0' : 'flex items-start justify-start gap-1.5 sm:gap-2.5 animate-fade-in w-full min-w-0'">
+                            
+                            {{-- Avatar Bot (Kiri Pesan Bot) --}}
+                            <template x-if="msg.sender === 'bot'">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-200 shadow-2xs mt-0.5">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                                        <rect x="3" y="8" width="18" height="12" rx="3"/>
+                                        <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                                        <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                                        <path d="M9 17h6"/>
+                                    </svg>
+                                </div>
+                            </template>
 
-                    {{-- Konten Bubble Pesan --}}
-                    <div :class="msg.sender === 'user' 
-                         ? 'flex flex-col items-end max-w-[82%] sm:max-w-[70%]' 
-                         : 'flex flex-col items-start max-w-[85%] sm:max-w-[78%]'">
-                        
-                        <div :class="msg.sender === 'user' 
-                             ? 'bg-indigo-600 text-white rounded-2xl rounded-br-xs px-3.5 py-2.5 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content' 
-                             : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-xs px-3.5 py-2.5 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content'">
-                            
-                            <div class="break-words" x-html="msg.text"></div>
-                            
-                            {{-- Smart Suggestions Chips --}}
-                            <template x-if="msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0">
-                                <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
-                                    <template x-for="(sug, sIndex) in msg.suggestions" :key="sIndex">
-                                        <button type="button" @click="sendQuickReply(sug.action || sug.text)" class="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold transition-colors">
-                                            <span x-text="sug.text"></span>
-                                        </button>
+                            {{-- Konten Bubble Pesan --}}
+                            <div :class="msg.sender === 'user' 
+                                 ? 'flex flex-col items-end min-w-0 max-w-[calc(100%-2.25rem)] sm:max-w-[75%]' 
+                                 : 'flex flex-col items-start min-w-0 max-w-[calc(100%-2.25rem)] sm:max-w-[78%]'">
+                                
+                                <div :class="msg.sender === 'user' 
+                                     ? 'bg-slate-900 text-white rounded-2xl rounded-tr-xs p-3 sm:p-4 shadow-sm text-xs sm:text-sm leading-relaxed chat-bubble-content border border-slate-800 break-words [overflow-wrap:anywhere] max-w-full' 
+                                     : 'bg-white border border-slate-200/90 text-slate-800 rounded-2xl rounded-tl-xs p-3 sm:p-4.5 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full'">
+                                    
+                                    <div class="break-words [overflow-wrap:anywhere]" x-html="msg.text"></div>
+                                    
+                                    {{-- Smart Suggestions Chips di Bawah Pesan Bot --}}
+                                    <template x-if="msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0">
+                                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5 sm:gap-2">
+                                            <template x-for="(sug, sIndex) in msg.suggestions" :key="sIndex">
+                                                <button type="button" 
+                                                        @click="sendQuickReply(sug.action || sug.text)" 
+                                                        class="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-slate-50 hover:bg-sky-50 hover:text-sky-700 text-slate-700 border border-slate-200 text-[10px] sm:text-xs font-semibold transition-all active:scale-95 shadow-2xs max-w-full">
+                                                    <svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                                    </svg>
+                                                    <span class="truncate" x-text="sug.text"></span>
+                                                </button>
+                                            </template>
+                                        </div>
                                     </template>
+                                </div>
+
+                                {{-- Metadata Timestamp --}}
+                                <div :class="msg.sender === 'user' ? 'text-[9px] sm:text-[10px] text-slate-400 mt-1 mr-1 flex items-center gap-1.5' : 'text-[9px] sm:text-[10px] text-slate-400 mt-1 ml-1 flex items-center gap-1'">
+                                    <span x-text="msg.time"></span>
+                                    <template x-if="msg.sender === 'user'">
+                                        <span class="flex items-center gap-1 text-slate-400">
+                                            <span>• Terkirim</span>
+                                            <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </template>
+                                    <template x-if="msg.sender === 'bot'">
+                                        <span>• Asisten Lab Virtual</span>
+                                    </template>
+                                </div>
+
+                                {{-- Retry Jika Gagal --}}
+                                <template x-if="msg.failed">
+                                    <div class="mt-1 text-[11px] sm:text-xs text-rose-600 font-medium">
+                                        Gagal terkirim. <button type="button" @click="retryMessage(msg)" class="underline font-bold">Coba Lagi</button>
+                                    </div>
+                                </template>
+                            </div>
+
+                            {{-- Foto Profil User (Kanan Pesan User) --}}
+                            <template x-if="msg.sender === 'user'">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 shadow-2xs mt-0.5 bg-slate-100 flex items-center justify-center">
+                                    @if(Auth::user() && Auth::user()->foto)
+                                        <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="text-[10px] sm:text-xs font-bold text-slate-700">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
+                                    @endif
                                 </div>
                             </template>
                         </div>
+                    </template>
 
-                        {{-- Metadata Timestamp --}}
-                        <div :class="msg.sender === 'user' ? 'text-[10px] text-slate-400 mt-1 mr-1 flex items-center gap-1' : 'text-[10px] text-slate-400 mt-1 ml-1'">
-                            <span x-text="msg.time"></span>
-                            <template x-if="msg.sender === 'user'">
-                                <span class="flex items-center gap-0.5">
-                                    <span>· Terkirim</span>
-                                    <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                </span>
-                            </template>
-                            <template x-if="msg.sender === 'bot'">
-                                <span>· Asisten Lab</span>
-                            </template>
+                    {{-- Typing Indicator --}}
+                    <div x-show="isTyping" class="flex items-start justify-start gap-1.5 sm:gap-2.5 animate-fade-in w-full min-w-0" style="display: none;">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-200 shadow-2xs mt-0.5">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                                <rect x="3" y="8" width="18" height="12" rx="3"/>
+                                <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                                <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                                <path d="M9 17h6"/>
+                            </svg>
                         </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-xs px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse"></span>
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse" style="animation-delay:200ms"></span>
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse" style="animation-delay:400ms"></span>
+                            <span class="text-[11px] sm:text-xs text-slate-500 ml-1.5 font-medium">Asisten sedang menyusun jawaban...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        {{-- Retry Jika Gagal --}}
-                        <template x-if="msg.failed">
-                            <div class="mt-1 text-xs text-rose-600 font-medium">
-                                Gagal terkirim. <button type="button" @click="retryMessage(msg)" class="underline font-bold">Coba Lagi</button>
-                            </div>
-                        </template>
+            {{-- Floating Scroll to Bottom Button --}}
+            <div x-show="showScrollBottomButton" class="absolute bottom-28 inset-x-0 flex justify-center pointer-events-none z-30" style="display: none;">
+                <button type="button" 
+                        @click="scrollToBottom(true)"
+                        class="pointer-events-auto bg-slate-900/90 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border border-slate-700 flex items-center gap-1.5 transition-all active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                    <span>Gulir ke Pesan Terbaru</span>
+                </button>
+            </div>
+
+            {{-- 3. COMPOSER FOOTER & TOPIC CHIPS --}}
+            <footer class="bg-white border-t border-slate-200 px-2.5 sm:px-6 py-2.5 sm:py-3 shrink-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xs w-full max-w-full min-w-0 overflow-x-hidden">
+                <div class="max-w-3xl mx-auto space-y-2 sm:space-y-2.5 w-full min-w-0">
+                    
+                    {{-- Carousel Pilihan Tombol Topik Cepat (Bebas Emoji, Pure SVG Icons) --}}
+                    <div class="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full min-w-0">
+                        <button type="button" @click="sendQuickReply('pinjam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <span>Cara Pinjam</span>
+                        </button>
+                        <button type="button" @click="sendQuickReply('status')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <span>Cek Status</span>
+                        </button>
+                        <button type="button" @click="sendQuickReply('kembali')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span>Pengembalian</span>
+                        </button>
+                        <button type="button" @click="sendQuickReply('scan')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                            <span>Scan QR</span>
+                        </button>
+                        <button type="button" @click="sendQuickReply('jam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Jam Buka</span>
+                        </button>
+                        <button type="button" @click="sendQuickReply('maintenance')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                            <span>Lapor Alat</span>
+                        </button>
+                        <button type="button" @click="sendQuickReply('mikrotik')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                            <span>MikroTik</span>
+                        </button>
                     </div>
 
-                    {{-- Foto Profil User (Kanan Pesan User - Style WhatsApp) --}}
-                    <template x-if="msg.sender === 'user'">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-indigo-200 shadow-2xs mb-0.5 bg-indigo-100 flex items-center justify-center">
-                            @if(Auth::user() && Auth::user()->foto)
-                                <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
-                            @else
-                                <span class="text-[11px] font-bold text-indigo-700">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
-                            @endif
+                    {{-- Form Input Chat --}}
+                    <form @submit.prevent="sendMessage()" class="flex items-end gap-1.5 sm:gap-2 w-full min-w-0">
+                        <div class="flex-1 min-w-0 bg-slate-50 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-300 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/15 transition-all shadow-2xs">
+                            <textarea x-ref="messageInput"
+                                      x-model="inputText"
+                                      @input="autoGrow()"
+                                      @keydown="handleKeyDown($event)"
+                                      placeholder="Tanyakan hal seputar peminjaman atau lab..."
+                                      rows="1"
+                                      maxlength="400"
+                                      class="w-full bg-transparent border-0 text-slate-900 text-xs sm:text-sm placeholder:text-[11px] sm:placeholder:text-xs placeholder-slate-400 focus:outline-none focus:ring-0 p-0 py-0.5 resize-none max-h-24 sm:max-h-28 min-h-[32px] sm:min-h-[38px] leading-relaxed"></textarea>
                         </div>
-                    </template>
+                        
+                        <button type="submit"
+                                :disabled="!inputText.trim() || isTyping"
+                                aria-label="Kirim Pesan"
+                                class="h-10 w-10 sm:h-11 sm:w-11 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white rounded-2xl flex items-center justify-center transition-all shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md shadow-indigo-600/20 active:scale-95">
+                            <template x-if="!isTyping">
+                                <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 -translate-y-px translate-x-px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                                </svg>
+                            </template>
+                            <template x-if="isTyping">
+                                <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </template>
+                        </button>
+                    </form>
                 </div>
-            </template>
-
-            {{-- Typing Indicator --}}
-            <div x-show="isTyping" class="flex items-end justify-start gap-2 animate-fade-in" style="display: none;">
-                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 text-indigo-400 flex items-center justify-center shrink-0 border border-slate-700 shadow-2xs mb-0.5">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
-                    </svg>
-                </div>
-                <div class="bg-white border border-slate-200 rounded-2xl rounded-bl-xs px-3.5 py-2.5 shadow-2xs flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse"></span>
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" style="animation-delay:200ms"></span>
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" style="animation-delay:400ms"></span>
-                    <span class="text-[11px] text-slate-400 ml-1">Mengetik...</span>
-                </div>
-            </div>
+            </footer>
         </div>
-    </div>
 
-    {{-- Floating Scroll to Bottom --}}
-    <div x-show="showScrollBottomButton" class="absolute bottom-24 inset-x-0 flex justify-center pointer-events-none z-30" style="display: none;">
-        <button type="button" 
-                @click="scrollToBottom(true)"
-                class="pointer-events-auto bg-slate-900/90 hover:bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-lg border border-slate-700 flex items-center gap-1 transition-all active:scale-95">
-            <svg class="w-3 h-3 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-            <span>Pesan Terbaru</span>
-        </button>
-    </div>
-
-    {{-- 3. COMPOSER FOOTER & TOPIC CHIPS --}}
-    <footer class="bg-white border-t border-slate-200 px-3.5 sm:px-6 py-2 sm:py-2.5 shrink-0 z-20 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
-        <div class="max-w-3xl mx-auto space-y-2">
+        {{-- KOLOM KANAN: PUSAT INFORMASI & PANDUAN CEPAT (DESKTOP ONLY) --}}
+        <aside class="hidden lg:flex flex-col w-80 xl:w-96 bg-white border-l border-slate-200 h-full min-h-0 help-sidebar-scroll overflow-y-auto p-6 space-y-6 shrink-0">
             
-            {{-- Carousel Pilihan Tombol Topik Cepat --}}
-            <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                <button type="button" @click="sendQuickReply('pinjam')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">📦 Cara Pinjam</button>
-                <button type="button" @click="sendQuickReply('status')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">📋 Cek Status</button>
-                <button type="button" @click="sendQuickReply('kembali')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">🔄 Pengembalian</button>
-                <button type="button" @click="sendQuickReply('scan')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">📷 Scan QR</button>
-                <button type="button" @click="sendQuickReply('jam')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">⏰ Jam Buka</button>
-                <button type="button" @click="sendQuickReply('maintenance')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">🛠️ Lapor Rusak</button>
-                <button type="button" @click="sendQuickReply('mikrotik')" class="shrink-0 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200/80 transition-colors">🌐 MikroTik</button>
+            {{-- Panel 1: Status & Jam Operasional Lab --}}
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4.5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-900">Status Operasional</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-pulse"></span>
+                        Buka
+                    </span>
+                </div>
+                <div class="text-xs text-slate-600 space-y-1.5 pt-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">Senin – Kamis</span>
+                        <span class="font-semibold text-slate-800">07.00 – 16.00 WIB</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">Jumat</span>
+                        <span class="font-semibold text-slate-800">07.00 – 15.30 WIB</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">Sabtu & Minggu</span>
+                        <span class="font-semibold text-rose-600">Libur</span>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>Gedung Praktikum Barat, Lt. 2 (R. 204 & 205)</span>
+                </div>
             </div>
 
-            {{-- Form Input Chat --}}
-            <form @submit.prevent="sendMessage()" class="flex items-end gap-2">
-                <div class="flex-1 bg-slate-100 rounded-xl px-3 py-1 border border-slate-200/60 focus-within:border-indigo-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
-                    <textarea x-ref="messageInput"
-                              x-model="inputText"
-                              @input="autoGrow()"
-                              @keydown="handleKeyDown($event)"
-                              placeholder="Tanyakan sesuatu seputar lab..."
-                              rows="1"
-                              maxlength="400"
-                              class="w-full bg-transparent border-0 text-slate-900 text-xs sm:text-sm placeholder-slate-400 focus:outline-none focus:ring-0 p-0 py-1.5 resize-none max-h-28 min-h-[36px] sm:min-h-[40px] leading-relaxed"></textarea>
+            {{-- Panel 2: Pertanyaan & Topik Sering Ditanyakan --}}
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Topik Sering Ditanyakan</h3>
+                <div class="space-y-2">
+                    <button type="button" @click="sendQuickReply('pinjam')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Bagaimana prosedur pinjam alat?</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Alur pengajuan dan pengambilan unit di lab.</p>
+                    </button>
+                    <button type="button" @click="sendQuickReply('status')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Cara cek status persetujuan?</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Melihat daftar alat yang sedang aktif dipinjam.</p>
+                    </button>
+                    <button type="button" @click="sendQuickReply('kembali')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Prosedur pengembalian alat?</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Tata cara pengembalian fisik dan verifikasi data.</p>
+                    </button>
+                    <button type="button" @click="sendQuickReply('mikrotik')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Panduan IP Default MikroTik?</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Informasi IP address dan reset routerboard.</p>
+                    </button>
                 </div>
-                
-                <button type="submit"
-                        :disabled="!inputText.trim() || isTyping"
-                        class="h-10 w-10 sm:h-11 sm:w-11 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <template x-if="!isTyping">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 -translate-y-px translate-x-px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                        </svg>
-                    </template>
-                    <template x-if="isTyping">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </template>
-                </button>
-            </form>
-        </div>
-    </footer>
+            </div>
+
+            {{-- Panel 3: Kontak Langsung Teknisi (Tema Biru Muda) --}}
+            <div class="bg-sky-50/70 border border-sky-200 rounded-2xl p-4.5 space-y-2.5">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-900">Butuh Bantuan Langsung?</h4>
+                        <p class="text-[10px] text-slate-500">Hubungi pengurus atau teknisi lab.</p>
+                    </div>
+                </div>
+                <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    <span>Hubungi WhatsApp</span>
+                </a>
+            </div>
+        </aside>
+    </div>
 
     {{-- MODAL HAPUS PERCAKAPAN --}}
     <template x-teleport="body">
@@ -272,24 +409,24 @@
              x-transition.opacity.duration.150ms>
 
             <div @click.away="showClearModal = false" 
-                 class="bg-white rounded-2xl p-5 w-full max-w-xs shadow-xl border border-slate-200 text-center"
+                 class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 text-center"
                  x-transition:enter="transition ease-out duration-150"
                  x-transition:enter-start="opacity-0 scale-95"
                  x-transition:enter-end="opacity-100 scale-100">
 
-                <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-rose-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </div>
 
-                <h2 class="text-sm font-bold text-slate-900">Hapus percakapan?</h2>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Riwayat obrolan di sesi ini akan dibersihkan.</p>
+                <h2 class="text-base font-bold text-slate-900">Bersihkan Percakapan?</h2>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Riwayat sesi tanya jawab saat ini akan dihapus dan dimulai ulang.</p>
 
-                <div class="mt-4 flex gap-2">
-                    <button type="button" @click="showClearModal = false" class="flex-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors">
+                <div class="mt-5 flex gap-3">
+                    <button type="button" @click="showClearModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors">
                         Batal
                     </button>
-                    <button type="button" @click="confirmResetChat()" class="flex-1 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-colors">
-                        Hapus
+                    <button type="button" @click="confirmResetChat()" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
+                        Hapus Riwayat
                     </button>
                 </div>
             </div>
@@ -309,24 +446,24 @@ function labChatBot() {
         kbFallback: [
             {
                 keywords: ['cara pinjam', 'pinjam', 'meminjam', 'minjem', 'sewa', 'ambil barang', 'alur pinjam', 'prosedur pinjam'],
-                response: '<strong>Alur Lengkap Peminjaman Alat:</strong><br><ol><li>Masuk ke menu <a href="{{ route("katalog.index") }}">Katalog Alat & Pinjam</a> di sidebar.</li><li>Cari dan pilih alat yang berstatus <em>Tersedia</em>.</li><li>Klik tombol <strong>Pinjam</strong> dan isi formulir keperluan praktikum.</li><li>Tunggu persetujuan pengelola lab, lalu ambil alat di ruang teknisi lab.</li></ol>',
+                response: '<strong>Alur Lengkap Peminjaman Alat:</strong><br><ol><li>Masuk ke menu <a href="{{ route("katalog.index") }}">Katalog Alat & Pinjam</a> di sidebar.</li><li>Cari dan pilih alat praktikum yang berstatus <em>Tersedia</em>.</li><li>Klik tombol <strong>Pinjam</strong> dan isi formulir keperluan praktikum.</li><li>Tunggu persetujuan pengelola lab, lalu ambil alat di ruang teknisi lab.</li></ol>',
                 suggestions: [
-                    { text: 'Cek status', action: 'status' },
-                    { text: 'Jam operasional', action: 'jam' }
+                    { text: 'Cek status pinjam', action: 'status' },
+                    { text: 'Jam operasional lab', action: 'jam' }
                 ]
             },
             {
                 keywords: ['status', 'cek status', 'persetujuan', 'disetujui', 'pending', 'menunggu'],
                 response: '<strong>Cara Cek Status Peminjaman:</strong><br>Buka menu <a href="{{ route("peminjaman.saya") }}">Peminjaman Saya</a>. Status Anda akan tertera: <em>Menunggu Persetujuan</em>, <em>Disetujui</em>, <em>Sedang Dipinjam</em>, atau <em>Selesai</em>.',
                 suggestions: [
-                    { text: 'Pengembalian', action: 'kembali' }
+                    { text: 'Prosedur pengembalian', action: 'kembali' }
                 ]
             },
             {
                 keywords: ['kembali', 'mengembalikan', 'pengembalian', 'selesai pinjam'],
                 response: '<strong>Prosedur Pengembalian Alat:</strong><br><ol><li>Bawa alat praktikum yang dipinjam ke laboratorium dalam kondisi lengkap.</li><li>Buka menu <a href="{{ route("peminjaman.saya") }}">Peminjaman Saya</a> dan klik <strong>Ajukan Pengembalian</strong>.</li><li>Teknisi/Admin akan memverifikasi fisik alat sebelum menutup status peminjaman.</li></ol>',
                 suggestions: [
-                    { text: 'Lapor kendala', action: 'maintenance' }
+                    { text: 'Lapor kendala fisik', action: 'maintenance' }
                 ]
             },
             {
@@ -340,14 +477,14 @@ function labChatBot() {
                 keywords: ['jam', 'buka', 'tutup', 'operasional', 'jadwal'],
                 response: '<strong>Jam Operasional Laboratorium TKJ:</strong><br><ul><li><strong>Senin – Kamis:</strong> 07.00 – 16.00 WIB</li><li><strong>Jumat:</strong> 07.00 – 15.30 WIB</li><li><strong>Sabtu & Minggu:</strong> Libur</li></ul>',
                 suggestions: [
-                    { text: 'Kontak WhatsApp', action: 'admin' }
+                    { text: 'Kontak WhatsApp teknisi', action: 'admin' }
                 ]
             },
             {
                 keywords: ['maintenance', 'rusak', 'perbaikan', 'lapor', 'pecah', 'hilang', 'error'],
                 response: '<strong>Pelaporan Kendala & Maintenance:</strong><br>Jika menemukan perangkat yang rusak atau bermasalah saat praktikum, segera laporkan ke guru pembimbing atau koordinator laboratorium agar dapat dicatat pada modul <strong>Maintenance</strong>.',
                 suggestions: [
-                    { text: 'Kontak WhatsApp', action: 'admin' }
+                    { text: 'Kontak WhatsApp pengurus', action: 'admin' }
                 ]
             },
             {
@@ -368,35 +505,35 @@ function labChatBot() {
                 keywords: ['fiber', 'fiber optic', 'splicer', 'cleaver', 'otdr', 'red laser', 'vfl'],
                 response: '<strong>Peralatan Fiber Optic Lab TKJ:</strong><br><ul><li><strong>Fusion Splicer:</strong> Alat penyambung serat optik presisi.</li><li><strong>Fiber Cleaver:</strong> Pemotong serat kaca 90 derajat.</li><li><strong>Visual Fault Locator (VFL):</strong> Laser merah untuk mendeteksi kabel putus.</li><li><strong>Optical Power Meter (OPM):</strong> Pengukur redaman daya sinyal optik.</li></ul>',
                 suggestions: [
-                    { text: 'Pinjam alat', action: 'pinjam' }
+                    { text: 'Pinjam alat praktikum', action: 'pinjam' }
                 ]
             },
             {
                 keywords: ['lokasi', 'alamat', 'gedung', 'lantai', 'ruang lab'],
                 response: '<strong>Lokasi Laboratorium TKJ:</strong><br><ul><li><strong>Lab TKJ 1 (Jaringan & Routing):</strong> Gedung Praktikum Barat - Lantai 2 (Ruang 204).</li><li><strong>Lab TKJ 2 (Hardware & Fiber Optic):</strong> Gedung Praktikum Barat - Lantai 2 (Ruang 205).</li><li><strong>Ruang Server & Teknisi:</strong> Sebelah Lab TKJ 1.</li></ul>',
                 suggestions: [
-                    { text: 'Jam operasional', action: 'jam' }
+                    { text: 'Jam operasional lab', action: 'jam' }
                 ]
             },
             {
                 keywords: ['instagram', 'ig', 'sosmed', 'medsos', 'feed'],
-                response: '<strong>Instagram Resmi Lab TKJ:</strong><br>Ikuti dokumentasi dan kegiatan kami di Instagram resmi: <a href="https://instagram.com/winshark_lab" target="_blank">@winshark_lab</a>',
+                response: '<strong>Instagram Resmi Lab TKJ:</strong><br>Ikuti dokumentasi dan kegiatan praktikum kami di Instagram resmi: <a href="https://instagram.com/winshark_lab" target="_blank">@winshark_lab</a>',
                 suggestions: [
-                    { text: 'Kontak WhatsApp', action: 'admin' }
+                    { text: 'Kontak WhatsApp admin', action: 'admin' }
                 ]
             },
             {
                 keywords: ['admin', 'whatsapp', 'wa', 'kontak', 'hubungi', 'telepon'],
                 response: '<strong>Kontak Pengelola Lab:</strong><br>Hubungi Admin via WhatsApp di <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." target="_blank">0878-7458-9054</a> atau temui langsung di Ruang Teknisi Lab TKJ.',
                 suggestions: [
-                    { text: 'Jam operasional', action: 'jam' }
+                    { text: 'Jam operasional lab', action: 'jam' }
                 ]
             },
             {
                 keywords: ['profil', 'sandi', 'password', 'foto', 'ubah profil'],
                 response: '<strong>Pengaturan Akun & Profil:</strong><br>Anda dapat memperbarui foto profil, nama, dan kata sandi melalui halaman <a href="{{ route("profile.edit") }}">Profil Saya</a>.',
                 suggestions: [
-                    { text: 'Peminjaman saya', action: 'status' }
+                    { text: 'Cek peminjaman saya', action: 'status' }
                 ]
             }
         ],
@@ -405,7 +542,13 @@ function labChatBot() {
             try {
                 const saved = sessionStorage.getItem('lab_chat_messages');
                 if (saved) {
-                    this.messages = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    this.messages = parsed.map(m => {
+                        if (m.sender === 'bot' && m.text) {
+                            m.text = this.cleanAndFormatMessage(m.text);
+                        }
+                        return m;
+                    });
                 } else {
                     this.sendWelcome();
                 }
@@ -425,7 +568,7 @@ function labChatBot() {
             this.messages = [
                 {
                     sender: 'bot',
-                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Saya Asisten Lab Virtual. Silakan tanyakan hal seputar peminjaman alat, ketersediaan inventaris, scan QR, atau pilih topik cepat di bawah.',
+                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Saya Asisten Lab Virtual. Silakan tanyakan hal seputar peminjaman alat praktikum, ketersediaan inventaris, scan QR Code, atau pilih topik panduan di bawah.',
                     time: this.getTime(),
                     failed: false,
                     suggestions: [
@@ -476,7 +619,7 @@ function labChatBot() {
             });
         },
 
-        findFallbackAnswer(query) {
+        findFallbackAnswer(query, exactOnly = false) {
             const q = query.toLowerCase().trim();
             for (const item of this.kbFallback) {
                 for (const kw of item.keywords) {
@@ -488,11 +631,13 @@ function labChatBot() {
                     }
                 }
             }
+            if (exactOnly) return null;
+
             return {
-                reply: 'Terima kasih atas pertanyaannya. Jika Anda butuh bantuan mendesak, silakan hubungi <strong>WhatsApp Admin Lab di 0878-7458-9054</strong> atau pilih opsi topik cepat.',
+                reply: 'Terima kasih atas pertanyaannya. Jika Anda membutuhkan bantuan mendesak, silakan hubungi <strong>WhatsApp Teknisi Lab di 0878-7458-9054</strong> atau pilih opsi topik panduan di bawah.',
                 suggestions: [
                     { text: 'Cara Pinjam Alat', action: 'pinjam' },
-                    { text: 'Cek Status', action: 'status' }
+                    { text: 'Cek Status Pinjam', action: 'status' }
                 ]
             };
         },
@@ -522,40 +667,57 @@ function labChatBot() {
             this.isTyping = true;
 
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 7000);
+                // 1. Cek terlebih dahulu apakah ada jawaban presisi di Knowledge Base internal
+                const localMatch = this.findFallbackAnswer(text, true);
 
-                const response = await fetch('https://bot-lab-tkj-production.up.railway.app/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text }),
-                    signal: controller.signal
-                });
+                if (localMatch) {
+                    this.isTyping = false;
+                    this.messages.push({
+                        sender: 'bot',
+                        text: this.cleanAndFormatMessage(localMatch.reply),
+                        time: this.getTime(),
+                        failed: false,
+                        suggestions: localMatch.suggestions || []
+                    });
+                } else {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-                clearTimeout(timeoutId);
+                    const response = await fetch('https://bot-lab-tkj-production.up.railway.app/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text }),
+                        signal: controller.signal
+                    });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    this.isTyping = false;
+
+                    const defaultFallback = this.findFallbackAnswer(text, false);
+                    const rawReply = (data && data.reply) ? data.reply : defaultFallback.reply;
+                    const formattedReply = this.cleanAndFormatMessage(rawReply);
+
+                    this.messages.push({
+                        sender: 'bot',
+                        text: formattedReply,
+                        time: this.getTime(),
+                        failed: false,
+                        suggestions: defaultFallback.suggestions || []
+                    });
                 }
-
-                const data = await response.json();
-                this.isTyping = false;
-
-                const fallbackData = this.findFallbackAnswer(text);
-                this.messages.push({
-                    sender: 'bot',
-                    text: data.reply || fallbackData.reply,
-                    time: this.getTime(),
-                    failed: false,
-                    suggestions: fallbackData.suggestions || []
-                });
 
             } catch (err) {
                 this.isTyping = false;
-                const fallbackData = this.findFallbackAnswer(text);
+                const fallbackData = this.findFallbackAnswer(text, false);
                 this.messages.push({
                     sender: 'bot',
-                    text: fallbackData.reply,
+                    text: this.cleanAndFormatMessage(fallbackData.reply),
                     time: this.getTime(),
                     failed: false,
                     suggestions: fallbackData.suggestions || []
@@ -597,6 +759,21 @@ function labChatBot() {
             this.messages = [];
             this.persistMessages();
             this.sendWelcome();
+        },
+
+        cleanAndFormatMessage(text) {
+            if (!text) return '';
+            
+            // 1. Strip raw Unicode emojis according to AGENTS.md Rule 4
+            let cleaned = text
+                .replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, '')
+                .trim();
+
+            // 2. Format common markdown-like bullet points or asterisks if returned as plain text
+            cleaned = cleaned.replace(/^[\*\-]\s+(.+)$/gm, '<li class="ml-4 list-disc">$1</li>');
+            cleaned = cleaned.replace(/^\d+\.\s+(.+)$/gm, '<li class="ml-4 list-decimal">$1</li>');
+
+            return cleaned;
         },
 
         escapeHtml(str) {

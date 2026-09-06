@@ -58,7 +58,16 @@ class BarangController extends Controller
         }
 
         if ($request->filled('laboratorium')) {
-            $query->where('laboratorium', $request->laboratorium);
+            $lab = $request->laboratorium;
+            if ($lab === 'Laboratorium TKJ') {
+                $query->where(function ($q) use ($lab) {
+                    $q->where('laboratorium', $lab)
+                      ->orWhereNull('laboratorium')
+                      ->orWhere('laboratorium', '');
+                });
+            } else {
+                $query->where('laboratorium', $lab);
+            }
         }
 
         $barangs = $query->latest()->paginate(12)->withQueryString();

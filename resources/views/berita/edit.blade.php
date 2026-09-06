@@ -35,14 +35,40 @@
             <span class="text-slate-800 font-semibold">Edit Berita</span>
         </div>
 
-        <form action="{{ route('berita.update', $berita->id) }}" method="POST" class="space-y-5">
+        <form action="{{ route('berita.update', $berita->id) }}" method="POST"
+              x-data="{
+                  initialJudul: @js(old('judul', $berita->judul)),
+                  initialTarget: @js(old('target_kelas', $berita->target_kelas ?? 'Semua Pengguna (Umum / Publik)')),
+                  initialIsi: @js(old('isi', $berita->isi)),
+                  judul: @js(old('judul', $berita->judul)),
+                  selectedTarget: @js(old('target_kelas', $berita->target_kelas ?? 'Semua Pengguna (Umum / Publik)')),
+                  isi: @js(old('isi', $berita->isi)),
+                  openTarget: false,
+                  isSubmitting: false,
+
+                  get hasChanges() {
+                      return this.judul.trim() !== this.initialJudul.trim() ||
+                             this.selectedTarget !== this.initialTarget ||
+                             this.isi.trim() !== this.initialIsi.trim();
+                  },
+
+                  handleSubmit(e) {
+                      if (!this.hasChanges || this.isSubmitting) {
+                          e.preventDefault();
+                          return;
+                      }
+                      this.isSubmitting = true;
+                  }
+              }"
+              @submit="handleSubmit($event)"
+              class="space-y-5">
             @csrf
             @method('PUT')
 
             {{-- Judul Berita --}}
             <div>
                 <label for="judul" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Judul Pengumuman <span class="text-red-500">*</span></label>
-                <input type="text" id="judul" name="judul" value="{{ old('judul', $berita->judul) }}" required
+                <input type="text" id="judul" name="judul" x-model="judul" required
                        placeholder="Masukkan judul pengumuman yang menarik..."
                        class="w-full bg-slate-50 border @error('judul') border-red-400 bg-red-50 @else border-slate-300 @enderror rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition">
                 @error('judul')
@@ -51,7 +77,7 @@
             </div>
 
             {{-- Target Kelas Sasaran (Animated Dropdown) --}}
-            <div class="relative" x-data="{ openTarget: false, selectedTarget: '{{ old('target_kelas', $berita->target_kelas ?? 'Semua Pengguna (Umum / Publik)') }}' }" @click.outside="openTarget = false">
+            <div class="relative" @click.outside="openTarget = false">
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Ditujukan Untuk (Target Kelas)</label>
                 <input type="hidden" name="target_kelas" :value="selectedTarget">
 
@@ -89,9 +115,9 @@
             {{-- Isi Berita --}}
             <div>
                 <label for="isi" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Isi Berita / Pengumuman <span class="text-red-500">*</span></label>
-                <textarea id="isi" name="isi" rows="8" required
+                <textarea id="isi" name="isi" x-model="isi" rows="8" required
                           placeholder="Tuliskan detail pengumuman di sini..."
-                          class="w-full bg-slate-50 border @error('isi') border-red-400 bg-red-50 @else border-slate-300 @enderror rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition resize-none leading-relaxed">{{ old('isi', $berita->isi) }}</textarea>
+                          class="w-full bg-slate-50 border @error('isi') border-red-400 bg-red-50 @else border-slate-300 @enderror rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition resize-none leading-relaxed"></textarea>
                 @error('isi')
                     <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
                 @enderror
@@ -99,8 +125,17 @@
 
             <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
                 <button type="submit"
-                        class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-sm transition-all duration-150 active:scale-95">
-                    Perbarui Berita
+                        :disabled="!hasChanges || isSubmitting"
+                        class="font-bold px-6 py-2.5 rounded-xl text-sm transition-all duration-150 flex items-center justify-center gap-2"
+                        :class="hasChanges && !isSubmitting ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed pointer-events-none'">
+                    <span x-show="isSubmitting" class="inline-flex items-center gap-2" style="display: none;">
+                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Menyimpan...</span>
+                    </span>
+                    <span x-show="!isSubmitting">Simpan Perubahan</span>
                 </button>
                 <a href="{{ route('berita.index') }}"
                    class="px-5 py-2.5 border border-slate-300 text-slate-600 hover:bg-slate-50 font-semibold rounded-xl text-sm transition-colors">
@@ -108,6 +143,7 @@
                 </a>
             </div>
         </form>
+    </div>
     </div>
 </div>
 
