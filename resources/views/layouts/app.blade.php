@@ -103,6 +103,9 @@
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
+    <!-- Apache ECharts CDN (Global for Dashboard & Trend Analytics) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
     <!-- Cropper.js CDN (Global for Profile & Photo Uploads) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -114,21 +117,28 @@
         html {
             font-size: 16px;
             -webkit-text-size-adjust: 100%;
+            scroll-behavior: smooth;
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1280px) {
             html { font-size: 15.5px; }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             html { font-size: 15px; }
         }
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
+            html { font-size: 14.5px; }
+        }
+        @media (max-width: 640px) {
             html { font-size: 14px; }
         }
+        @media (max-width: 480px) {
+            html { font-size: 13.5px; }
+        }
         @media (max-width: 375px) {
-            html { font-size: 13.2px; }
+            html { font-size: 13px; }
         }
         @media (max-width: 320px) {
-            html { font-size: 12.2px; }
+            html { font-size: 12px; }
         }
 
         /* Disable hover animations & sticky highlights on non-desktop (touch/mobile) devices */
@@ -192,19 +202,43 @@
             color: #cbd5e1;
             border-radius: 0.65rem;
             padding: 0.55rem 0.85rem;
-            transition: all 0.15s ease-out;
             position: relative;
+            overflow: hidden;
+            z-index: 1;
+            transition: color 0.25s ease-out, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Sweep to Right Effect */
+        .sidebar-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%);
+            border-left: 3px solid #818cf8;
+            border-radius: inherit;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: -1;
+        }
+
+        .sidebar-link:hover:not(.active)::before {
+            transform: scaleX(1);
         }
 
         .sidebar-link:hover:not(.active) {
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
         }
 
         .sidebar-link.active {
             color: #ffffff;
             font-weight: 600;
             background: rgba(255, 255, 255, 0.14);
+            border-left: 3px solid #6366f1;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
@@ -219,6 +253,99 @@
 
         .sidebar-scrollable {
             overscroll-behavior: contain;
+        }
+
+        /* 3D Flip Checkmark Component */
+        .cbx {
+            -webkit-perspective: 20;
+            perspective: 20;
+            position: relative;
+            display: inline-block;
+            border: 2px solid #e8e8eb;
+            background: #e8e8eb;
+            border-radius: 4px;
+            transform: translate3d(0, 0, 0);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            vertical-align: middle;
+            line-height: 0;
+        }
+
+        .cbx:hover {
+            border-color: #0b76ef;
+        }
+
+        .cbx:has(input[type="checkbox"]:checked) {
+            border-color: #0b76ef;
+        }
+
+        .checkmark {
+            display: inline-block;
+            position: relative;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checkmark input[type="checkbox"],
+        .cbx input[type="checkbox"] {
+            display: none !important;
+        }
+
+        .flip {
+            display: block;
+            transition: all 0.4s ease;
+            transform-style: preserve-3d;
+            position: relative;
+            width: 20px;
+            height: 20px;
+        }
+
+        .cbx input[type="checkbox"]:checked + .flip,
+        .checkmark input[type="checkbox"]:checked + .flip {
+            transform: rotateY(180deg);
+        }
+
+        .front,
+        .back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .front {
+            background: #fff;
+            z-index: 1;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            background: #0b76ef;
+            text-align: center;
+            color: #fff;
+            line-height: 20px;
+            box-shadow: 0 0 0 1px #0b76ef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back svg {
+            margin-top: 0px;
+            fill: none;
+            display: inline-block;
+        }
+
+        .back svg path {
+            stroke: #fff;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         /* Smooth Mobile Backdrop Blur & Fade In */
@@ -255,10 +382,8 @@
         }
 
         /* STANDARD RESPONSIVE BASE */
-        html {
-            font-size: 16px;
-            -webkit-text-size-adjust: 100%;
-            scroll-behavior: smooth;
+        body {
+            overflow-x: hidden;
         }
 
         .overflow-x-auto {
@@ -479,7 +604,7 @@
 </div>
 @endif
 
-<div class="min-h-screen w-full max-w-full flex flex-col lg:flex-row relative overflow-x-hidden">
+<div class="min-h-screen w-full bg-slate-100 flex flex-col relative">
 
     {{-- Mobile overlay dengan Backdrop Blur & Darkening (Smooth Fade In) --}}
     <div id="sidebarBackdrop"
@@ -491,7 +616,7 @@
     {{-- ====== SIDEBAR ====== --}}
     <aside id="mainSidebar"
            :class="$store.sidebar.open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-           class="-translate-x-full fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 text-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0">
+           class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 text-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:z-30">
 
         {{-- 1. HEADER --}}
         <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
@@ -905,11 +1030,11 @@
     </aside>
 
     {{-- ====== MAIN CONTENT WRAPPER ====== --}}
-    <div id="mainLayoutWrapper" class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 @if(request()->routeIs('bantuan*')) h-[100dvh] max-h-[100dvh] overflow-hidden @endif">
+    <div id="mainLayoutWrapper" class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 lg:pl-64 @if(request()->routeIs('bantuan*')) h-[100dvh] max-h-[100dvh] overflow-hidden @endif">
 
         {{-- Topbar (Sembunyikan di halaman Live Chat / Bantuan agar menjadi workspace full-bleed sesuai Foto 1) --}}
         @unless(request()->routeIs('bantuan*'))
-        <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs no-print flex-shrink-0">
+        <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 py-3.5 sm:py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs no-print flex-shrink-0">
             <div class="flex items-center gap-3">
                 <button type="button" 
                         onclick="window.openSidebarDrawer()" 
@@ -1105,6 +1230,9 @@
         {{-- Page Content --}}
         <main id="mainContent" class="flex-1 @if(request()->routeIs('bantuan*')) p-0 flex flex-col min-h-0 overflow-hidden @else p-4 lg:p-6 @endif print-content w-full transition-opacity duration-150">
             @yield('content')
+            <div id="spaPageScriptsContainer" class="hidden">
+                @stack('scripts')
+            </div>
         </main>
 
         {{-- Footer (Hanya tampil di luar halaman Bantuan agar tidak memicu scroll berlebih pada chat) --}}
@@ -1324,30 +1452,44 @@
                 currentMain.innerHTML = newMain.innerHTML;
                 currentMain.style.opacity = '1';
 
-                const externalScripts = doc.querySelectorAll('script[src]');
-                for (const scriptTag of externalScripts) {
-                    const src = scriptTag.getAttribute('src');
-                    if (src && !document.querySelector(`script[src="${src}"]`)) {
-                        const s = document.createElement('script');
-                        s.src = src;
-                        document.head.appendChild(s);
-                    }
-                }
-
                 const introEl = document.getElementById('introScreen');
                 if (introEl) {
                     introEl.style.display = 'none';
                     introEl.classList.remove('is-active', 'no-transition');
                 }
 
-                const inlineScripts = currentMain.querySelectorAll('script');
-                inlineScripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                // 1. Muat skrip eksternal baru dari konten halaman jika ada
+                const externalScripts = Array.from(currentMain.querySelectorAll('script[src]'));
+                const loadExternalPromises = externalScripts.map(scriptTag => {
+                    const src = scriptTag.getAttribute('src');
+                    if (src && !document.querySelector(`head script[src="${src}"]`)) {
+                        return new Promise(resolve => {
+                            const s = document.createElement('script');
+                            s.src = src;
+                            s.onload = resolve;
+                            s.onerror = resolve;
+                            document.head.appendChild(s);
+                        });
+                    }
+                    return Promise.resolve();
                 });
 
+                await Promise.all(loadExternalPromises);
+
+                // 2. Eksekusi seluruh inline script yang ada di dalam currentMain (konten & stack scripts)
+                const inlineScripts = Array.from(currentMain.querySelectorAll('script:not([src])'));
+                inlineScripts.forEach(oldScript => {
+                    try {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    } catch(err) {
+                        console.error('SPA inline script error:', err);
+                    }
+                });
+
+                // 3. Re-inisialisasi Alpine setelah seluruh fungsi komponen siap terdaftar
                 if (window.Alpine) {
                     try {
                         window.Alpine.initTree(currentMain);
@@ -1355,6 +1497,18 @@
                         console.error('Alpine init error:', e);
                     }
                 }
+
+                // 4. Inisialisasi ECharts Chart Hover jika elemen chart ada di DOM
+                if (typeof window.initDashboardHoverChart === 'function' && document.getElementById('echarts-hover-main')) {
+                    requestAnimationFrame(() => {
+                        window.initDashboardHoverChart();
+                    });
+                }
+
+                // 5. Trigger resize event untuk sinkronisasi layout chart & responsive container
+                requestAnimationFrame(() => {
+                    window.dispatchEvent(new Event('resize'));
+                });
 
                 if (push) {
                     window.history.pushState({ spa: true, url: targetNormalized }, '', targetNormalized);
@@ -1431,6 +1585,5 @@
     })();
 </script>
 
-@stack('scripts')
 </body>
 </html>

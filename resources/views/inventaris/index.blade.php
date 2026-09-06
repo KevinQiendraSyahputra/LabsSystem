@@ -322,6 +322,21 @@
                 <table class="w-full text-xs sm:text-sm">
                     <thead>
                         <tr class="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
+                            <th class="px-4 py-3 text-center w-12">
+                                <label for="cbx-inv-all" class="cbx" title="Pilih Semua">
+                                    <div class="checkmark">
+                                        <input type="checkbox" id="cbx-inv-all" :checked="isAllSelected" @change="toggleSelectAll()">
+                                        <div class="flip">
+                                            <div class="front"></div>
+                                            <div class="back">
+                                                <svg viewBox="0 0 16 14" height="14" width="16">
+                                                    <path d="M2 8.5L6 12.5L14 1.5"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </th>
                             <th class="px-4 py-3 text-left w-8">No</th>
                             <th class="px-4 py-3 text-left">Kode</th>
                             <th class="px-4 py-3 text-left">Nama Barang</th>
@@ -338,7 +353,7 @@
                         @foreach($byKategori as $kategori => $items)
                             {{-- Kategori Header Row --}}
                             <tr class="bg-indigo-50/60">
-                                <td colspan="9" class="px-4 py-2">
+                                <td colspan="10" class="px-4 py-2">
                                     <div class="flex items-center gap-2">
                                         <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
                                         <span class="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">{{ $kategori }}</span>
@@ -351,7 +366,22 @@
                                 $kondisiColors = ['Baik'=>'emerald','Perawatan'=>'yellow','Perbaikan'=>'orange','Rusak Berat'=>'red','Hilang'=>'slate'];
                                 $kColor = $kondisiColors[$barang->kondisi] ?? 'slate';
                             @endphp
-                            <tr class="hover:bg-slate-50/70 transition-colors">
+                            <tr class="transition-colors" :class="isItemSelected({{ $barang->id }}) ? 'bg-indigo-50/50 hover:bg-indigo-50/70' : 'hover:bg-slate-50/70'">
+                                <td class="px-4 py-3 text-center w-12">
+                                    <label :for="'cbx-inv-' + {{ $barang->id }}" class="cbx" :title="'Pilih ' + @js($barang->nama_barang)">
+                                        <div class="checkmark">
+                                            <input type="checkbox" name="inventaris_checkbox_ids[]" value="{{ $barang->id }}" :id="'cbx-inv-' + {{ $barang->id }}" :checked="isItemSelected({{ $barang->id }})" @change="toggleItem({{ $barang->id }})">
+                                            <div class="flip">
+                                                <div class="front"></div>
+                                                <div class="back">
+                                                    <svg viewBox="0 0 16 14" height="14" width="16">
+                                                        <path d="M2 8.5L6 12.5L14 1.5"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </td>
                                 <td class="px-4 py-3 text-slate-400 text-xs">{{ $no++ }}</td>
                                 <td class="px-4 py-3">
                                     <span class="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-lg">{{ $barang->kode_barang }}</span>
@@ -394,7 +424,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-slate-100/90 text-slate-800 border-t-2 border-slate-200">
-                            <td colspan="4" class="px-4 py-3 text-xs font-bold">TOTAL {{ $activeLab }}</td>
+                            <td colspan="5" class="px-4 py-3 text-xs font-bold">TOTAL {{ $activeLab }}</td>
                             <td class="px-4 py-3 text-center text-xs font-bold">{{ $totalUnit }} unit</td>
                             <td colspan="2" class="px-4 py-3"></td>
                             <td class="px-4 py-3 text-right text-xs font-bold">Rp {{ number_format($totalNilai, 0, ',', '.') }}</td>
@@ -409,8 +439,37 @@
 
 @push('scripts')
 <script>
-function inventarisPage() {
-    return {};
+window.inventarisPage = function() {
+    return {
+        selectedItems: [],
+        get allItemIds() {
+            return Array.from(document.querySelectorAll('input[name="inventaris_checkbox_ids[]"]')).map(el => parseInt(el.value));
+        },
+        get isAllSelected() {
+            const ids = this.allItemIds;
+            return ids.length > 0 && ids.every(id => this.selectedItems.includes(id));
+        },
+        toggleSelectAll() {
+            const ids = this.allItemIds;
+            if (this.isAllSelected) {
+                this.selectedItems = this.selectedItems.filter(id => !ids.includes(id));
+            } else {
+                this.selectedItems = Array.from(new Set([...this.selectedItems, ...ids]));
+            }
+        },
+        toggleItem(id) {
+            id = parseInt(id);
+            const idx = this.selectedItems.indexOf(id);
+            if (idx > -1) {
+                this.selectedItems.splice(idx, 1);
+            } else {
+                this.selectedItems.push(id);
+            }
+        },
+        isItemSelected(id) {
+            return this.selectedItems.includes(parseInt(id));
+        }
+    };
 }
 </script>
 @endpush

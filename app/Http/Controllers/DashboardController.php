@@ -106,12 +106,82 @@ class DashboardController extends Controller
             'Hilang'      => $barangHilang,
         ];
 
+        // Dataset interaktif ECharts Hover (Kategori & Tren Tahunan)
+        $hoverChartData = $this->getChartHoverData();
+
         return view('dashboard', compact(
             'totalBarang', 'barangBaik', 'barangRusak', 'barangPerbaikan',
             'barangPerawatan', 'barangHilang', 'barangTerbaru',
             'totalNilai', 'barangDipinjam', 'maintenanceBulanIni',
             'barangBaruTahunIni', 'peminjamanTerlambat', 'peminjamanAktif',
-            'kategoriStats', 'kondisiStats'
+            'kategoriStats', 'kondisiStats', 'hoverChartData'
         ));
+    }
+
+    /**
+     * Menyiapkan struktur dataset hover ECharts kategori (Jaringan, Komputer, Alat Praktik, dll)
+     * Mengambil data riil dari tabel barangs berdasarkan kolom kategori, jumlah, dan tahun_pembelian / created_at.
+     */
+    private function getChartHoverData(): array
+    {
+        $currentYear = (int) date('Y');
+        
+        // PENGATURAN TAHUN:
+        // Mencari tahun pengadaan/pembelian terlama di database sebagai batas awal grafik
+        $minDbYear = (int) (Barang::whereNotNull('tahun_pembelian')->min('tahun_pembelian') ?: ($currentYear - 4));
+        $startYear = min($minDbYear, $currentYear - 4); // Rentang minimal 5 tahun (misal: 2022 s/d 2026)
+
+        $yearsList = [];
+        for ($y = $startYear; $y <= $currentYear; $y++) {
+            $yearsList[] = (string) $y;
+        }
+
+        $source = [];
+        $source[] = array_merge(['product'], $yearsList);
+
+        // Kategori terdaftar dari database (diurutkan berdasarkan total unit terbanyak)
+        $dbCategories = Barang::whereNotNull('kategori')
+            ->selectRaw('kategori, SUM(jumlah) as total_unit')
+            ->groupBy('kategori')
+            ->orderByDesc('total_unit')
+            ->pluck('kategori')
+            ->toArray();
+
+        $defaultCategories = ['Jaringan', 'Alat Praktik', 'Komputer', 'Perangkat Keras'];
+        $categories = !empty($dbCategories) 
+            ? array_values(array_unique(array_merge($dbCategories, $defaultCategories))) 
+            : $defaultCategories;
+
+        // Ambil kategori utama
+        $categories = array_slice($categories, 0, 5);
+
+        foreach ($categories as $cat) {
+            $row = [$cat];
+
+            foreach ($yearsList as $yr) {
+                $yrInt = (int) $yr;
+
+                // Hitung kumulatif total unit barang sampai dengan tahun tersebut
+                $totalUnitSampaiTahunIni = (int) Barang::where('kategori', $cat)
+                    ->where(function ($q) use ($yrInt) {
+                        $q->where('tahun_pembelian', '<=', $yrInt)
+                          ->orWhere(function ($sub) use ($yrInt) {
+                              $sub->whereNull('tahun_pembelian')
+                                  ->whereYear('created_at', '<=', $yrInt);
+                          });
+                    })
+                    ->sum('jumlah');
+
+                $row[] = $totalUnitSampaiTahunIni;
+            }
+            $source[] = $row;
+        }
+
+        return [
+            'years'       => $yearsList,
+            'categories'  => $categories,
+            'source'      => $source,
+            'initialYear' => (string) end($yearsList),
+        ];
     }
 }

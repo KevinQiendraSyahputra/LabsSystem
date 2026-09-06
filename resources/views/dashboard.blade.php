@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard - LabSystem')
+@section('page_title', 'Dashboard')
+@section('page_subtitle', 'Winshark Community • ' . (Auth::user()->laboratorium_penugasan ?? 'Laboratorium TKJ'))
+
 @section('content')
 <style>
     /* Smooth custom scrollbars */
@@ -107,6 +111,44 @@
             transform: none !important;
             width: var(--target-width, 100%) !important;
         }
+    /* Donut Chart Keyframe & Hover Animations */
+    @keyframes donutSpinIn {
+        0% {
+            stroke-dashoffset: 238.761;
+            opacity: 0;
+            transform: rotate(-90deg) scale(0.92);
+        }
+        100% {
+            opacity: 1;
+            transform: rotate(-90deg) scale(1);
+        }
+    }
+
+    @keyframes centerContentFade {
+        0% {
+            opacity: 0;
+            transform: scale(0.92);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .donut-svg-canvas {
+        animation: donutSpinIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transform-origin: center;
+    }
+
+    .donut-center-animate {
+        animation: centerContentFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .donut-slice {
+        transition: stroke-width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                    filter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        transform-origin: center;
     }
 </style>
 
@@ -132,10 +174,72 @@
             default       => 'bg-slate-100 text-slate-700 border-slate-200',
         };
     };
+
+    // Donut Chart Data Calculation (Radius = 38, Circumference = 238.761)
+    $circ = 238.761;
+
+    // 1. Donut Kondisi
+    $donutKondisi = [];
+    $kondisiPalette = [
+        'Baik'        => '#10b981',
+        'Perawatan'   => '#f59e0b',
+        'Perbaikan'   => '#f97316',
+        'Rusak Berat' => '#ef4444',
+        'Hilang'      => '#64748b',
+    ];
+    $cumKondisi = 0;
+    foreach ($kondisiStats ?? [] as $kNama => $kCount) {
+        $kCountInt = (int) $kCount;
+        $pct = $totalBarangValue > 0 ? round(($kCountInt / $totalBarangValue) * 100, 1) : 0;
+        $dash = round(($pct / 100) * $circ, 3);
+        $offset = round(-($cumKondisi / 100) * $circ, 3);
+        $cumKondisi += $pct;
+
+        $donutKondisi[] = [
+            'label'     => $kNama,
+            'count'     => $kCountInt,
+            'percent'   => $pct,
+            'color'     => $kondisiPalette[$kNama] ?? '#6366f1',
+            'dashArray' => "{$dash} {$circ}",
+            'offset'    => $offset,
+        ];
+    }
+
+    // 2. Donut Kategori
+    $donutKategori = [];
+    $kategoriPalette = [
+        '#6366f1', // Indigo
+        '#8b5cf6', // Violet
+        '#0ea5e9', // Sky
+        '#14b8a6', // Teal
+        '#f59e0b', // Amber
+        '#ec4899', // Pink
+    ];
+    $cumKategori = 0;
+    $katIdx = 0;
+    foreach ($kategoriStats ?? [] as $kat) {
+        $kNama = $kat->kategori;
+        $kCountInt = (int) ($kat->total ?? 0);
+        $pct = $totalBarangValue > 0 ? round(($kCountInt / $totalBarangValue) * 100, 1) : 0;
+        $dash = round(($pct / 100) * $circ, 3);
+        $offset = round(-($cumKategori / 100) * $circ, 3);
+        $cumKategori += $pct;
+        $color = $kategoriPalette[$katIdx % count($kategoriPalette)];
+        $katIdx++;
+
+        $donutKategori[] = [
+            'label'     => $kNama,
+            'count'     => $kCountInt,
+            'percent'   => $pct,
+            'color'     => $color,
+            'dashArray' => "{$dash} {$circ}",
+            'offset'    => $offset,
+        ];
+    }
 @endphp
 
 <div class="min-h-full bg-slate-50/70 pb-12 sm:pb-16 pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
-    <main class="mx-auto w-full max-w-screen-2xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+    <div class="mx-auto w-full max-w-screen-2xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div class="space-y-4 sm:space-y-6">
 
             @if(isset($peminjamanTerlambat) && $peminjamanTerlambat > 0)
@@ -304,80 +408,7 @@
                 </div>
             </section>
 
-            <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" aria-label="Statistik inventaris">
-                
-                {{-- Distribusi Kondisi Barang --}}
-                <article class="animate-enter delay-300 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-md">
-                    <div class="bg-slate-900 p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
-                        <div>
-                            <h2 class="text-sm sm:text-base font-bold text-white">Distribusi Kondisi Barang</h2>
-                            <p class="mt-0.5 text-xs sm:text-sm text-slate-300">Persentase kondisi dari keseluruhan barang inventaris.</p>
-                        </div>
-                        <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-sm animate-pulse" title="Realtime Data"></span>
-                    </div>
-
-                    <div class="space-y-4 p-4 sm:p-5 flex-1">
-                        @forelse($kondisiStats ?? [] as $kondisi => $count)
-                            @php
-                                $percentage = min(round(((int) $count / $safeTotalBarang) * 100, 1), 100);
-                            @endphp
-                            <div class="group">
-                                <div class="mb-1.5 flex items-center justify-between gap-3 text-xs sm:text-sm">
-                                    <span class="font-medium text-slate-700 truncate group-hover:text-slate-950 transition-colors">{{ $kondisi }}</span>
-                                    <span class="shrink-0 tabular-nums text-slate-500">
-                                        <span class="font-semibold text-slate-900">{{ number_format($count) }}</span> unit 
-                                        <span class="text-slate-400 font-normal">({{ $percentage }}%)</span>
-                                    </span>
-                                </div>
-                                <div class="relative h-2.5 sm:h-3 w-full overflow-hidden rounded-full bg-slate-100/90 p-0.5 ring-1 ring-inset ring-slate-200/40" aria-hidden="true">
-                                    <div class="progress-bar-fill shimmer-effect relative h-full rounded-full transition-all duration-500 {{ $kondisiColors[$kondisi] ?? 'bg-indigo-500' }}" style="--target-width: {{ $percentage }}%; width: {{ $percentage }}%;"></div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="flex h-32 items-center justify-center rounded-lg border border-dashed border-slate-200 text-xs sm:text-sm text-slate-500">
-                                Data kondisi barang belum tersedia.
-                            </div>
-                        @endforelse
-                    </div>
-                </article>
-
-                {{-- Kategori Barang --}}
-                <article class="animate-enter delay-350 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-md">
-                    <div class="bg-slate-900 p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
-                        <div>
-                            <h2 class="text-sm sm:text-base font-bold text-white">Kategori Barang</h2>
-                            <p class="mt-0.5 text-xs sm:text-sm text-slate-300">Sebaran kuantitas inventaris berdasarkan kategori alat.</p>
-                        </div>
-                        <span class="flex h-2.5 w-2.5 rounded-full bg-indigo-400 shadow-sm animate-pulse" title="Realtime Data"></span>
-                    </div>
-
-                    <div class="space-y-4 p-4 sm:p-5 flex-1">
-                        @forelse($kategoriStats ?? [] as $stat)
-                            @php
-                                $categoryTotal = (int) ($stat->total ?? 0);
-                                $percentage    = min(round(($categoryTotal / $safeTotalBarang) * 100, 1), 100);
-                            @endphp
-                            <div class="group">
-                                <div class="mb-1.5 flex items-center justify-between gap-3 text-xs sm:text-sm">
-                                    <span class="font-medium text-slate-700 truncate group-hover:text-slate-950 transition-colors">{{ $stat->kategori }}</span>
-                                    <span class="shrink-0 tabular-nums text-slate-500">
-                                        <span class="font-semibold text-slate-900">{{ number_format($categoryTotal) }}</span> unit
-                                        <span class="text-slate-400 font-normal">({{ $percentage }}%)</span>
-                                    </span>
-                                </div>
-                                <div class="relative h-2.5 sm:h-3 w-full overflow-hidden rounded-full bg-slate-100/90 p-0.5 ring-1 ring-inset ring-slate-200/40" aria-hidden="true">
-                                    <div class="progress-bar-fill shimmer-effect relative h-full rounded-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 transition-all duration-500" style="--target-width: {{ $percentage }}%; width: {{ $percentage }}%;"></div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="flex h-32 items-center justify-center rounded-lg border border-dashed border-slate-200 text-xs sm:text-sm text-slate-500">
-                                Data kategori barang belum tersedia.
-                            </div>
-                        @endforelse
-                    </div>
-                </article>
-
-            </section>
+            @include('dashboard.chart-hover')
 
             <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" aria-label="Aktivitas terbaru">
 
@@ -567,6 +598,6 @@
             </section>
 
         </div>
-    </main>
+    </div>
 </div>
 @endsection

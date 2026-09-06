@@ -109,7 +109,7 @@
             <div class="xl:col-span-2 space-y-10 sm:space-y-12">
                 
                 <!-- Section 1: Identitas -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-40">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-39">
                     <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl">
                         <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">1. Identitas Barang</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Informasi nama, kategori, dan identifikasi alat</p>
@@ -189,7 +189,7 @@
                 </div>
 
                 <!-- Section 2: Kondisi & Lokasi -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-30">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 relative z-29">
                     <div class="px-6 py-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-2xl">
                         <h2 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider">2. Kondisi & Lokasi</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Status kelayakan fisik dan posisi penyimpanan</p>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BarangController extends Controller
@@ -264,6 +265,29 @@ class BarangController extends Controller
         $barang->delete();
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus!');
+    }
+
+    /**
+     * Hapus banyak data barang sekaligus (Bulk Delete)
+     */
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:barangs,id',
+        ]);
+
+        $count = 0;
+        DB::transaction(function () use ($validated, &$count) {
+            $barangs = Barang::whereIn('id', $validated['ids'])->get();
+            foreach ($barangs as $barang) {
+                $this->safeDeleteFoto($barang->foto);
+                $barang->delete();
+                $count++;
+            }
+        });
+
+        return redirect()->route('barang.index')->with('success', "{$count} data barang berhasil dihapus!");
     }
 
     /**

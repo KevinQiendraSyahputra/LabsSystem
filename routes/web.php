@@ -48,6 +48,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 // ==========================================
 Route::middleware(['auth', 'admin'])->group(function () {
     // 1. Inventaris Barang CRUD & Unit Management
+    Route::post('barang/bulk-delete', [BarangController::class, 'bulkDelete'])->name('barang.bulk-delete');
     Route::resource('barang', BarangController::class);
     Route::post('barang/{barang}/update-kondisi', [BarangController::class, 'updateKondisi'])->name('barang.update-kondisi');
     Route::post('barang/{barang}/split-units', [BarangController::class, 'splitUnits'])->name('barang.split-units');
