@@ -6,24 +6,45 @@
 
 @push('styles')
 <style>
-    /* Scope khusus chat workspace: Mengunci view layout */
+    /* Scope khusus chat workspace: Mengunci view layout ke batas bawah layar */
     html, body {
-        height: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
         overflow: hidden !important;
         width: 100% !important;
-        max-width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
-    main {
-        padding: 0 !important;
-        margin: 0 !important;
+    body > div.min-h-screen {
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    #mainLayoutWrapper {
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    main#mainContent {
         height: 100% !important;
         max-height: 100% !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
         width: 100% !important;
-        max-width: 100vw !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important;
+        flex: 1 1 0% !important;
     }
 
     .chat-bubble-content p { margin-bottom: 0.35rem; }
@@ -33,6 +54,7 @@
     .chat-bubble-content li { margin-bottom: 0.2rem; }
     .chat-bubble-content a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
     .chat-bubble-content code { background-color: rgba(0,0,0,0.06); padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.85em; }
+    .dark .chat-bubble-content code { background-color: rgba(255,255,255,0.1); }
     
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -41,10 +63,15 @@
     #chatMessages::-webkit-scrollbar-track { background: transparent; }
     #chatMessages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     #chatMessages::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .dark #chatMessages::-webkit-scrollbar-thumb { background: #334155; }
+    .dark #chatMessages::-webkit-scrollbar-thumb:hover { background: #475569; }
 
     .help-sidebar-scroll::-webkit-scrollbar { width: 4px; }
     .help-sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
     .help-sidebar-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    .dark .help-sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; }
+
+    [x-cloak] { display: none !important; }
 
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(6px); }
@@ -58,16 +85,16 @@
 
 <div x-data="labChatBot()"
      x-init="init()"
-     class="flex flex-col w-full max-w-full h-full min-h-0 bg-slate-50 relative select-text overflow-hidden">
+     class="flex flex-col w-full max-w-full h-full min-h-0 flex-1 bg-slate-50 dark:bg-slate-950 relative select-text overflow-hidden">
     
     {{-- 1. ASSISTANT HEADER --}}
-    <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between shrink-0 z-20 shadow-2xs gap-2 w-full max-w-full min-w-0">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between shrink-0 z-20 shadow-2xs gap-2 w-full max-w-full min-w-0">
         <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {{-- Mobile Sidebar Drawer Toggle Button --}}
             <button type="button" 
                     onclick="window.openSidebarDrawer()"
                     @click="window.openSidebarDrawer()" 
-                    class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none shrink-0 border border-slate-200 shadow-2xs cursor-pointer active:scale-95" 
+                    class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs cursor-pointer active:scale-95" 
                     aria-label="Buka Menu Navigasi" 
                     title="Buka Menu">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +104,7 @@
 
             {{-- Avatar Bot Header (Sky Blue Theme) --}}
             <div class="relative shrink-0">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-200 shadow-2xs">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-200 dark:border-sky-800/80 shadow-2xs">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                         <rect x="3" y="8" width="18" height="12" rx="3"/>
@@ -86,20 +113,20 @@
                         <path d="M9 17h6"/>
                     </svg>
                 </div>
-                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
             </div>
 
             {{-- Info Asisten --}}
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-                    <h1 class="text-xs sm:text-base font-bold text-slate-900 truncate">
+                    <h1 class="text-xs sm:text-base font-bold text-slate-900 dark:text-white truncate">
                         Asisten Lab
                     </h1>
-                    <span class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200 shrink-0">
+                    <span class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80 shrink-0">
                         {{ ucfirst(Auth::user()->role ?? 'Siswa') }}
                     </span>
                 </div>
-                <p class="text-[9px] sm:text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5 truncate">
+                <p class="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 mt-0.5 truncate">
                     <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shrink-0"></span>
                     <span class="truncate">Online • Bantuan Lab</span>
                 </p>
@@ -112,8 +139,8 @@
                target="_blank" 
                rel="noopener noreferrer"
                title="Hubungi WhatsApp Teknisi"
-               class="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-[11px] sm:text-xs font-semibold transition-all shadow-2xs">
-                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+               class="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 text-[11px] sm:text-xs font-semibold transition-all shadow-2xs">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                 </svg>
                 <span class="hidden sm:inline">WhatsApp Teknisi</span>
@@ -122,7 +149,7 @@
             <button type="button" 
                     @click="showClearModal = true" 
                     title="Bersihkan Percakapan"
-                    class="h-7 w-7 sm:h-8.5 sm:w-8.5 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-200 transition-colors shadow-2xs">
+                    class="h-7 w-7 sm:h-8.5 sm:w-8.5 flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors shadow-2xs">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                 </svg>
@@ -134,22 +161,22 @@
     <div class="flex-1 flex min-h-0 overflow-hidden w-full max-w-full">
         
         {{-- KOLOM UTAMA: PERCAKAPAN CHAT --}}
-        <div class="flex-1 flex flex-col min-h-0 bg-slate-50 relative w-full max-w-full min-w-0 overflow-hidden">
+        <div class="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950 relative w-full max-w-full min-w-0 overflow-hidden">
             
             {{-- Scrollable Conversation Stream --}}
             <div id="chatMessages" 
                  @scroll="handleScroll()"
-                 class="flex-1 overflow-y-auto px-2.5 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5 scroll-smooth min-h-0 overscroll-contain w-full max-w-full min-w-0">
+                 class="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 scroll-smooth min-h-0 overscroll-contain w-full max-w-full min-w-0">
                 
-                <div class="max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-4 w-full min-w-0">
+                <div class="w-full space-y-4 sm:space-y-5 pb-4 min-w-0">
                     
-                    {{-- Message Bubbles List --}}
+                    {{-- Message Bubbles List (Base UI / Radix Bubble Style) --}}
                     <template x-for="(msg, index) in messages" :key="index">
-                        <div :class="msg.sender === 'user' ? 'flex items-start justify-end gap-1.5 sm:gap-2.5 animate-fade-in w-full min-w-0' : 'flex items-start justify-start gap-1.5 sm:gap-2.5 animate-fade-in w-full min-w-0'">
+                        <div :class="msg.sender === 'user' ? 'flex items-start justify-end gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0' : 'flex items-start justify-start gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0'">
                             
                             {{-- Avatar Bot (Kiri Pesan Bot) --}}
                             <template x-if="msg.sender === 'bot'">
-                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-200 shadow-2xs mt-0.5">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-700 shadow-2xs mt-0.5">
                                     <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                                         <rect x="3" y="8" width="18" height="12" rx="3"/>
@@ -160,25 +187,25 @@
                                 </div>
                             </template>
 
-                            {{-- Konten Bubble Pesan --}}
+                            {{-- Konten Bubble Pesan (Base UI Bubble Style) --}}
                             <div :class="msg.sender === 'user' 
-                                 ? 'flex flex-col items-end min-w-0 max-w-[calc(100%-2.25rem)] sm:max-w-[75%]' 
-                                 : 'flex flex-col items-start min-w-0 max-w-[calc(100%-2.25rem)] sm:max-w-[78%]'">
+                                 ? 'flex flex-col items-end min-w-0 max-w-[85%] sm:max-w-[78%] lg:max-w-[72%]' 
+                                 : 'flex flex-col items-start min-w-0 max-w-[88%] sm:max-w-[82%] lg:max-w-[78%]'">
                                 
                                 <div :class="msg.sender === 'user' 
-                                     ? 'bg-slate-900 text-white rounded-2xl rounded-tr-xs p-3 sm:p-4 shadow-sm text-xs sm:text-sm leading-relaxed chat-bubble-content border border-slate-800 break-words [overflow-wrap:anywhere] max-w-full' 
-                                     : 'bg-white border border-slate-200/90 text-slate-800 rounded-2xl rounded-tl-xs p-3 sm:p-4.5 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full'">
+                                     ? 'bg-blue-600 dark:bg-blue-600 text-white rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal' 
+                                     : 'bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal'">
                                     
                                     <div class="break-words [overflow-wrap:anywhere]" x-html="msg.text"></div>
                                     
                                     {{-- Smart Suggestions Chips di Bawah Pesan Bot --}}
                                     <template x-if="msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0">
-                                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5 sm:gap-2">
+                                        <div class="mt-2.5 pt-2.5 border-t border-slate-300/60 dark:border-slate-700/70 flex flex-wrap gap-1.5 sm:gap-2">
                                             <template x-for="(sug, sIndex) in msg.suggestions" :key="sIndex">
                                                 <button type="button" 
                                                         @click="sendQuickReply(sug.action || sug.text)" 
-                                                        class="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-slate-50 hover:bg-sky-50 hover:text-sky-700 text-slate-700 border border-slate-200 text-[10px] sm:text-xs font-semibold transition-all active:scale-95 shadow-2xs max-w-full">
-                                                    <svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-700 dark:hover:text-sky-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10.5px] sm:text-xs font-semibold transition-all active:scale-95 shadow-2xs max-w-full">
+                                                    <svg class="w-2.5 h-2.5 text-slate-400 dark:text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                                                     </svg>
                                                     <span class="truncate" x-text="sug.text"></span>
@@ -189,10 +216,10 @@
                                 </div>
 
                                 {{-- Metadata Timestamp --}}
-                                <div :class="msg.sender === 'user' ? 'text-[9px] sm:text-[10px] text-slate-400 mt-1 mr-1 flex items-center gap-1.5' : 'text-[9px] sm:text-[10px] text-slate-400 mt-1 ml-1 flex items-center gap-1'">
+                                <div :class="msg.sender === 'user' ? 'text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 mr-1.5 flex items-center gap-1.5' : 'text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 ml-1.5 flex items-center gap-1'">
                                     <span x-text="msg.time"></span>
                                     <template x-if="msg.sender === 'user'">
-                                        <span class="flex items-center gap-1 text-slate-400">
+                                        <span class="flex items-center gap-1 text-slate-400 dark:text-slate-500">
                                             <span>• Terkirim</span>
                                             <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                         </span>
@@ -204,7 +231,7 @@
 
                                 {{-- Retry Jika Gagal --}}
                                 <template x-if="msg.failed">
-                                    <div class="mt-1 text-[11px] sm:text-xs text-rose-600 font-medium">
+                                    <div class="mt-1 text-[11px] sm:text-xs text-rose-600 dark:text-rose-400 font-medium">
                                         Gagal terkirim. <button type="button" @click="retryMessage(msg)" class="underline font-bold">Coba Lagi</button>
                                     </div>
                                 </template>
@@ -212,20 +239,20 @@
 
                             {{-- Foto Profil User (Kanan Pesan User) --}}
                             <template x-if="msg.sender === 'user'">
-                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 shadow-2xs mt-0.5 bg-slate-100 flex items-center justify-center">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs mt-0.5 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                     @if(Auth::user() && Auth::user()->foto)
                                         <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
                                     @else
-                                        <span class="text-[10px] sm:text-xs font-bold text-slate-700">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
+                                        <span class="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-200">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
                                     @endif
                                 </div>
                             </template>
                         </div>
                     </template>
 
-                    {{-- Typing Indicator --}}
-                    <div x-show="isTyping" class="flex items-start justify-start gap-1.5 sm:gap-2.5 animate-fade-in w-full min-w-0" style="display: none;">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-200 shadow-2xs mt-0.5">
+                    {{-- Typing Indicator (Base UI Bubble Style) --}}
+                    <div x-show="isTyping" class="flex items-start justify-start gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0" style="display: none;">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-700 shadow-2xs mt-0.5">
                             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                                 <rect x="3" y="8" width="18" height="12" rx="3"/>
@@ -234,11 +261,11 @@
                                 <path d="M9 17h6"/>
                             </svg>
                         </div>
-                        <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-xs px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs flex items-center gap-1.5">
+                        <div class="bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse"></span>
                             <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse" style="animation-delay:200ms"></span>
                             <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse" style="animation-delay:400ms"></span>
-                            <span class="text-[11px] sm:text-xs text-slate-500 ml-1.5 font-medium">Asisten sedang menyusun jawaban...</span>
+                            <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 ml-1.5 font-medium">Asisten sedang menyusun jawaban...</span>
                         </div>
                     </div>
                 </div>
@@ -248,51 +275,51 @@
             <div x-show="showScrollBottomButton" class="absolute bottom-28 inset-x-0 flex justify-center pointer-events-none z-30" style="display: none;">
                 <button type="button" 
                         @click="scrollToBottom(true)"
-                        class="pointer-events-auto bg-slate-900/90 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border border-slate-700 flex items-center gap-1.5 transition-all active:scale-95">
-                    <svg class="w-3.5 h-3.5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                        class="pointer-events-auto bg-slate-900/90 dark:bg-slate-800/90 hover:bg-slate-900 dark:hover:bg-slate-700 text-white text-xs font-semibold px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border border-slate-700 dark:border-slate-600 flex items-center gap-1.5 transition-all active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-indigo-300 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                     <span>Gulir ke Pesan Terbaru</span>
                 </button>
             </div>
 
             {{-- 3. COMPOSER FOOTER & TOPIC CHIPS --}}
-            <footer class="bg-white border-t border-slate-200 px-2.5 sm:px-6 py-2.5 sm:py-3 shrink-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xs w-full max-w-full min-w-0 overflow-x-hidden">
-                <div class="max-w-3xl mx-auto space-y-2 sm:space-y-2.5 w-full min-w-0">
+            <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 shrink-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xs w-full max-w-full min-w-0 overflow-x-hidden">
+                <div class="w-full space-y-2 sm:space-y-2.5 min-w-0">
                     
                     {{-- Carousel Pilihan Tombol Topik Cepat (Bebas Emoji, Pure SVG Icons) --}}
                     <div class="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full min-w-0">
-                        <button type="button" @click="sendQuickReply('pinjam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        <button type="button" @click="sendQuickReply('pinjam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             <span>Cara Pinjam</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('status')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        <button type="button" @click="sendQuickReply('status')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                             <span>Cek Status</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('kembali')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <button type="button" @click="sendQuickReply('kembali')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             <span>Pengembalian</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('scan')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        <button type="button" @click="sendQuickReply('scan')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                             <span>Scan QR</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('jam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <button type="button" @click="sendQuickReply('jam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>Jam Buka</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('maintenance')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                        <button type="button" @click="sendQuickReply('maintenance')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
                             <span>Lapor Alat</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('mikrotik')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 hover:text-indigo-600 text-slate-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                        <button type="button" @click="sendQuickReply('mikrotik')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
                             <span>MikroTik</span>
                         </button>
                     </div>
 
                     {{-- Form Input Chat --}}
                     <form @submit.prevent="sendMessage()" class="flex items-end gap-1.5 sm:gap-2 w-full min-w-0">
-                        <div class="flex-1 min-w-0 bg-slate-50 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-300 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/15 transition-all shadow-2xs">
+                        <div class="flex-1 min-w-0 bg-slate-50 dark:bg-slate-800/90 rounded-2xl px-3.5 sm:px-4.5 py-2 sm:py-2.5 border border-slate-300 dark:border-slate-700 focus-within:border-indigo-600 dark:focus-within:border-indigo-500 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-indigo-600/15 transition-all shadow-2xs">
                             <textarea x-ref="messageInput"
                                       x-model="inputText"
                                       @input="autoGrow()"
@@ -300,7 +327,7 @@
                                       placeholder="Tanyakan hal seputar peminjaman atau lab..."
                                       rows="1"
                                       maxlength="400"
-                                      class="w-full bg-transparent border-0 text-slate-900 text-xs sm:text-sm placeholder:text-[11px] sm:placeholder:text-xs placeholder-slate-400 focus:outline-none focus:ring-0 p-0 py-0.5 resize-none max-h-24 sm:max-h-28 min-h-[32px] sm:min-h-[38px] leading-relaxed"></textarea>
+                                      class="w-full bg-transparent border-0 text-slate-900 dark:text-slate-100 text-xs sm:text-sm placeholder:text-[11px] sm:placeholder:text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 p-0 py-0.5 resize-none max-h-24 sm:max-h-28 min-h-[32px] sm:min-h-[38px] leading-relaxed"></textarea>
                         </div>
                         
                         <button type="submit"
@@ -325,75 +352,75 @@
         </div>
 
         {{-- KOLOM KANAN: PUSAT INFORMASI & PANDUAN CEPAT (DESKTOP ONLY) --}}
-        <aside class="hidden lg:flex flex-col w-80 xl:w-96 bg-white border-l border-slate-200 h-full min-h-0 help-sidebar-scroll overflow-y-auto p-6 space-y-6 shrink-0">
+        <aside class="hidden lg:flex flex-col w-84 xl:w-96 2xl:w-[26rem] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 h-full min-h-0 help-sidebar-scroll overflow-y-auto p-4 sm:p-5 xl:p-6 space-y-5 xl:space-y-6 shrink-0">
             
             {{-- Panel 1: Status & Jam Operasional Lab --}}
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4.5 space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-900">Status Operasional</span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-2xs">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Status Operasional</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shrink-0">
                         <span class="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-pulse"></span>
                         Buka
                     </span>
                 </div>
-                <div class="text-xs text-slate-600 space-y-1.5 pt-1">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Senin – Kamis</span>
-                        <span class="font-semibold text-slate-800">07.00 – 16.00 WIB</span>
+                <div class="text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-300 space-y-2 pt-1">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Senin – Kamis</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-right whitespace-nowrap">07.00 – 16.00 WIB</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Jumat</span>
-                        <span class="font-semibold text-slate-800">07.00 – 15.30 WIB</span>
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Jumat</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-right whitespace-nowrap">07.00 – 15.30 WIB</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Sabtu & Minggu</span>
-                        <span class="font-semibold text-rose-600">Libur</span>
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Sabtu & Minggu</span>
+                        <span class="font-semibold text-rose-600 dark:text-rose-400 text-right whitespace-nowrap">Libur</span>
                     </div>
                 </div>
-                <div class="pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>Gedung Praktikum Barat, Lt. 2 (R. 204 & 205)</span>
+                <div class="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/80 text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-1.5 leading-relaxed">
+                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span class="break-words">Gedung Praktikum Barat, Lt. 2 (R. 204 & 205)</span>
                 </div>
             </div>
 
             {{-- Panel 2: Pertanyaan & Topik Sering Ditanyakan --}}
             <div class="space-y-3">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Topik Sering Ditanyakan</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Topik Sering Ditanyakan</h3>
                 <div class="space-y-2">
-                    <button type="button" @click="sendQuickReply('pinjam')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
-                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Bagaimana prosedur pinjam alat?</p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Alur pengajuan dan pengambilan unit di lab.</p>
+                    <button type="button" @click="sendQuickReply('pinjam')" class="w-full text-left p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Bagaimana prosedur pinjam alat?</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Alur pengajuan dan pengambilan unit di lab.</p>
                     </button>
-                    <button type="button" @click="sendQuickReply('status')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
-                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Cara cek status persetujuan?</p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Melihat daftar alat yang sedang aktif dipinjam.</p>
+                    <button type="button" @click="sendQuickReply('status')" class="w-full text-left p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Cara cek status persetujuan?</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Melihat daftar alat yang sedang aktif dipinjam.</p>
                     </button>
-                    <button type="button" @click="sendQuickReply('kembali')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
-                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Prosedur pengembalian alat?</p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Tata cara pengembalian fisik dan verifikasi data.</p>
+                    <button type="button" @click="sendQuickReply('kembali')" class="w-full text-left p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Prosedur pengembalian alat?</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Tata cara pengembalian fisik dan verifikasi data.</p>
                     </button>
-                    <button type="button" @click="sendQuickReply('mikrotik')" class="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 transition-colors group">
-                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Panduan IP Default MikroTik?</p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Informasi IP address dan reset routerboard.</p>
+                    <button type="button" @click="sendQuickReply('mikrotik')" class="w-full text-left p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 transition-colors group">
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Panduan IP Default MikroTik?</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Informasi IP address dan reset routerboard.</p>
                     </button>
                 </div>
             </div>
 
             {{-- Panel 3: Kontak Langsung Teknisi (Tema Biru Muda) --}}
-            <div class="bg-sky-50/70 border border-sky-200 rounded-2xl p-4.5 space-y-2.5">
+            <div class="bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-2xl p-4 sm:p-4.5 space-y-2.5">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     </div>
                     <div>
-                        <h4 class="text-xs font-bold text-slate-900">Butuh Bantuan Langsung?</h4>
-                        <p class="text-[10px] text-slate-500">Hubungi pengurus atau teknisi lab.</p>
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-white">Butuh Bantuan Langsung?</h4>
+                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">Hubungi pengurus atau teknisi lab.</p>
                     </div>
                 </div>
                 <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." 
                    target="_blank" 
                    rel="noopener noreferrer"
-                   class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs">
+                   class="w-full py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95">
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     <span>Hubungi WhatsApp</span>
                 </a>
@@ -402,36 +429,36 @@
     </div>
 
     {{-- MODAL HAPUS PERCAKAPAN --}}
-    <template x-teleport="body">
-        <div x-show="showClearModal" 
-             class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
-             style="display: none;"
-             x-transition.opacity.duration.150ms>
+    <div x-show="showClearModal" 
+         x-cloak
+         @keydown.escape.window="showClearModal = false"
+         class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
+         style="display: none;" 
+         x-transition.opacity.duration.150ms>
 
-            <div @click.away="showClearModal = false" 
-                 class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 text-center"
-                 x-transition:enter="transition ease-out duration-150"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100">
+        <div @click.away="showClearModal = false" 
+             class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 text-center"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
 
-                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-rose-100">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </div>
+            <div class="w-12 h-12 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-rose-100 dark:border-rose-800/60">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
 
-                <h2 class="text-base font-bold text-slate-900">Bersihkan Percakapan?</h2>
-                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Riwayat sesi tanya jawab saat ini akan dihapus dan dimulai ulang.</p>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Bersihkan Percakapan?</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">Riwayat sesi tanya jawab saat ini akan dihapus dan dimulai ulang.</p>
 
-                <div class="mt-5 flex gap-3">
-                    <button type="button" @click="showClearModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors">
-                        Batal
-                    </button>
-                    <button type="button" @click="confirmResetChat()" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
-                        Hapus Riwayat
-                    </button>
-                </div>
+            <div class="mt-5 flex gap-3">
+                <button type="button" @click="showClearModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors">
+                    Batal
+                </button>
+                <button type="button" @click="confirmResetChat()" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
+                    Hapus Riwayat
+                </button>
             </div>
         </div>
-    </template>
+    </div>
 </div>
 
 <script>
@@ -568,13 +595,16 @@ function labChatBot() {
             this.messages = [
                 {
                     sender: 'bot',
-                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Saya Asisten Lab Virtual. Silakan tanyakan hal seputar peminjaman alat praktikum, ketersediaan inventaris, scan QR Code, atau pilih topik panduan di bawah.',
+                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Selamat datang di <strong>Asisten Lab Virtual</strong>. Saya siap membantu Anda seputar prosedur peminjaman alat praktikum, pengecekan ketersediaan inventaris, panduan konfigurasi jaringan, jadwal operasional, hingga pelaporan kendala alat.<br><br>Ketik pertanyaan Anda di bawah atau pilih topik panduan cepat:',
                     time: this.getTime(),
                     failed: false,
                     suggestions: [
                         { text: 'Cara Pinjam Alat', action: 'pinjam' },
                         { text: 'Cek Status Pinjam', action: 'status' },
-                        { text: 'Panduan Scan QR', action: 'scan' }
+                        { text: 'Prosedur Pengembalian', action: 'kembali' },
+                        { text: 'Panduan Scan QR', action: 'scan' },
+                        { text: 'Jadwal & Jam Buka', action: 'jam' },
+                        { text: 'Panduan MikroTik', action: 'mikrotik' }
                     ]
                 }
             ];

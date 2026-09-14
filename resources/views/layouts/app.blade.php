@@ -17,15 +17,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS CDN with class-based Dark Mode -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             future: {
                 hoverOnlyWhenSupported: true,
             },
             theme: {
                 extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0b132b',
+                            surface: '#111c44',
+                            surfaceHover: '#1a2756',
+                            border: '#1e293b',
+                            card: '#111c44'
+                        }
+                    },
                     fontFamily: {
                         sans: ['Figtree', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
                         heading: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
@@ -34,6 +44,41 @@
                 }
             }
         }
+    </script>
+
+    <!-- Theme Initialization Script (Pre-paint to prevent flash of wrong theme) -->
+    <script>
+        (function() {
+            try {
+                var storedTheme = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch(e) {}
+        })();
+
+        window.toggleThemeMode = function() {
+            var isDark = document.documentElement.classList.contains('dark');
+            var nextTheme = isDark ? 'light' : 'dark';
+            if (nextTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+            try {
+                localStorage.setItem('theme', nextTheme);
+            } catch(e) {}
+
+            // Trigger global event untuk sinkronisasi komponen lain (seperti ECharts)
+            window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme: nextTheme } }));
+        };
     </script>
 
     <!-- Alpine.js Init & Global Sidebar Store -->
@@ -180,6 +225,132 @@
             -moz-user-select: text !important;
             -ms-user-select: text !important;
             user-select: text !important;
+        }
+
+        /* Dark Mode Theme Tokens (Gentelella v4 Inspired) */
+        html.dark {
+            color-scheme: dark;
+            background-color: #0b132b;
+        }
+        html.dark body {
+            background-color: #0b132b;
+            color: #e2e8f0;
+        }
+        html.dark .bg-white {
+            background-color: #111c44 !important;
+            color: #f1f5f9;
+        }
+        html.dark .bg-slate-50,
+        html.dark .bg-slate-50\/50,
+        html.dark .bg-slate-50\/70,
+        html.dark .bg-slate-50\/80,
+        html.dark .bg-slate-50\/90 {
+            background-color: #0e183a !important;
+        }
+        html.dark .bg-slate-100 {
+            background-color: #15224e !important;
+        }
+        html.dark .bg-slate-200,
+        html.dark .bg-slate-200\/80 {
+            background-color: #1a2756 !important;
+            border-color: #273773 !important;
+        }
+        html.dark .border-slate-50,
+        html.dark .border-slate-100,
+        html.dark .border-slate-200,
+        html.dark .border-slate-200\/90,
+        html.dark .border-slate-300 {
+            border-color: #1e293b !important;
+        }
+        html.dark .text-slate-900,
+        html.dark .text-slate-800,
+        html.dark .text-slate-950 {
+            color: #f8fafc !important;
+        }
+        html.dark .text-indigo-950,
+        html.dark .text-indigo-900 {
+            color: #c7d2fe !important;
+        }
+        html.dark .text-slate-700,
+        html.dark .text-slate-600 {
+            color: #cbd5e1 !important;
+        }
+        html.dark .text-slate-500,
+        html.dark .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+        html.dark .divide-slate-50 > *,
+        html.dark .divide-slate-100 > * {
+            border-color: #1e293b !important;
+        }
+        html.dark .hover\:bg-slate-50:hover,
+        html.dark .hover\:bg-slate-50\/70:hover,
+        html.dark .hover\:bg-slate-50\/80:hover,
+        html.dark .hover\:bg-slate-100:hover {
+            background-color: #182558 !important;
+        }
+
+        /* Dark Mode Soft Pill & Icon Badges */
+        html.dark .bg-indigo-50 {
+            background-color: rgba(99, 102, 241, 0.18) !important;
+            color: #a5b4fc !important;
+            border-color: rgba(99, 102, 241, 0.35) !important;
+        }
+        html.dark .bg-emerald-50 {
+            background-color: rgba(16, 185, 129, 0.18) !important;
+            color: #6ee7b7 !important;
+            border-color: rgba(16, 185, 129, 0.35) !important;
+        }
+        html.dark .bg-amber-50 {
+            background-color: rgba(245, 158, 11, 0.18) !important;
+            color: #fcd34d !important;
+            border-color: rgba(245, 158, 11, 0.35) !important;
+        }
+        html.dark .bg-orange-50 {
+            background-color: rgba(249, 115, 22, 0.18) !important;
+            color: #fdba74 !important;
+            border-color: rgba(249, 115, 22, 0.35) !important;
+        }
+        html.dark .bg-rose-50,
+        html.dark .bg-rose-50\/95 {
+            background-color: rgba(244, 63, 94, 0.18) !important;
+            color: #fda4af !important;
+            border-color: rgba(244, 63, 94, 0.35) !important;
+        }
+        html.dark .bg-sky-50 {
+            background-color: rgba(14, 165, 233, 0.18) !important;
+            color: #7dd3fc !important;
+            border-color: rgba(14, 165, 233, 0.35) !important;
+        }
+        html.dark .bg-violet-50 {
+            background-color: rgba(139, 92, 246, 0.18) !important;
+            color: #c4b5fd !important;
+            border-color: rgba(139, 92, 246, 0.35) !important;
+        }
+        html.dark .bg-teal-50 {
+            background-color: rgba(20, 184, 166, 0.18) !important;
+            color: #5eead4 !important;
+            border-color: rgba(20, 184, 166, 0.35) !important;
+        }
+        html.dark .bg-rose-100 {
+            background-color: rgba(244, 63, 94, 0.28) !important;
+            color: #fecdd3 !important;
+        }
+        html.dark .text-rose-900 {
+            color: #ffe4e6 !important;
+        }
+        html.dark .text-rose-700 {
+            color: #fda4af !important;
+        }
+
+        /* Sparklines & Progress Bars in Dark Mode */
+        html.dark .bg-indigo-200,
+        html.dark .bg-indigo-300 {
+            background-color: rgba(99, 102, 241, 0.4) !important;
+        }
+        html.dark .bg-sky-200,
+        html.dark .bg-sky-300 {
+            background-color: rgba(14, 165, 233, 0.4) !important;
         }
 
         body { font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -515,6 +686,7 @@
                 el.style.display = 'grid';
                 el.classList.add('no-transition', 'is-active');
             }
+            window.__HAS_INTRO_SCREEN = true;
         }
     })();
 </script>
@@ -604,7 +776,7 @@
 </div>
 @endif
 
-<div class="min-h-screen w-full bg-slate-100 flex flex-col relative">
+<div class="min-h-screen w-full bg-slate-100 flex flex-col relative @if(request()->routeIs('bantuan*')) h-screen max-h-screen overflow-hidden @endif">
 
     {{-- Mobile overlay dengan Backdrop Blur & Darkening (Smooth Fade In) --}}
     <div id="sidebarBackdrop"
@@ -793,12 +965,68 @@
 
             @elseif(Auth::user()->isKepalaLab())
                 {{-- MENU KHUSUS KEPALA LAB --}}
+                {{-- 1. Layanan Praktikum --}}
+                <div class="sidebar-group-label flex items-center gap-2 text-slate-400 mt-2">
+                    <svg class="w-3.5 h-3.5 text-indigo-400/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span>Layanan Praktikum</span>
+                </div>
+                <a href="{{ route('katalog.index') }}"
+                   @click="window.closeSidebarDrawer()"
+                   class="sidebar-link flex items-center gap-3 {{ request()->routeIs('katalog.*') ? 'active' : '' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span>Katalog Alat & Pinjam</span>
+                </a>
+                <a href="{{ route('peminjaman.saya') }}"
+                   @click="window.closeSidebarDrawer()"
+                   class="sidebar-link flex items-center gap-3 {{ request()->routeIs('peminjaman.saya') ? 'active' : '' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <span>Peminjaman Saya</span>
+                </a>
+                <a href="{{ route('scan.qr') }}"
+                   @click="window.closeSidebarDrawer()"
+                   class="sidebar-link flex items-center gap-3 {{ request()->routeIs('scan.qr') ? 'active' : '' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    </svg>
+                    <span>Scan QR Code</span>
+                </a>
+
+                {{-- 2. Maintenance Laboratorium --}}
                 <div class="sidebar-group-label flex items-center gap-2 text-slate-400 mt-2">
                     <svg class="w-3.5 h-3.5 text-amber-400/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    <span>Laporan</span>
+                    <span>Maintenance Lab</span>
                 </div>
+                <a href="{{ route('maintenance.create') }}"
+                   @click="window.closeSidebarDrawer()"
+                   class="sidebar-link flex items-center gap-3 {{ request()->routeIs('maintenance.create') ? 'active' : '' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Catat Maintenance</span>
+                </a>
+                <a href="{{ route('maintenance.index') }}"
+                   @click="window.closeSidebarDrawer()"
+                   class="sidebar-link flex items-center gap-3 {{ (request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show') || request()->routeIs('maintenance.edit')) ? 'active' : '' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>Riwayat Maintenance</span>
+                </a>
                 <a href="{{ route('laporan.maintenance') }}"
                    @click="window.closeSidebarDrawer()"
                    class="sidebar-link flex items-center gap-3 {{ request()->routeIs('laporan.maintenance*') ? 'active' : '' }}">
@@ -807,23 +1035,6 @@
                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                     </svg>
                     <span>Laporan Maintenance</span>
-                </a>
-                <div class="sidebar-group-label flex items-center gap-2 text-slate-400 mt-2">
-                    <svg class="w-3.5 h-3.5 text-amber-400/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span>Maintenance</span>
-                </div>
-                <a href="{{ route('maintenance.index') }}"
-                   @click="window.closeSidebarDrawer()"
-                   class="sidebar-link flex items-center gap-3 {{ (request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show')) ? 'active' : '' }}">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span>Data Maintenance</span>
                 </a>
 
             @elseif(Auth::user()->isKoordinatorLab())
@@ -1030,16 +1241,16 @@
     </aside>
 
     {{-- ====== MAIN CONTENT WRAPPER ====== --}}
-    <div id="mainLayoutWrapper" class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 lg:pl-64 @if(request()->routeIs('bantuan*')) h-[100dvh] max-h-[100dvh] overflow-hidden @endif">
+    <div id="mainLayoutWrapper" class="flex-1 flex flex-col min-w-0 @if(request()->routeIs('bantuan*')) h-screen max-h-screen min-h-0 overflow-hidden @else min-h-screen @endif transition-all duration-300 lg:pl-64">
 
         {{-- Topbar (Sembunyikan di halaman Live Chat / Bantuan agar menjadi workspace full-bleed sesuai Foto 1) --}}
         @unless(request()->routeIs('bantuan*'))
-        <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 py-3.5 sm:py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs no-print flex-shrink-0">
+        <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 px-4 lg:px-6 py-3.5 sm:py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs no-print flex-shrink-0 transition-colors">
             <div class="flex items-center gap-3">
                 <button type="button" 
                         onclick="window.openSidebarDrawer()" 
                         @click="window.openSidebarDrawer()" 
-                        class="lg:hidden p-2 -ml-1 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 active:scale-95 cursor-pointer flex-shrink-0" 
+                        class="lg:hidden p-2 -ml-1 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 active:scale-95 cursor-pointer flex-shrink-0" 
                         aria-label="Buka Menu Navigasi" 
                         title="Buka Menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1047,8 +1258,8 @@
                     </svg>
                 </button>
                 <div>
-                    <h1 id="pageTitle" class="text-base lg:text-lg font-bold text-slate-800 leading-tight">@yield('page_title', 'Dashboard')</h1>
-                    <p id="pageSubtitle" class="text-[10px] lg:text-xs text-slate-500 hidden sm:block">@yield('page_subtitle', 'Winshark Community • ' . (Auth::user()->laboratorium_penugasan ?? 'Laboratorium TKJ'))</p>
+                    <h1 id="pageTitle" class="text-base lg:text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">@yield('page_title', 'Dashboard')</h1>
+                    <p id="pageSubtitle" class="text-[10px] lg:text-xs text-slate-500 dark:text-slate-400 hidden sm:block">@yield('page_subtitle', 'Winshark Community • ' . (Auth::user()->laboratorium_penugasan ?? 'Laboratorium TKJ'))</p>
                 </div>
             </div>
 
@@ -1097,6 +1308,38 @@
                         ->get();
                 @endphp
 
+                {{-- TOMBOL DARK MODE / LIGHT MODE PROFESIONAL (Capsule Switch with Dual Indicators & Sliding Thumb) --}}
+                <button type="button" 
+                        onclick="window.toggleThemeMode()" 
+                        aria-label="Alihkan Mode Gelap / Terang"
+                        title="Alihkan Tema (Terang / Gelap)"
+                        class="group relative inline-flex h-8 w-[60px] items-center justify-between rounded-full bg-slate-200/90 dark:bg-slate-800 p-[3px] border border-slate-300/90 dark:border-slate-700 shadow-inner hover:border-slate-400 dark:hover:border-slate-600 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 active:scale-95 flex-shrink-0 cursor-pointer">
+                    
+                    {{-- Static Background Icons --}}
+                    <span class="w-6 h-6 flex items-center justify-center text-slate-400 dark:text-slate-500 pointer-events-none">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </span>
+                    <span class="w-6 h-6 flex items-center justify-center text-slate-400 dark:text-slate-500 pointer-events-none">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </span>
+
+                    {{-- Sliding Active Indicator Thumb --}}
+                    <span class="absolute left-[3px] top-[3px] h-6 w-6 rounded-full bg-white dark:bg-slate-900 shadow-md border border-slate-200/80 dark:border-slate-700/80 transition-transform duration-300 ease-out transform translate-x-0 dark:translate-x-7 flex items-center justify-center pointer-events-none">
+                        {{-- Sun Icon (Active in Light Mode) --}}
+                        <svg class="w-3.5 h-3.5 text-amber-500 block dark:hidden transition-transform duration-300 rotate-0 dark:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        {{-- Moon Icon (Active in Dark Mode) --}}
+                        <svg class="w-3.5 h-3.5 text-indigo-400 hidden dark:block transition-transform duration-300 rotate-0 dark:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </span>
+                </button>
+
                 <div class="relative"
                      x-data="{ open: false }"
                      @keydown.escape.window="open = false">
@@ -1107,14 +1350,14 @@
                             aria-haspopup="true"
                             aria-label="{{ $displayUnreadCount > 0 ? 'Notifikasi Pengumuman, ' . $displayUnreadCount . ' belum dibaca' : 'Notifikasi Pengumuman' }}"
                             title="Pengumuman & Notifikasi"
-                            class="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center relative hover:bg-slate-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 shadow-xs">
-                        <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            class="w-9 h-9 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-full flex items-center justify-center relative hover:bg-slate-200 dark:hover:bg-slate-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 shadow-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V4a1 1 0 10-2 0v1.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
 
                         @if($displayUnreadCount > 0)
-                            <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 shadow border-2 border-white">
+                            <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 shadow border-2 border-white dark:border-slate-900">
                                 {{ $displayUnreadCount > 99 ? '99+' : $displayUnreadCount }}
                             </span>
                         @endif
@@ -1129,11 +1372,11 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                          x-transition:leave-end="opacity-0 scale-95 translate-y-1"
-                         class="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] sm:w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+                         class="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] sm:w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50">
 
-                        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/80">
+                        <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 bg-slate-50/80 dark:bg-slate-800/50">
                             <div class="min-w-0">
-                                <span class="block font-bold text-slate-800 text-xs uppercase tracking-wider">
+                                <span class="block font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider">
                                     Pengumuman Lab
                                 </span>
 
@@ -1146,33 +1389,33 @@
                                 <form action="{{ route('berita.markAllRead') }}" method="POST" class="inline shrink-0">
                                     @csrf
                                     <button type="submit"
-                                            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none">
+                                            class="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 hover:underline focus:outline-none">
                                         Tandai semua
                                     </button>
                                 </form>
                             @else
-                                <span class="shrink-0 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                                <span class="shrink-0 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-800">
                                     Semua dibaca
                                 </span>
                             @endif
                         </div>
 
-                        <div class="divide-y divide-slate-100 max-h-72 overflow-y-auto overscroll-contain">
+                        <div class="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto overscroll-contain">
                             @forelse($globalUnreadBeritas as $gBerita)
                                 <a href="{{ route('berita.show', $gBerita->id) }}"
                                    @click="open = false"
-                                   class="group block px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+                                   class="group block px-4 py-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
 
                                     <div class="flex items-start gap-2.5">
-                                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-600"
+                                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-600 dark:bg-indigo-400"
                                               aria-hidden="true"></span>
 
                                         <div class="min-w-0 flex-1">
-                                            <p class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700 truncate">
+                                            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 truncate">
                                                 {{ $gBerita->judul }}
                                             </p>
 
-                                            <p class="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                                                 {{ strip_tags($gBerita->isi) }}
                                             </p>
 
@@ -1186,7 +1429,7 @@
                                                     && $gBerita->target_kelas
                                                     && !str_contains($gBerita->target_kelas, 'Semua')
                                                 )
-                                                    <span class="max-w-[120px] truncate text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200/60 font-semibold px-1.5 py-0.5 rounded-md">
+                                                    <span class="max-w-[120px] truncate text-[9px] bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800 font-semibold px-1.5 py-0.5 rounded-md">
                                                         {{ $gBerita->target_kelas }}
                                                     </span>
                                                 @endif
@@ -1196,12 +1439,12 @@
                                 </a>
                             @empty
                                 <div class="px-5 py-7 text-center">
-                                    <div class="mx-auto w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                                    <div class="mx-auto w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-100 dark:border-emerald-800">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         </svg>
                                     </div>
-                                    <p class="mt-2.5 text-xs font-semibold text-slate-700">
+                                    <p class="mt-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
                                         Semua sudah dibaca
                                     </p>
                                     <p class="mt-1 text-[10px] leading-4 text-slate-400">
@@ -1211,10 +1454,10 @@
                             @endforelse
                         </div>
 
-                        <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                        <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 text-center">
                             <a href="{{ route('berita.index') }}"
                                @click="open = false"
-                               class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                               class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
                                 Lihat Semua Pengumuman
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6 6 6-6 6"/>
@@ -1228,7 +1471,7 @@
         @endunless
 
         {{-- Page Content --}}
-        <main id="mainContent" class="flex-1 @if(request()->routeIs('bantuan*')) p-0 flex flex-col min-h-0 overflow-hidden @else p-4 lg:p-6 @endif print-content w-full transition-opacity duration-150">
+        <main id="mainContent" class="flex-1 @if(request()->routeIs('bantuan*')) p-0 flex flex-col h-full min-h-0 overflow-hidden @else p-4 lg:p-6 @endif print-content w-full transition-opacity duration-150">
             @yield('content')
             <div id="spaPageScriptsContainer" class="hidden">
                 @stack('scripts')
@@ -1237,8 +1480,8 @@
 
         {{-- Footer (Hanya tampil di luar halaman Bantuan agar tidak memicu scroll berlebih pada chat) --}}
         @if(!request()->routeIs('bantuan*'))
-        <footer class="bg-white border-t border-slate-200 px-6 py-3 text-center no-print flex-shrink-0">
-            <p class="text-xs text-slate-500 font-medium">© {{ date('Y') }} Winshark Community • Sistem Manajemen & Peminjaman Laboratorium TKJ</p>
+        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 py-3 text-center no-print flex-shrink-0 transition-colors">
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">© {{ date('Y') }} Winshark Community • Sistem Manajemen & Peminjaman Laboratorium TKJ</p>
         </footer>
         @endif
     </div>
@@ -1253,7 +1496,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const intro = document.getElementById('introScreen');
         if (intro) {
-            const shouldShowIntro = sessionStorage.getItem('dashboard_intro') === 'true';
+            const shouldShowIntro = sessionStorage.getItem('dashboard_intro') === 'true' || window.__HAS_INTRO_SCREEN;
             if (shouldShowIntro) {
                 sessionStorage.removeItem('dashboard_intro');
                 intro.style.display = 'grid';
@@ -1263,9 +1506,19 @@
                 setTimeout(() => {
                     intro.classList.remove('is-active');
                     intro.classList.add('is-leaving');
+                    // Dispatch event saat intro screen mulai slide ke atas
+                    window.dispatchEvent(new CustomEvent('intro-slide-start', { detail: { progress: 'start' } }));
+
+                    // Dispatch event di pertengahan slide
+                    setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('intro-slide-mid', { detail: { progress: 'mid' } }));
+                    }, 350);
+
                     setTimeout(() => {
                         intro.classList.remove('is-leaving');
                         intro.style.display = 'none';
+                        window.__HAS_INTRO_SCREEN = false;
+                        window.dispatchEvent(new CustomEvent('intro-slide-end', { detail: { progress: 'end' } }));
                     }, 1250);
                 }, 750);
             } else {
@@ -1443,23 +1696,8 @@
                     try { window.Alpine.destroyTree(currentMain); } catch(e) {}
                 }
 
-                // Sinkronkan class CSS container & main agar tata letak halaman selalu sinkron
-                currentMain.className = newMain.className;
-                if (newMain.parentElement && currentMain.parentElement) {
-                    currentMain.parentElement.className = newMain.parentElement.className;
-                }
-
-                currentMain.innerHTML = newMain.innerHTML;
-                currentMain.style.opacity = '1';
-
-                const introEl = document.getElementById('introScreen');
-                if (introEl) {
-                    introEl.style.display = 'none';
-                    introEl.classList.remove('is-active', 'no-transition');
-                }
-
-                // 1. Muat skrip eksternal baru dari konten halaman jika ada
-                const externalScripts = Array.from(currentMain.querySelectorAll('script[src]'));
+                // 1. Muat skrip eksternal baru dari halaman baru jika ada
+                const externalScripts = Array.from(newMain.querySelectorAll('script[src]'));
                 const loadExternalPromises = externalScripts.map(scriptTag => {
                     const src = scriptTag.getAttribute('src');
                     if (src && !document.querySelector(`head script[src="${src}"]`)) {
@@ -1476,20 +1714,36 @@
 
                 await Promise.all(loadExternalPromises);
 
-                // 2. Eksekusi seluruh inline script yang ada di dalam currentMain (konten & stack scripts)
-                const inlineScripts = Array.from(currentMain.querySelectorAll('script:not([src])'));
-                inlineScripts.forEach(oldScript => {
-                    try {
-                        const newScript = document.createElement('script');
-                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                        newScript.textContent = oldScript.textContent;
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    } catch(err) {
-                        console.error('SPA inline script error:', err);
+                // 2. Eksekusi seluruh inline script halaman baru SEBELUM DOM diinjeksi
+                // agar fungsi global (misal: window.barangIndexPage) sudah siap saat Alpine mem-parsing DOM
+                const inlineScripts = Array.from(newMain.querySelectorAll('script:not([src])'));
+                inlineScripts.forEach(scriptTag => {
+                    const code = scriptTag.textContent.trim();
+                    if (code) {
+                        try {
+                            (0, eval)(code);
+                        } catch(err) {
+                            console.error('SPA inline script error:', err);
+                        }
                     }
                 });
 
-                // 3. Re-inisialisasi Alpine setelah seluruh fungsi komponen siap terdaftar
+                // 3. Sinkronkan class CSS container & main agar tata letak halaman selalu sinkron
+                currentMain.className = newMain.className;
+                if (newMain.parentElement && currentMain.parentElement) {
+                    currentMain.parentElement.className = newMain.parentElement.className;
+                }
+
+                currentMain.innerHTML = newMain.innerHTML;
+                currentMain.style.opacity = '1';
+
+                const introEl = document.getElementById('introScreen');
+                if (introEl) {
+                    introEl.style.display = 'none';
+                    introEl.classList.remove('is-active', 'no-transition');
+                }
+
+                // 4. Re-inisialisasi Alpine setelah fungsi komponen siap terdaftar di memori
                 if (window.Alpine) {
                     try {
                         window.Alpine.initTree(currentMain);
@@ -1498,14 +1752,14 @@
                     }
                 }
 
-                // 4. Inisialisasi ECharts Chart Hover jika elemen chart ada di DOM
+                // 5. Inisialisasi ECharts Chart Hover jika elemen chart ada di DOM
                 if (typeof window.initDashboardHoverChart === 'function' && document.getElementById('echarts-hover-main')) {
                     requestAnimationFrame(() => {
                         window.initDashboardHoverChart();
                     });
                 }
 
-                // 5. Trigger resize event untuk sinkronisasi layout chart & responsive container
+                // 6. Trigger resize event untuk sinkronisasi layout chart & responsive container
                 requestAnimationFrame(() => {
                     window.dispatchEvent(new Event('resize'));
                 });

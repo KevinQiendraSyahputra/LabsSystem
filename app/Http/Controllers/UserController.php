@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -35,7 +36,25 @@ class UserController extends Controller
         }
 
         if ($request->filled('role')) {
-            $query->where('role', $request->role);
+            if ($request->role === 'kepala_lab') {
+                $query->where(function ($q) {
+                    $q->where('role', 'kepala_lab')
+                      ->orWhere(function ($q2) {
+                          $q2->where('role', 'guru')
+                             ->where(function ($q3) {
+                                 $q3->where('kelas_atau_jabatan', 'like', '%Kepala Lab%')
+                                    ->orWhere('kelas_atau_jabatan', 'like', '%Kepala Laboratorium%');
+                             });
+                      });
+                });
+            } elseif ($request->role === 'guru') {
+                $query->where(function ($q) {
+                    $q->where('role', 'guru')
+                      ->orWhere('role', 'kepala_lab');
+                });
+            } else {
+                $query->where('role', $request->role);
+            }
         }
 
         $users = $query->latest('id')->paginate(10)->withQueryString();
@@ -134,5 +153,34 @@ class UserController extends Controller
 
         $pengguna->delete();
         return redirect()->route('pengguna.index')->with('success', 'Pengguna berhasil dihapus!');
+    }
+
+    /**
+     * Hapus banyak akun pengguna sekaligus (Bulk Delete)
+     */
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $currentUserId = auth()->id();
+        $targetIds = array_filter($validated['ids'], fn($id) => (int)$id !== $currentUserId);
+
+        if (empty($targetIds)) {
+            return back()->with('error', 'Tidak ada akun yang dapat dihapus (akun Anda sendiri tidak dapat dihapus).');
+        }
+
+        $count = 0;
+        DB::transaction(function () use ($targetIds, &$count) {
+            $users = User::whereIn('id', $targetIds)->get();
+            foreach ($users as $user) {
+                $user->delete();
+                $count++;
+            }
+        });
+
+        return redirect()->route('pengguna.index')->with('success', "{$count} akun pengguna berhasil dihapus!");
     }
 }

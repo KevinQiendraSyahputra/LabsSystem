@@ -73,7 +73,11 @@ class User extends Authenticatable
 
     public function isKepalaLab(): bool
     {
-        return strtolower($this->role) === 'kepala_lab';
+        return strtolower($this->role) === 'kepala_lab'
+            || (strtolower($this->role) === 'guru' && (
+                str_contains(strtolower($this->kelas_atau_jabatan ?? ''), 'kepala lab')
+                || str_contains(strtolower($this->kelas_atau_jabatan ?? ''), 'kepala laboratorium')
+            ));
     }
 
     public function isKoordinatorLab(): bool
@@ -83,7 +87,7 @@ class User extends Authenticatable
 
     public function isGuru(): bool
     {
-        return strtolower($this->role) === 'guru';
+        return in_array(strtolower($this->role), ['guru', 'kepala_lab']);
     }
 
     public function isSiswa(): bool
@@ -95,6 +99,25 @@ class User extends Authenticatable
     public function canAccessMaintenance(): bool
     {
         return in_array(strtolower($this->role), ['admin', 'kepala_lab', 'koordinator_lab']);
+    }
+
+    /**
+     * Apakah user berhak mengedit atau menghapus data maintenance tertentu?
+     * - Admin: BISA mengelola semua
+     * - Kepala Lab: BISA mengelola semua
+     * - Koordinator Lab: HANYA BISA mengelola data yang dibuatnya sendiri (user_id === auth()->id())
+     */
+    public function canManageMaintenance(Maintenance $maintenance): bool
+    {
+        if ($this->isAdmin() || $this->isKepalaLab()) {
+            return true;
+        }
+
+        if ($this->isKoordinatorLab()) {
+            return (int) $maintenance->user_id === (int) $this->id;
+        }
+
+        return false;
     }
 
     /** Apakah user bisa melihat laporan semua lab? */
@@ -140,6 +163,9 @@ class User extends Authenticatable
     /** Label role yang user-friendly */
     public function getRoleLabelAttribute(): string
     {
+        if ($this->isKepalaLab()) {
+            return 'Guru (Kepala Lab)';
+        }
         return self::$roleList[$this->role] ?? ucfirst($this->role);
     }
 

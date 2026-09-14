@@ -106,82 +106,86 @@ class DashboardController extends Controller
             'Hilang'      => $barangHilang,
         ];
 
-        // Dataset interaktif ECharts Hover (Kategori & Tren Tahunan)
-        $hoverChartData = $this->getChartHoverData();
+        // Dataset Grafik Tren Aktivitas & Distribusi Kategori ala Gentelella v4
+        $chartData = $this->getDashboardChartData();
 
         return view('dashboard', compact(
             'totalBarang', 'barangBaik', 'barangRusak', 'barangPerbaikan',
             'barangPerawatan', 'barangHilang', 'barangTerbaru',
             'totalNilai', 'barangDipinjam', 'maintenanceBulanIni',
             'barangBaruTahunIni', 'peminjamanTerlambat', 'peminjamanAktif',
-            'kategoriStats', 'kondisiStats', 'hoverChartData'
+            'kategoriStats', 'kondisiStats', 'chartData'
         ));
     }
 
     /**
-     * Menyiapkan struktur dataset hover ECharts kategori (Jaringan, Komputer, Alat Praktik, dll)
-     * Mengambil data riil dari tabel barangs berdasarkan kolom kategori, jumlah, dan tahun_pembelian / created_at.
+     * Menyiapkan struktur dataset tren aktivitas laboratorium ala Gentelella v4
+     * Mengambil data peminjaman dan maintenance 7 hari terakhir, 30 hari, dan bulanan
      */
-    private function getChartHoverData(): array
+    private function getDashboardChartData(): array
     {
-        $currentYear = (int) date('Y');
-        
-        // PENGATURAN TAHUN:
-        // Mencari tahun pengadaan/pembelian terlama di database sebagai batas awal grafik
-        $minDbYear = (int) (Barang::whereNotNull('tahun_pembelian')->min('tahun_pembelian') ?: ($currentYear - 4));
-        $startYear = min($minDbYear, $currentYear - 4); // Rentang minimal 5 tahun (misal: 2022 s/d 2026)
+        // 1. Data 7 Hari Terakhir
+        $days7 = [];
+        $peminjaman7d = [];
+        $maintenance7d = [];
 
-        $yearsList = [];
-        for ($y = $startYear; $y <= $currentYear; $y++) {
-            $yearsList[] = (string) $y;
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $dayName = $date->translatedFormat('D, d M');
+            $dateStr = $date->toDateString();
+
+            $days7[] = $dayName;
+            $peminjaman7d[] = (int) Peminjaman::whereDate('tanggal_pinjam', $dateStr)->count();
+            $maintenance7d[] = (int) Maintenance::whereDate('tanggal_maintenance', $dateStr)->count();
         }
 
-        $source = [];
-        $source[] = array_merge(['product'], $yearsList);
+        // 2. Data 30 Hari Terakhir (per 3 hari untuk keterbacaan)
+        $days30 = [];
+        $peminjaman30d = [];
+        $maintenance30d = [];
 
-        // Kategori terdaftar dari database (diurutkan berdasarkan total unit terbanyak)
-        $dbCategories = Barang::whereNotNull('kategori')
-            ->selectRaw('kategori, SUM(jumlah) as total_unit')
-            ->groupBy('kategori')
-            ->orderByDesc('total_unit')
-            ->pluck('kategori')
-            ->toArray();
+        for ($i = 29; $i >= 0; $i -= 3) {
+            $dateEnd = now()->subDays($i);
+            $dateStart = (clone $dateEnd)->subDays(2);
+            $label = $dateStart->format('d/m') . '-' . $dateEnd->format('d/m');
 
-        $defaultCategories = ['Jaringan', 'Alat Praktik', 'Komputer', 'Perangkat Keras'];
-        $categories = !empty($dbCategories) 
-            ? array_values(array_unique(array_merge($dbCategories, $defaultCategories))) 
-            : $defaultCategories;
-
-        // Ambil kategori utama
-        $categories = array_slice($categories, 0, 5);
-
-        foreach ($categories as $cat) {
-            $row = [$cat];
-
-            foreach ($yearsList as $yr) {
-                $yrInt = (int) $yr;
-
-                // Hitung kumulatif total unit barang sampai dengan tahun tersebut
-                $totalUnitSampaiTahunIni = (int) Barang::where('kategori', $cat)
-                    ->where(function ($q) use ($yrInt) {
-                        $q->where('tahun_pembelian', '<=', $yrInt)
-                          ->orWhere(function ($sub) use ($yrInt) {
-                              $sub->whereNull('tahun_pembelian')
-                                  ->whereYear('created_at', '<=', $yrInt);
-                          });
-                    })
-                    ->sum('jumlah');
-
-                $row[] = $totalUnitSampaiTahunIni;
-            }
-            $source[] = $row;
+            $days30[] = $label;
+            $peminjaman30d[] = (int) Peminjaman::whereBetween('tanggal_pinjam', [$dateStart->toDateString(), $dateEnd->toDateString()])->count();
+            $maintenance30d[] = (int) Maintenance::whereBetween('tanggal_maintenance', [$dateStart->toDateString(), $dateEnd->toDateString()])->count();
         }
+
+        // 3. Data 6 Bulan Terakhir
+        $months6 = [];
+        $peminjaman6m = [];
+        $maintenance6m = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthName = $date->translatedFormat('M Y');
+
+            $months6[] = $monthName;
+            $peminjaman6m[] = (int) Peminjaman::whereYear('tanggal_pinjam', $date->year)
+                ->whereMonth('tanggal_pinjam', $date->month)
+                ->count();
+            $maintenance6m[] = (int) Maintenance::whereYear('tanggal_maintenance', $date->year)
+                ->whereMonth('tanggal_maintenance', $date->month)
+                ->count();
+        }
+
+        // Total aktivitas peminjaman + maintenance minggu ini
+        $totalAktivitasMingguIni = array_sum($peminjaman7d) + array_sum($maintenance7d);
 
         return [
-            'years'       => $yearsList,
-            'categories'  => $categories,
-            'source'      => $source,
-            'initialYear' => (string) end($yearsList),
+            'days7'         => $days7,
+            'peminjaman7d'  => $peminjaman7d,
+            'maintenance7d' => $maintenance7d,
+            'days30'        => $days30,
+            'peminjaman30d' => $peminjaman30d,
+            'maintenance30d'=> $maintenance30d,
+            'months6'       => $months6,
+            'peminjaman6m'  => $peminjaman6m,
+            'maintenance6m' => $maintenance6m,
+            'totalMingguIni'=> $totalAktivitasMingguIni,
         ];
     }
 }

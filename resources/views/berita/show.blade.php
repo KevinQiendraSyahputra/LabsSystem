@@ -50,7 +50,7 @@
 
                 {{-- Keterangan Target Kelas --}}
                 <div class="flex flex-wrap items-center gap-2 mt-1">
-                    <span class="text-xs font-bold text-slate-500">Target Kelas:</span>
+                    <span class="text-xs font-bold text-slate-500">Target :</span>
                     @if(isset($berita->target_kelas) && $berita->target_kelas)
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/70">
                             {{ $berita->target_kelas }}

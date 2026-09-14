@@ -66,6 +66,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/laporan/inventaris/pdf', [LaporanController::class, 'inventarisPdf'])->name('laporan.inventaris.pdf');
 
     // 5. Manajemen Pengguna & Hak Akses
+    Route::post('pengguna/bulk-delete', [UserController::class, 'bulkDelete'])->name('pengguna.bulk-delete');
     Route::resource('pengguna', UserController::class)->parameters(['pengguna' => 'pengguna']);
 });
 

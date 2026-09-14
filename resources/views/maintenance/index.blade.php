@@ -10,11 +10,11 @@
     {{-- ===== PAGE HEADER (Seamless, No Floating Card) ===== --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Riwayat Maintenance</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">Kelola perbaikan dan perawatan alat laboratorium</p>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Riwayat Maintenance</h1>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola perbaikan dan perawatan alat laboratorium</p>
         </div>
         <a href="{{ route('maintenance.create') }}" 
-           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition active:scale-95 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shrink-0">
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 shadow-xs transition active:scale-95 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shrink-0">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -24,16 +24,16 @@
 
     {{-- ===== SEARCH, FILTER & DATA CONTAINER ===== --}}
     {{-- overflow-hidden dilepas dari container utama agar dropdown tidak terpotong --}}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs relative">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs relative">
 
         {{-- Filter & Search Header --}}
-        <div class="p-4 border-b border-slate-100 bg-slate-50/60 rounded-t-2xl relative z-20">
+        <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 rounded-t-2xl relative z-20">
             <form id="filterMaintenanceForm" @submit.prevent="fetchData()" class="space-y-3">
 
                 {{-- Search Input & Mobile Filter Trigger --}}
                 <div class="flex flex-col xs:flex-row items-stretch xs:items-center gap-2">
                     <div class="relative flex-1 min-w-0">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -43,18 +43,18 @@
                                id="search" 
                                x-model="search" 
                                @input.debounce.400ms="fetchData()"
-                               class="bg-white border border-slate-300 text-slate-900 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-full pl-9 pr-3 py-2.5 transition focus:outline-none placeholder:text-slate-400"
+                               class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-3/12 pl-9 pr-3 py-2.5 transition focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                placeholder="Cari alat atau teknisi..."
                                aria-label="Cari maintenance">
                     </div>
 
                     {{-- Toggle Filter Mobile --}}
                     <button type="button" @click="mobileFilterOpen = !mobileFilterOpen"
-                            class="sm:hidden flex items-center justify-center gap-2 px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition shrink-0"
-                            :class="{'border-indigo-500 text-indigo-700 bg-indigo-50/40': activeFilterCount > 0}"
+                            class="sm:hidden flex items-center justify-center gap-2 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 transition shrink-0"
+                            :class="{'border-indigo-500 dark:border-indigo-500 text-indigo-700 dark:text-indigo-300 bg-indigo-50/40 dark:bg-indigo-950/40': activeFilterCount > 0}"
                             aria-expanded="false"
                             :aria-expanded="mobileFilterOpen">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                         </svg>
                         <span>Filter</span>
@@ -70,18 +70,18 @@
 
                     {{-- Laboratorium (Locked or Dropdown) --}}
                     @if(!empty($lockedLab))
-                        <div class="sm:w-52 bg-white border border-slate-300 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between">
-                            <span class="font-medium text-slate-800 truncate">{{ $lockedLab }}</span>
-                            <span class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-md ml-2 shrink-0">Koor</span>
+                        <div class="sm:w-52 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between">
+                            <span class="font-medium text-slate-800 dark:text-slate-200 truncate">{{ $lockedLab }}</span>
+                            <span class="text-xs bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-bold px-2 py-0.5 rounded-md ml-2 shrink-0">Koor</span>
                         </div>
                     @else
                         <div class="sm:w-48 relative" @click.outside="openLab = false">
                             <button type="button" @click="toggleDropdown('lab')"
-                                    class="bg-white border border-slate-300 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between w-full text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition"
+                                    class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between w-full text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
                                     aria-haspopup="listbox"
                                     :aria-expanded="openLab">
-                                <span x-text="laboratorium || 'Semua Lab'" :class="{'text-slate-700 font-medium': !laboratorium, 'font-bold text-indigo-700': laboratorium}" class="truncate pr-2"></span>
-                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0" :class="{'rotate-180 text-indigo-600': openLab}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <span x-text="laboratorium || 'Semua Lab'" :class="{'text-slate-700 dark:text-slate-300 font-medium': !laboratorium, 'font-bold text-indigo-700 dark:text-indigo-300': laboratorium}" class="truncate pr-2"></span>
+                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-150 shrink-0" :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': openLab}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </button>
@@ -92,25 +92,25 @@
                                  x-transition:leave="transition ease-in duration-75"
                                  x-transition:leave-start="opacity-100 translate-y-0"
                                  x-transition:leave-end="opacity-0 translate-y-1"
-                                 class="absolute left-0 z-50 mt-1 w-full min-w-[200px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 max-h-60 overflow-y-auto"
+                                 class="absolute left-0 z-50 mt-1 w-full min-w-[200px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 max-h-60 overflow-y-auto"
                                  style="display: none;"
                                  role="listbox">
                                 <button type="button" @click="selectFilter('laboratorium', '')"
-                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                        :class="{'font-bold text-indigo-700 bg-indigo-50/50': laboratorium === ''}"
+                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                        :class="{'font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40': laboratorium === ''}"
                                         role="option"
                                         :aria-selected="laboratorium === ''">
                                     <span>Semua Lab</span>
-                                    <svg x-show="laboratorium === ''" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <svg x-show="laboratorium === ''" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </button>
                                 @foreach(['Laboratorium TKJ', 'Laboratorium AKL', 'Laboratorium Pemasaran'] as $lab)
                                     <button type="button" @click="selectFilter('laboratorium', '{{ $lab }}')"
-                                            class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                            :class="{'font-bold text-indigo-700 bg-indigo-50/50': laboratorium === '{{ $lab }}'}"
+                                            class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                            :class="{'font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40': laboratorium === '{{ $lab }}'}"
                                             role="option"
                                             :aria-selected="laboratorium === '{{ $lab }}'">
                                         <span>{{ $lab }}</span>
-                                        <svg x-show="laboratorium === '{{ $lab }}'" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <svg x-show="laboratorium === '{{ $lab }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                     </button>
                                 @endforeach
                             </div>
@@ -120,11 +120,11 @@
                     {{-- Jenis --}}
                     <div class="sm:w-40 relative" @click.outside="openJenis = false">
                         <button type="button" @click="toggleDropdown('jenis')"
-                                class="bg-white border border-slate-300 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between w-full text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition"
+                                class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between w-full text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
                                 aria-haspopup="listbox"
                                 :aria-expanded="openJenis">
-                            <span x-text="jenis || 'Semua Jenis'" :class="{'text-slate-700 font-medium': !jenis, 'font-bold text-indigo-700': jenis}" class="truncate pr-2"></span>
-                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0" :class="{'rotate-180 text-indigo-600': openJenis}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <span x-text="jenis || 'Semua Jenis'" :class="{'text-slate-700 dark:text-slate-300 font-medium': !jenis, 'font-bold text-indigo-700 dark:text-indigo-300': jenis}" class="truncate pr-2"></span>
+                            <svg class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-150 shrink-0" :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': openJenis}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
@@ -135,25 +135,25 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-1"
-                             class="absolute left-0 z-50 mt-1 w-full min-w-[160px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 max-h-60 overflow-y-auto"
+                             class="absolute left-0 z-50 mt-1 w-full min-w-[160px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 max-h-60 overflow-y-auto"
                              style="display: none;"
                              role="listbox">
                             <button type="button" @click="selectFilter('jenis', '')"
-                                    class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                    :class="{'font-bold text-indigo-700 bg-indigo-50/50': jenis === ''}"
+                                    class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                    :class="{'font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40': jenis === ''}"
                                     role="option"
                                     :aria-selected="jenis === ''">
                                 <span>Semua Jenis</span>
-                                <svg x-show="jenis === ''" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <svg x-show="jenis === ''" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             </button>
                             @foreach(['Preventif', 'Korektif', 'Penggantian'] as $j)
                                 <button type="button" @click="selectFilter('jenis', '{{ $j }}')"
-                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                        :class="{'font-bold text-indigo-700 bg-indigo-50/50': jenis === '{{ $j }}'}"
+                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                        :class="{'font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40': jenis === '{{ $j }}'}"
                                         role="option"
                                         :aria-selected="jenis === '{{ $j }}'">
                                     <span>{{ $j }}</span>
-                                    <svg x-show="jenis === '{{ $j }}'" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <svg x-show="jenis === '{{ $j }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </button>
                             @endforeach
                         </div>
@@ -162,11 +162,11 @@
                     {{-- Status --}}
                     <div class="sm:w-40 relative" @click.outside="openStatus = false">
                         <button type="button" @click="toggleDropdown('status')"
-                                class="bg-white border border-slate-300 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between w-full text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition"
+                                class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2.5 flex items-center justify-between w-full text-left focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition shadow-xs"
                                 aria-haspopup="listbox"
                                 :aria-expanded="openStatus">
-                            <span x-text="status || 'Semua Status'" :class="{'text-slate-700 font-medium': !status, 'font-bold text-indigo-700': status}" class="truncate pr-2"></span>
-                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0" :class="{'rotate-180 text-indigo-600': openStatus}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <span x-text="status || 'Semua Status'" :class="{'text-slate-700 dark:text-slate-300 font-medium': !status, 'font-bold text-indigo-700 dark:text-indigo-300': status}" class="truncate pr-2"></span>
+                            <svg class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-150 shrink-0" :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': openStatus}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
@@ -177,25 +177,25 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-1"
-                             class="absolute left-0 sm:right-0 sm:left-auto z-50 mt-1 w-full min-w-[160px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 max-h-60 overflow-y-auto"
+                             class="absolute left-0 sm:right-0 sm:left-auto z-50 mt-1 w-full min-w-[160px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 max-h-60 overflow-y-auto"
                              style="display: none;"
                              role="listbox">
                             <button type="button" @click="selectFilter('status', '')"
-                                    class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                    :class="{'font-bold text-indigo-700 bg-indigo-50/50': status === ''}"
+                                    class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                    :class="{'font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40': status === ''}"
                                     role="option"
                                     :aria-selected="status === ''">
                                 <span>Semua Status</span>
-                                <svg x-show="status === ''" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <svg x-show="status === ''" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             </button>
                             @foreach(['Selesai', 'Proses', 'Pending'] as $s)
                                 <button type="button" @click="selectFilter('status', '{{ $s }}')"
-                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                        :class="{'font-bold text-indigo-700 bg-indigo-50/50': status === '{{ $s }}'}"
+                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                        :class="{'font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40': status === '{{ $s }}'}"
                                         role="option"
                                         :aria-selected="status === '{{ $s }}'">
                                     <span>{{ $s }}</span>
-                                    <svg x-show="status === '{{ $s }}'" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <svg x-show="status === '{{ $s }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </button>
                             @endforeach
                         </div>
@@ -204,7 +204,7 @@
                     {{-- Reset Filter Button --}}
                     <div class="flex items-center" x-show="activeFilterCount > 0" x-transition>
                         <button type="button" @click="resetFilters()" 
-                                class="w-full sm:w-auto inline-flex justify-center items-center px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200 rounded-xl transition">
+                                class="w-full sm:w-auto inline-flex justify-center items-center px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition">
                             Reset Filter
                         </button>
                     </div>
@@ -219,13 +219,13 @@
             <template x-if="isLoading">
                 <div class="p-4 sm:p-6 space-y-4">
                     <div class="animate-pulse flex justify-between items-center gap-4">
-                        <div class="h-4 bg-slate-200 rounded w-1/3"></div>
-                        <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+                        <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+                        <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
                     </div>
                     <div class="space-y-3 pt-2">
-                        <div class="h-10 bg-slate-100 rounded-lg"></div>
-                        <div class="h-10 bg-slate-100 rounded-lg"></div>
-                        <div class="h-10 bg-slate-100 rounded-lg"></div>
+                        <div class="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
+                        <div class="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
+                        <div class="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
                     </div>
                 </div>
             </template>
@@ -234,32 +234,32 @@
             <div x-show="!isLoading">
                 
                 {{-- MOBILE VIEW: Compact List Layout --}}
-                <div class="block sm:hidden divide-y divide-slate-100">
+                <div class="block sm:hidden divide-y divide-slate-200 dark:divide-slate-700">
                     @forelse($maintenances as $maintenance)
-                        <div class="p-4 space-y-2 hover:bg-slate-50/70 transition-colors">
+                        <div class="p-4 space-y-2 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0 flex-1">
                                     {{-- Target / Nama Alat --}}
                                     <div class="flex items-center gap-2 flex-wrap">
                                         @if($maintenance->barang)
-                                            <a href="{{ route('barang.show', $maintenance->barang_id) }}" class="font-bold text-slate-900 hover:text-indigo-600 text-sm leading-snug truncate">
+                                            <a href="{{ route('barang.show', $maintenance->barang_id) }}" class="font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 text-sm leading-snug truncate">
                                                 {{ $maintenance->barang->nama_barang }}
                                             </a>
                                         @else
-                                            <span class="font-bold text-slate-900 text-sm leading-snug">Pemeliharaan Fasilitas Lab</span>
+                                            <span class="font-bold text-slate-900 dark:text-white text-sm leading-snug">Pemeliharaan Fasilitas Lab</span>
                                         @endif
                                     </div>
 
                                     {{-- Kendala & Deskripsi --}}
-                                    <p class="text-xs text-slate-600 mt-1 line-clamp-1">
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">
                                         {{ $maintenance->deskripsi_kerusakan ?: ($maintenance->tindakan ?: 'Perawatan berkala laboratorium') }}
                                     </p>
 
                                     {{-- Meta: Tanggal · Teknisi · Lab --}}
-                                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
                                         <span>{{ \Carbon\Carbon::parse($maintenance->tanggal_maintenance)->translatedFormat('d M Y') }}</span>
                                         <span>·</span>
-                                        <span class="font-semibold text-slate-700">{{ $maintenance->teknisi ?: 'Internal Lab' }}</span>
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $maintenance->teknisi ?: 'Internal Lab' }}</span>
                                         @if($maintenance->laboratorium)
                                             <span>·</span>
                                             <span>{{ str_replace('Laboratorium ', 'Lab ', $maintenance->laboratorium) }}</span>
@@ -270,14 +270,14 @@
                                 {{-- Status Badge & Link --}}
                                 <div class="flex flex-col items-end justify-between shrink-0 gap-2">
                                     @if($maintenance->status === 'Selesai')
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Selesai</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Selesai</span>
                                     @elseif($maintenance->status === 'Proses')
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Proses</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">Proses</span>
                                     @else
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">Pending</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Pending</span>
                                     @endif
 
-                                    <a href="{{ route('maintenance.show', $maintenance->id) }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-0.5 py-1">
+                                    <a href="{{ route('maintenance.show', $maintenance->id) }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 inline-flex items-center gap-0.5 py-1">
                                         <span>Detail</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </a>
@@ -286,75 +286,75 @@
                         </div>
                     @empty
                         <div class="py-8 px-4 text-center">
-                            <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                             </div>
-                            <p class="text-sm font-bold text-slate-800">Belum ada riwayat maintenance</p>
-                            <p class="text-xs text-slate-500 mt-1">Catatan perbaikan dan perawatan alat akan muncul di sini.</p>
+                            <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Belum ada riwayat maintenance</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Catatan perbaikan dan perawatan alat akan muncul di sini.</p>
                         </div>
                     @endforelse
                 </div>
 
                 {{-- DESKTOP & TABLET TABLE VIEW --}}
                 <div class="hidden sm:block overflow-x-auto rounded-b-2xl">
-                    <table class="min-w-full divide-y divide-slate-100">
-                        <thead class="bg-slate-50/80">
+                    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                        <thead class="bg-slate-100/90 dark:bg-slate-800/90 border-b-2 border-slate-300 dark:border-slate-600">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Laboratorium</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Target / Barang</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Teknisi & Tgl</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Jenis</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Biaya</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Aksi</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Laboratorium</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Target / Barang</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Teknisi & Tgl</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Jenis</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Biaya</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Status</th>
+                                <th scope="col" class="px-6 py-3.5 text-right text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider border-b-2 border-slate-300 dark:border-slate-600">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-slate-100 text-xs sm:text-sm">
+                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
                             @forelse($maintenances as $maintenance)
                             @php
-                                $canManageThis = Auth::user()->isAdmin() || (Auth::user()->isKoordinatorLab() && Auth::user()->laboratorium_penugasan === $maintenance->laboratorium);
+                                $canManageThis = Auth::user() && Auth::user()->canManageMaintenance($maintenance);
                             @endphp
-                            <tr class="hover:bg-slate-50/70 transition-colors">
+                            <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="font-bold text-slate-900 text-xs sm:text-sm">
+                                    <span class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
                                         {{ $maintenance->laboratorium ?: 'Laboratorium TKJ' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($maintenance->barang)
-                                        <a href="{{ route('barang.show', $maintenance->barang_id) }}" class="font-bold text-slate-800 hover:text-indigo-600">{{ $maintenance->barang->nama_barang }}</a>
-                                        <div class="text-xs font-mono text-slate-500">
+                                        <a href="{{ route('barang.show', $maintenance->barang_id) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400">{{ $maintenance->barang->nama_barang }}</a>
+                                        <div class="text-xs font-mono text-slate-500 dark:text-slate-400">
                                             {{ $maintenance->barang->kode_barang }}
                                             @if(!empty($maintenance->unit_index))
-                                                <span class="text-slate-900 font-bold">• Unit {{ $maintenance->unit_index }}</span>
+                                                <span class="text-slate-900 dark:text-slate-200 font-bold">• Unit {{ $maintenance->unit_index }}</span>
                                             @endif
                                         </div>
                                     @else
-                                        <div class="font-bold text-slate-800">Pemeliharaan Fasilitas Lab</div>
-                                        <div class="text-xs text-slate-500">Fasilitas / Ruangan Umum</div>
+                                        <div class="font-bold text-slate-800 dark:text-slate-200">Pemeliharaan Fasilitas Lab</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">Fasilitas / Ruangan Umum</div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="font-bold text-slate-800">{{ $maintenance->teknisi ?: 'Internal Lab' }}</div>
-                                    <div class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($maintenance->tanggal_maintenance)->translatedFormat('d M Y') }}</div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200">{{ $maintenance->teknisi ?: 'Internal Lab' }}</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">{{ \Carbon\Carbon::parse($maintenance->tanggal_maintenance)->translatedFormat('d M Y') }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-xs font-bold text-slate-900">{{ $maintenance->jenis }}</span>
+                                    <span class="text-xs font-bold text-slate-900 dark:text-slate-200">{{ $maintenance->jenis }}</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap font-mono font-medium text-slate-700">
+                                <td class="px-6 py-4 whitespace-nowrap font-mono font-medium text-slate-700 dark:text-slate-300">
                                     {{ $maintenance->biaya ? 'Rp ' . number_format($maintenance->biaya, 0, ',', '.') : '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-xs font-black text-slate-900">{{ $maintenance->status }}</span>
+                                    <span class="text-xs font-black text-slate-900 dark:text-white">{{ $maintenance->status }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
                                     <div class="flex justify-end items-center gap-2">
                                         <a href="{{ route('maintenance.show', $maintenance->id) }}" 
                                            title="Detail Maintenance" 
-                                           class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition active:scale-95"
+                                           class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center transition active:scale-95 shadow-xs"
                                            aria-label="Detail">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -364,7 +364,7 @@
                                         @if($canManageThis)
                                             <a href="{{ route('maintenance.edit', $maintenance->id) }}" 
                                                title="Edit Maintenance" 
-                                               class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition active:scale-95"
+                                               class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition active:scale-95 shadow-xs"
                                                aria-label="Edit">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -373,7 +373,7 @@
                                             <button type="button" 
                                                     @click="confirmDelete('{{ route('maintenance.destroy', $maintenance->id) }}', 'Maintenance {{ addslashes($maintenance->barang->nama_barang ?? ($maintenance->laboratorium . ' - Fasilitas')) }}')" 
                                                     title="Hapus Maintenance" 
-                                                    class="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition active:scale-95"
+                                                    class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center transition active:scale-95 shadow-xs"
                                                     aria-label="Hapus">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -386,14 +386,14 @@
                             @empty
                             <tr>
                                 <td colspan="7" class="px-6 py-10 text-center">
-                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         </svg>
                                     </div>
-                                    <p class="text-sm font-bold text-slate-800">Belum ada riwayat maintenance</p>
-                                    <p class="text-xs text-slate-500 mt-1">Catatan perbaikan dan perawatan alat akan muncul di sini.</p>
+                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Belum ada riwayat maintenance</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Catatan perbaikan dan perawatan alat akan muncul di sini.</p>
                                 </td>
                             </tr>
                             @endforelse
@@ -403,7 +403,7 @@
 
                 {{-- Pagination --}}
                 @if($maintenances->hasPages())
-                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+                <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 rounded-b-2xl">
                     {{ $maintenances->withQueryString()->links() }}
                 </div>
                 @endif
@@ -424,7 +424,7 @@
              aria-modal="true"
              aria-labelledby="deleteModalTitle">
             
-            <div @click.away="if(!isDeleting) deleteModal = false" class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 text-center"
+            <div @click.away="if(!isDeleting) deleteModal = false" class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 text-center"
                  x-transition:enter="transition ease-out duration-150"
                  x-transition:enter-start="opacity-0 scale-95"
                  x-transition:enter-end="opacity-100 scale-100"
@@ -432,22 +432,22 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95">
                 
-                <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <div class="w-10 h-10 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
                 </div>
 
-                <h2 id="deleteModalTitle" class="text-base font-bold text-slate-900">Hapus Riwayat Maintenance?</h2>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                    Data <strong class="text-slate-800" x-text="deleteItemName"></strong> akan dihapus permanen.
+                <h2 id="deleteModalTitle" class="text-base font-bold text-slate-900 dark:text-white">Hapus Riwayat Maintenance?</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    Data <strong class="text-slate-800 dark:text-slate-200" x-text="deleteItemName"></strong> akan dihapus permanen.
                 </p>
 
                 <div class="mt-6 flex items-center justify-center gap-3">
                     <button type="button" 
                             :disabled="isDeleting"
                             @click="deleteModal = false" 
-                            class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition">
+                            class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition">
                         Batal
                     </button>
                     <button type="button" 

@@ -77,31 +77,31 @@
         <div class="lg:col-span-4 space-y-4 sm:space-y-6">
             
             <!-- PREVIEW FOTO ALAT -->
-            <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs text-center relative overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs text-center relative overflow-hidden">
                 <div class="flex items-center justify-center gap-2 mb-3">
                     <img src="{{ asset('uploads/Logo/Logo_winshark.webp') }}" class="w-6 h-6 rounded-md object-cover" onerror="this.style.display='none'">
-                    <span class="text-[11px] font-extrabold text-indigo-950 uppercase tracking-wider">Winshark • Lab TKJ</span>
+                    <span class="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Winshark • Lab TKJ</span>
                 </div>
 
                 {{-- Preview Foto Frame --}}
-                <div class="w-full aspect-square sm:max-w-[280px] mx-auto bg-slate-50 p-2 rounded-2xl border border-slate-200/90 shadow-inner flex items-center justify-center mb-3 overflow-hidden">
+                <div class="w-full aspect-square sm:max-w-[280px] mx-auto bg-slate-50 dark:bg-slate-800/80 p-2 rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-inner flex items-center justify-center mb-3 overflow-hidden">
                     @if($barang->foto)
                         <img src="{{ asset('storage/'.$barang->foto) }}" alt="{{ $barang->nama_barang }}" class="w-full h-full object-cover rounded-xl">
                     @else
-                        <div class="p-6 text-center text-slate-400">
-                            <svg class="w-14 h-14 mx-auto mb-2 opacity-40 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-xs font-semibold text-slate-500">Foto unit belum diunggah</span>
+                        <div class="p-6 text-center text-slate-400 dark:text-slate-500">
+                            <svg class="w-14 h-14 mx-auto mb-2 opacity-40 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Foto unit belum diunggah</span>
                         </div>
                     @endif
                 </div>
 
-                <p class="font-mono font-extrabold text-sm sm:text-base text-indigo-900 tracking-wider mb-1">{{ $barang->kode_barang }}</p>
-                <p class="font-bold text-xs sm:text-sm text-slate-800 leading-snug px-2">{{ $barang->nama_barang }}</p>
-                <p class="text-[11px] text-slate-500 mt-1">{{ $barang->lokasi ?? 'Laboratorium TKJ' }}</p>
+                <p class="font-mono font-extrabold text-sm sm:text-base text-indigo-900 dark:text-indigo-300 tracking-wider mb-1">{{ $barang->kode_barang }}</p>
+                <p class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-snug px-2">{{ $barang->nama_barang }}</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{{ $barang->lokasi ?? 'Laboratorium TKJ' }}</p>
 
-                <div class="mt-4 pt-4 border-t border-slate-100 no-print">
-                    <span class="text-[10px] text-slate-400 block mb-3">Cetak stiker identitas resmi barcode unit alat</span>
-                    <button onclick="window.print()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs active:scale-95">
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 no-print">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 block mb-3">Cetak stiker identitas resmi barcode unit alat</span>
+                    <button onclick="window.print()" class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs active:scale-95">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         <span>Cetak Stiker QR</span>
                     </button>
@@ -109,9 +109,9 @@
             </div>
 
             <!-- DESKRIPSI ALAT -->
-            <div class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80">
-                <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-3 uppercase tracking-wider">Deskripsi Alat</h3>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/80 p-4 rounded-xl sm:rounded-2xl border border-slate-100">{{ $barang->deskripsi ?: 'Tidak ada catatan tambahan untuk alat ini.' }}</p>
+            <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80 dark:border-slate-800">
+                <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mb-3 uppercase tracking-wider">Deskripsi Alat</h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50/80 dark:bg-slate-800/80 p-4 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700">{{ $barang->deskripsi ?: 'Tidak ada catatan tambahan untuk alat ini.' }}</p>
             </div>
         </div>
 
@@ -119,62 +119,62 @@
         <div class="lg:col-span-8 space-y-4 sm:space-y-6">
             
             <!-- Header Card -->
-            <div class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80">
+            <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80 dark:border-slate-800">
                 <div class="flex flex-wrap items-center gap-2 mb-2">
-                    <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-lg border border-indigo-100">
+                    <span class="font-mono text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
                         {{ $barang->kode_barang }}
                     </span>
-                    <span class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg">
+                    <span class="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
                         Kategori: {{ $barang->kategori }}
                     </span>
                 </div>
-                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug">{{ $barang->nama_barang }}</h1>
-                <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
-                    Merk: <strong class="text-slate-800">{{ $barang->merk ?? '-' }}</strong> &bull; Nomor Seri (S/N): <strong class="font-mono text-slate-800">{{ $barang->nomor_seri ?? '-' }}</strong>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug">{{ $barang->nama_barang }}</h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                    Merk: <strong class="text-slate-800 dark:text-slate-200">{{ $barang->merk ?? '-' }}</strong> &bull; Nomor Seri (S/N): <strong class="font-mono text-slate-800 dark:text-slate-200">{{ $barang->nomor_seri ?? '-' }}</strong>
                 </p>
             </div>
 
             <!-- Spesifikasi & Lokasi Info Grid -->
-            <div class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80">
-                <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-4 pb-3 border-b border-slate-100 uppercase tracking-wider">Spesifikasi & Lokasi Alat</h3>
+            <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80 dark:border-slate-800">
+                <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 uppercase tracking-wider">Spesifikasi & Lokasi Alat</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div class="bg-slate-50/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80">
-                        <p class="text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Stok Tersedia / Total</p>
-                        <p class="font-extrabold text-slate-900 text-base sm:text-lg mt-1">{{ $barang->stok_tersedia ?? $barang->jumlah }} / {{ $barang->jumlah }} <span class="text-xs font-normal text-slate-500">{{ $barang->satuan }}</span></p>
+                    <div class="bg-slate-50/80 dark:bg-slate-800/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                        <p class="text-slate-400 dark:text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Stok Tersedia / Total</p>
+                        <p class="font-extrabold text-slate-900 dark:text-slate-100 text-base sm:text-lg mt-1">{{ $barang->stok_tersedia ?? $barang->jumlah }} / {{ $barang->jumlah }} <span class="text-xs font-normal text-slate-500 dark:text-slate-400">{{ $barang->satuan }}</span></p>
                     </div>
 
-                    <div class="bg-slate-50/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80">
-                        <p class="text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Lokasi Penyimpanan</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm mt-1 leading-snug">{{ $barang->lokasi ?? 'Laboratorium TKJ' }}</p>
+                    <div class="bg-slate-50/80 dark:bg-slate-800/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                        <p class="text-slate-400 dark:text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Lokasi Penyimpanan</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm mt-1 leading-snug">{{ $barang->lokasi ?? 'Laboratorium TKJ' }}</p>
                     </div>
 
-                    <div class="bg-slate-50/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80">
-                        <p class="text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Penanggung Jawab</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm mt-1 leading-snug">{{ $barang->penanggung_jawab ?? 'Admin Laboratorium TKJ' }}</p>
+                    <div class="bg-slate-50/80 dark:bg-slate-800/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                        <p class="text-slate-400 dark:text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Penanggung Jawab</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm mt-1 leading-snug">{{ $barang->penanggung_jawab ?? 'Admin Laboratorium TKJ' }}</p>
                     </div>
 
-                    <div class="bg-slate-50/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80">
-                        <p class="text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Sumber Dana & Tahun</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm mt-1 leading-snug">{{ $barang->sumber_dana ?? 'BOS' }} ({{ $barang->tahun_pembelian ?? date('Y') }})</p>
+                    <div class="bg-slate-50/80 dark:bg-slate-800/80 p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                        <p class="text-slate-400 dark:text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">Sumber Dana & Tahun</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm mt-1 leading-snug">{{ $barang->sumber_dana ?? 'BOS' }} ({{ $barang->tahun_pembelian ?? date('Y') }})</p>
                     </div>
                 </div>
             </div>
 
             <!-- Finansial Card dengan Simbol "X" Saja di Tengah -->
-            <div class="bg-indigo-50/90 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-indigo-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="bg-indigo-50/90 dark:bg-slate-800/90 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-indigo-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="w-full sm:w-auto text-center sm:text-left">
-                    <p class="text-[10px] sm:text-xs font-bold text-indigo-600 uppercase tracking-wider">Harga Satuan</p>
-                    <p class="font-extrabold text-indigo-950 text-base sm:text-2xl mt-1">Rp {{ number_format($barang->harga ?? 0, 0, ',', '.') }}</p>
+                    <p class="text-[10px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Harga Satuan</p>
+                    <p class="font-extrabold text-indigo-950 dark:text-white text-base sm:text-2xl mt-1">Rp {{ number_format($barang->harga ?? 0, 0, ',', '.') }}</p>
                 </div>
 
                 {{-- Simbol X Saja Tanpa Border atau Card Tambahan --}}
                 <div class="select-none py-1 flex items-center justify-center">
-                    <span class="text-indigo-400 font-extrabold text-2xl sm:text-3xl leading-none">✕</span>
+                    <span class="text-indigo-400 dark:text-indigo-500 font-extrabold text-2xl sm:text-3xl leading-none">✕</span>
                 </div>
 
                 <div class="w-full sm:w-auto text-center sm:text-right">
-                    <p class="text-[10px] sm:text-xs font-bold text-indigo-600 uppercase tracking-wider">Total Nilai Aset</p>
-                    <p class="font-black text-indigo-950 text-lg sm:text-3xl mt-1">Rp {{ number_format(($barang->harga ?? 0) * ($barang->jumlah ?? 0), 0, ',', '.') }}</p>
+                    <p class="text-[10px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Total Nilai Aset</p>
+                    <p class="font-black text-indigo-950 dark:text-white text-lg sm:text-3xl mt-1">Rp {{ number_format(($barang->harga ?? 0) * ($barang->jumlah ?? 0), 0, ',', '.') }}</p>
                 </div>
             </div>
 
@@ -183,12 +183,12 @@
 
     {{-- Semua Unit & QR Code Section (FULL WIDTH) --}}
     @if((int)$barang->jumlah > 1)
-    <div class="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80 no-print">
+    <div class="bg-white dark:bg-slate-900 p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xs border border-slate-200/80 dark:border-slate-800 no-print">
         
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
-                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-wider">Daftar Semua Unit & QR Code</h3>
-                <p class="text-xs text-slate-400 mt-1">Kelola status kondisi dan cetak stiker QR untuk masing-masing dari {{ $barang->jumlah }} unit</p>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Daftar Semua Unit & QR Code</h3>
+                <p class="text-xs text-slate-400 dark:text-slate-400 mt-1">Kelola status kondisi dan cetak stiker QR untuk masing-masing dari {{ $barang->jumlah }} unit</p>
             </div>
 
             {{-- Search & Animated Dropdown Filter --}}
@@ -197,7 +197,7 @@
                     <input type="text" 
                            x-model="searchQuery" 
                            placeholder="Cari unit (misal: Unit 1)..." 
-                           class="w-full text-xs bg-slate-50/80 border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none transition shadow-xs">
+                           class="w-full text-xs bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl pl-8 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none transition shadow-xs">
                     <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
@@ -206,9 +206,9 @@
                 {{-- Animated Filter Status Dropdown --}}
                 <div class="relative min-w-[150px]" x-data="{ open: false }" @click.outside="open = false">
                     <button type="button" @click="open = !open" 
-                            class="w-full bg-slate-50/80 border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl px-3.5 py-2.5 flex items-center justify-between transition focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none shadow-xs">
-                        <span x-text="filterKondisi || 'Semua Status'" :class="{'text-indigo-700 font-bold': filterKondisi}"></span>
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="{'rotate-180 text-indigo-600': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-full bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2.5 flex items-center justify-between transition focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none shadow-xs">
+                        <span x-text="filterKondisi || 'Semua Status'" :class="{'text-indigo-700 dark:text-indigo-400 font-bold': filterKondisi}"></span>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
@@ -220,20 +220,20 @@
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                          x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                         class="absolute right-0 z-50 mt-1.5 w-full min-w-[160px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1 overflow-hidden"
+                         class="absolute right-0 z-50 mt-1.5 w-full min-w-[160px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl py-1 overflow-hidden"
                          style="display: none;">
                         <button type="button" @click="filterKondisi = ''; open = false;"
-                                class="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                :class="{'font-bold text-indigo-700 bg-indigo-50/50': filterKondisi === ''}">
+                                class="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                :class="{'font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40': filterKondisi === ''}">
                             <span>Semua Status</span>
-                            <svg x-show="filterKondisi === ''" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <svg x-show="filterKondisi === ''" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         </button>
                         @foreach(['Baik', 'Perawatan', 'Perbaikan', 'Rusak Berat', 'Hilang'] as $kon)
                         <button type="button" @click="filterKondisi = '{{ $kon }}'; open = false;"
-                                class="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 transition flex items-center justify-between"
-                                :class="{'font-bold text-indigo-700 bg-indigo-50/50': filterKondisi === '{{ $kon }}'}">
+                                class="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-between"
+                                :class="{'font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40': filterKondisi === '{{ $kon }}'}">
                             <span>{{ $kon }}</span>
-                            <svg x-show="filterKondisi === '{{ $kon }}'" class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <svg x-show="filterKondisi === '{{ $kon }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         </button>
                         @endforeach
                     </div>
@@ -250,29 +250,29 @@
                     $unitName = $barang->nama_barang . ' (Unit ' . $i . ')';
                 @endphp
                 <div x-show="matches('{{ $unitCode }}', '{{ addslashes($unitName) }}', {{ $i }})"
-                     class="bg-white p-4 rounded-2xl border border-slate-200/80 text-center flex flex-col justify-between items-center transition hover:shadow-md hover:border-indigo-200 relative">
+                     class="bg-white dark:bg-slate-800/90 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-center flex flex-col justify-between items-center transition hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 relative">
                     
-                    {{-- QR Image Terkunci Aman Tanpa Perubahan --}}
-                    <div class="w-24 h-24 sm:w-28 sm:h-28 bg-slate-50 p-2 rounded-xl border border-slate-200/80 flex items-center justify-center mb-2 shadow-inner">
+                    {{-- QR Image Box --}}
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 bg-white p-2 rounded-xl border border-slate-200/80 dark:border-slate-600 flex items-center justify-center mb-2 shadow-inner">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($unitCode) }}"
                              alt="QR Code {{ $unitCode }}"
                              class="w-full h-full object-contain"
                              loading="lazy">
                     </div>
 
-                    <span class="font-mono font-bold text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md mb-1 truncate w-full">{{ $unitCode }}</span>
-                    <p class="font-extrabold text-xs text-slate-800 truncate w-full" title="{{ $unitName }}">Unit {{ $i }}</p>
+                    <span class="font-mono font-bold text-[10px] text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md mb-1 truncate w-full border border-indigo-100 dark:border-indigo-800/60">{{ $unitCode }}</span>
+                    <p class="font-extrabold text-xs text-slate-800 dark:text-slate-100 truncate w-full" title="{{ $unitName }}">Unit {{ $i }}</p>
                     
                     {{-- Custom Animated Dropdown Pengaturan Kondisi per Unit --}}
                     <div class="w-full my-2 relative" @click.outside="closeUnitDropdown({{ $i }})">
                         @if(Auth::check() && (Auth::user()->role === 'admin' || Auth::user()->role === 'kepala_lab'))
                             <button type="button" 
                                     @click="toggleUnitDropdown({{ $i }})"
-                                    class="w-full text-xs font-bold rounded-xl px-2.5 py-1.5 border border-slate-300 bg-slate-50 hover:bg-white text-slate-800 flex items-center justify-between focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none cursor-pointer shadow-xs transition"
-                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white': openUnitDropdown === {{ $i }}}">
+                                    class="w-full text-xs font-bold rounded-xl px-2.5 py-1.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/60 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 flex items-center justify-between focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none cursor-pointer shadow-xs transition"
+                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-700': openUnitDropdown === {{ $i }}}">
                                 <span class="truncate" x-text="getUnitKondisi({{ $i }})"></span>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ml-1" 
-                                     :class="{'rotate-180 text-indigo-600': openUnitDropdown === {{ $i }}}" 
+                                     :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': openUnitDropdown === {{ $i }}}" 
                                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -285,15 +285,15 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                  x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                 class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl py-1 overflow-hidden text-left"
+                                 class="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 overflow-hidden text-left"
                                  style="display: none;">
                                 @foreach(['Baik', 'Perawatan', 'Perbaikan', 'Rusak Berat', 'Hilang'] as $kon)
                                 <button type="button" 
                                         @click="updateUnitStatus({{ $i }}, '{{ $kon }}'); closeUnitDropdown({{ $i }})"
-                                        class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition hover:bg-slate-50"
-                                        :class="getUnitKondisi({{ $i }}) === '{{ $kon }}' ? 'font-bold text-indigo-700 bg-indigo-50/50' : 'text-slate-700'">
+                                        class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        :class="getUnitKondisi({{ $i }}) === '{{ $kon }}' ? 'font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40' : 'text-slate-700 dark:text-slate-300'">
                                     <span>{{ $kon }}</span>
-                                    <svg x-show="getUnitKondisi({{ $i }}) === '{{ $kon }}'" class="w-3 h-3 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg x-show="getUnitKondisi({{ $i }}) === '{{ $kon }}'" class="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                 </button>
@@ -314,7 +314,7 @@
                     </div>
 
                     <div class="w-full mt-1">
-                        <button type="button" onclick="printSingleQR(@js($unitCode), @js($unitName), @js($barang->lokasi ?? 'Lab TKJ'))" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-1.5 px-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs active:scale-95">
+                        <button type="button" onclick="printSingleQR(@js($unitCode), @js($unitName), @js($barang->lokasi ?? 'Lab TKJ'))" class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-bold py-1.5 px-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs active:scale-95">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                             <span>Cetak QR</span>
                         </button>
@@ -342,6 +342,12 @@
     .custom-scroll::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
+    html.dark .custom-scroll::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    html.dark .custom-scroll::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
 </style>
 
 {{-- MODAL KONFIRMASI HAPUS BARANG TENGAH LAYAR --}}
@@ -354,7 +360,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div @click.away="deleteModal = false" class="bg-white rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 text-center"
+        <div @click.away="deleteModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-90 translate-y-3"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -362,22 +368,22 @@
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
              x-transition:leave-end="opacity-0 scale-90 translate-y-3">
             
-            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200/60">
+            <div class="w-12 h-12 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200/60 dark:border-rose-800/60">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
 
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Hapus Barang Ini?</h3>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-                Anda akan menghapus data <span class="font-bold text-slate-900">{{ $barang->nama_barang }}</span> ({{ $barang->kode_barang }}) secara permanen. Tindakan ini tidak dapat dibatalkan.
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100">Hapus Barang Ini?</h3>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                Anda akan menghapus data <span class="font-bold text-slate-900 dark:text-white">{{ $barang->nama_barang }}</span> ({{ $barang->kode_barang }}) secara permanen. Tindakan ini tidak dapat dibatalkan.
             </p>
 
             <form action="{{ route('barang.destroy', $barang->id) }}" method="POST" class="mt-6 flex items-center justify-center gap-3">
                 @csrf
                 @method('DELETE')
                 
-                <button type="button" @click="deleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition">
+                <button type="button" @click="deleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs sm:text-sm transition">
                     Batal
                 </button>
                 <button type="submit" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95">

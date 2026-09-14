@@ -96,8 +96,7 @@
                     {{-- Card Header: Target Badge & Date --}}
                     <div class="flex items-center justify-between gap-3">
                         @if(empty($berita->target_kelas) || str_contains(strtolower($berita->target_kelas), 'semua'))
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-gray-500 border border-emerald-200/80">
                                 <span>Semua Pengguna</span>
                             </span>
                         @else

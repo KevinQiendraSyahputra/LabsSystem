@@ -154,7 +154,7 @@
                                id="peminjamanSearchInput" 
                                x-model="search" 
                                @input.debounce.400ms="fetchData()" 
-                               class="focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl bg-white transition" 
+                               class="focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none block w-2/6 pl-10 pr-3 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl bg-white transition" 
                                placeholder="Cari nama peminjam...">
                     </div>
                 </div>

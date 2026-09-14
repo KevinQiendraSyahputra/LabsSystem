@@ -96,7 +96,7 @@
         <span>Total Jenis: <strong>{{ $barangs->count() }} Jenis</strong></span>
         <span>Total Unit: <strong>{{ number_format($totalUnitSum, 0, ',', '.') }} Unit</strong></span>
         <span>Total Aset: <strong>Rp {{ number_format($totalNilaiSum, 0, ',', '.') }}</strong></span>
-        <span>Dicetak: <strong>{{ now()->format('d/m/Y H:i') }}</strong></span>
+        <span>Dicetak: <strong>{{ now()->setTimezone('Asia/Jakarta')->translatedFormat('d/m/Y H:i:s') }} WIB</strong></span>
     </div>
 
     {{-- Tabel --}}
@@ -122,6 +122,8 @@
             @php 
                 $no = 1; 
                 $currentLab = null;
+                $grandTotalUnits = 0;
+                $grandTotalNilai = 0;
             @endphp
             @forelse($barangs as $b)
                 @php

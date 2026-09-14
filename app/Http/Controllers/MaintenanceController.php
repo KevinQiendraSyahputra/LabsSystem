@@ -129,9 +129,9 @@ class MaintenanceController extends Controller
     {
         $user = auth()->user();
 
-        // Otorisasi: Koordinator hanya bisa mengedit maintenance di laboratorium miliknya
-        if ($user->isKoordinatorLab() && $user->laboratorium_penugasan && $maintenance->laboratorium !== $user->laboratorium_penugasan) {
-            abort(403, 'Akses Ditolak: Anda hanya memiliki izin mengedit data maintenance untuk ' . $user->laboratorium_penugasan . '.');
+        // Otorisasi: Hanya pembuatnya, Admin, atau Kepala Lab yang boleh mengedit
+        if (!$user->canManageMaintenance($maintenance)) {
+            abort(403, 'Akses Ditolak: Anda hanya memiliki izin mengedit data maintenance yang Anda buat sendiri. Pengguna Admin atau Kepala Lab memiliki hak akses penuh.');
         }
 
         $lockedLab = $user->isKoordinatorLab() ? $user->laboratorium_penugasan : null;
@@ -149,12 +149,12 @@ class MaintenanceController extends Controller
     {
         $user = auth()->user();
 
-        // Otorisasi: Koordinator hanya bisa mengupdate maintenance di laboratorium miliknya
-        if ($user->isKoordinatorLab() && $user->laboratorium_penugasan && $maintenance->laboratorium !== $user->laboratorium_penugasan) {
-            abort(403, 'Akses Ditolak: Anda hanya memiliki izin mengedit data maintenance untuk ' . $user->laboratorium_penugasan . '.');
+        // Otorisasi: Hanya pembuatnya, Admin, atau Kepala Lab yang boleh mengupdate
+        if (!$user->canManageMaintenance($maintenance)) {
+            abort(403, 'Akses Ditolak: Anda hanya memiliki izin mengedit data maintenance yang Anda buat sendiri. Pengguna Admin atau Kepala Lab memiliki hak akses penuh.');
         }
 
-        // Koordinator lab: paksa laboratorium tetap pada lab penugasannya
+        // Koordinator lab: paksa laboratorium tetap pada lab penugasannya jika belum diset
         if ($user->isKoordinatorLab() && $user->laboratorium_penugasan) {
             $request->merge(['laboratorium' => $user->laboratorium_penugasan]);
         }
@@ -209,9 +209,9 @@ class MaintenanceController extends Controller
     {
         $user = auth()->user();
 
-        // Otorisasi: Koordinator hanya bisa menghapus maintenance di laboratorium miliknya
-        if ($user->isKoordinatorLab() && $user->laboratorium_penugasan && $maintenance->laboratorium !== $user->laboratorium_penugasan) {
-            abort(403, 'Akses Ditolak: Anda hanya memiliki izin menghapus data maintenance untuk ' . $user->laboratorium_penugasan . '.');
+        // Otorisasi: Hanya pembuatnya, Admin, atau Kepala Lab yang boleh menghapus
+        if (!$user->canManageMaintenance($maintenance)) {
+            abort(403, 'Akses Ditolak: Anda hanya memiliki izin menghapus data maintenance yang Anda buat sendiri. Pengguna Admin atau Kepala Lab memiliki hak akses penuh.');
         }
 
         $maintenance->delete();

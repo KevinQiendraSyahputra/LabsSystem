@@ -20,7 +20,9 @@
             'tindakan' => $m->tindakan ?? null,
             'biaya' => $m->biaya ? 'Rp ' . number_format($m->biaya, 0, ',', '.') : '—',
             'status' => $m->status,
+            'can_edit' => auth()->user() ? auth()->user()->canManageMaintenance($m) : false,
             'detail_url' => route('maintenance.show', $m->id),
+            'edit_url' => route('maintenance.edit', $m->id),
         ];
     });
 @endphp
@@ -344,11 +346,6 @@ function laporanMaintenanceLive() {
                 </div>
 
                 <div class="flex items-center gap-2 ml-auto">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Live Sync</span>
-                    </span>
-
                     <button type="button" @click="resetFilters()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold rounded-xl transition shadow-xs">
                         Reset
                     </button>
@@ -379,21 +376,21 @@ function laporanMaintenanceLive() {
 
         <div x-show="items && items.length > 0" class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50/90 text-slate-600 border-b border-slate-200">
-                    <tr class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-700">
-                        <th class="px-4 py-4 text-left w-12 font-black">No</th>
-                        <th class="px-5 py-4 text-left font-black">Tanggal</th>
-                        <th class="px-5 py-4 text-left font-black">Laboratorium</th>
-                        <th class="px-6 py-4 text-left font-black">Barang</th>
-                        <th class="px-5 py-4 text-left font-black">Teknisi</th>
-                        <th class="px-4 py-4 text-center font-black">Jenis</th>
-                        <th class="px-6 py-4 text-left font-black">Kerusakan / Tindakan</th>
-                        <th class="px-5 py-4 text-right font-black">Biaya</th>
-                        <th class="px-4 py-4 text-center font-black">Status</th>
-                        <th class="px-4 py-4 text-center font-black">Aksi</th>
+                <thead class="bg-slate-100/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-b-2 border-slate-300 dark:border-slate-600">
+                    <tr class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
+                        <th class="px-4 py-3.5 text-left w-12 font-black border-b-2 border-slate-300 dark:border-slate-600">No</th>
+                        <th class="px-5 py-3.5 text-left font-black border-b-2 border-slate-300 dark:border-slate-600">Tanggal</th>
+                        <th class="px-5 py-3.5 text-left font-black border-b-2 border-slate-300 dark:border-slate-600">Laboratorium</th>
+                        <th class="px-6 py-3.5 text-left font-black border-b-2 border-slate-300 dark:border-slate-600">Barang</th>
+                        <th class="px-5 py-3.5 text-left font-black border-b-2 border-slate-300 dark:border-slate-600">Teknisi</th>
+                        <th class="px-4 py-3.5 text-center font-black border-b-2 border-slate-300 dark:border-slate-600">Jenis</th>
+                        <th class="px-6 py-3.5 text-left font-black border-b-2 border-slate-300 dark:border-slate-600">Kerusakan / Tindakan</th>
+                        <th class="px-5 py-3.5 text-right font-black border-b-2 border-slate-300 dark:border-slate-600">Biaya</th>
+                        <th class="px-4 py-3.5 text-center font-black border-b-2 border-slate-300 dark:border-slate-600">Status</th>
+                        <th class="px-4 py-3.5 text-center font-black border-b-2 border-slate-300 dark:border-slate-600">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                     <template x-for="(m, i) in items" :key="m.id || i">
                         <tr class="hover:bg-slate-50/70 transition-colors">
                             <td class="px-4 py-4 text-slate-500 font-bold text-sm" x-text="i + 1"></td>
@@ -416,13 +413,22 @@ function laporanMaintenanceLive() {
                             <td class="px-4 py-4 text-center whitespace-nowrap">
                                 <span class="font-black text-slate-900 text-xs sm:text-sm" x-text="m.status"></span>
                             </td>
-                            <td class="px-4 py-4 text-center">
-                                <a :href="m.detail_url" title="Detail Maintenance" class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition active:scale-95 shadow-xs border border-indigo-100/80 mx-auto">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </a>
+                            <td class="px-4 py-4 text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <a :href="m.detail_url" title="Detail Maintenance" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition active:scale-95 shadow-xs border border-indigo-100/80">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </a>
+                                    <template x-if="m.can_edit">
+                                        <a :href="m.edit_url" title="Edit Data Maintenance" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition active:scale-95 shadow-xs border border-blue-100/80">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                        </a>
+                                    </template>
+                                </div>
                             </td>
                         </tr>
                     </template>

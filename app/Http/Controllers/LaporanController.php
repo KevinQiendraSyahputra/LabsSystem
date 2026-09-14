@@ -79,7 +79,7 @@ class LaporanController extends Controller
     public function maintenance(Request $request)
     {
         $user     = auth()->user();
-        $labScope = ($user && $user->role !== 'admin' && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
+        $labScope = ($user && $user->isKoordinatorLab() && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
 
         $query = Maintenance::with('barang', 'user');
 
@@ -132,7 +132,7 @@ class LaporanController extends Controller
     public function maintenanceJson(Request $request)
     {
         $user     = auth()->user();
-        $labScope = ($user && $user->role !== 'admin' && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
+        $labScope = ($user && $user->isKoordinatorLab() && !empty($user->laboratorium_penugasan)) ? $user->laboratorium_penugasan : null;
 
         $query = Maintenance::with('barang', 'user');
 
@@ -166,7 +166,7 @@ class LaporanController extends Controller
         $maintenances = $query->latest('tanggal_maintenance')->latest('id')->get();
         $totalBiaya   = (int) $maintenances->sum('biaya');
 
-        $formattedList = $maintenances->map(function ($m, $index) {
+        $formattedList = $maintenances->map(function ($m, $index) use ($user) {
             return [
                 'no'                  => $index + 1,
                 'id'                  => $m->id,
@@ -180,7 +180,9 @@ class LaporanController extends Controller
                 'tindakan'            => $m->tindakan ?? null,
                 'biaya'               => $m->biaya ? 'Rp ' . number_format($m->biaya, 0, ',', '.') : '—',
                 'status'              => $m->status,
+                'can_edit'            => $user ? $user->canManageMaintenance($m) : false,
                 'detail_url'          => route('maintenance.show', $m->id),
+                'edit_url'            => route('maintenance.edit', $m->id),
             ];
         });
 
@@ -192,7 +194,7 @@ class LaporanController extends Controller
                 'Selesai' => $maintenances->where('status', 'Selesai')->count(),
                 'Proses'  => $maintenances->where('status', 'Proses')->count(),
                 'Pending' => $maintenances->where('status', 'Pending')->count(),
-            ]
+            ],
         ]);
     }
 
@@ -226,11 +228,40 @@ class LaporanController extends Controller
             });
         }
 
-        $barangs    = $query->orderBy('laboratorium')->orderBy('kategori')->orderBy('nama_barang')->get();
-        $totalNilai = $barangs->sum(fn($b) => ($b->harga ?? 0) * $b->jumlah);
+        $barangs = $query->orderBy('laboratorium')->orderBy('kategori')->orderBy('nama_barang')->get();
         $byKategori = $barangs->groupBy('kategori');
 
         $filterLab = $request->laboratorium;
+        $reqKondisi = $request->kondisi;
+        $filterKondisi = $reqKondisi ?: 'Semua';
+
+        // Hitung total unit dan total nilai aset berdasarkan filter kondisi (termasuk kondisi per unit)
+        $totalUnitSum = 0;
+        $totalNilaiSum = 0;
+
+        foreach ($barangs as $b) {
+            $kondisiPerUnit = [];
+            if ($b->kondisi_per_unit) {
+                $kondisiPerUnit = is_array($b->kondisi_per_unit) 
+                    ? $b->kondisi_per_unit 
+                    : (json_decode($b->kondisi_per_unit, true) ?: []);
+            }
+
+            $matchingCount = 0;
+            for ($i = 1; $i <= (int)$b->jumlah; $i++) {
+                $unitKon = $kondisiPerUnit[$i] ?? $b->kondisi;
+                if (!$reqKondisi || $unitKon === $reqKondisi) {
+                    $matchingCount++;
+                }
+            }
+
+            if ($matchingCount > 0) {
+                $totalUnitSum += $matchingCount;
+                $totalNilaiSum += ($b->harga ?? 0) * $matchingCount;
+            }
+        }
+
+        $totalNilai = $totalNilaiSum;
 
         $kepalaLabUsers = User::where('role', 'kepala_lab')
             ->whereNotNull('laboratorium_penugasan')
@@ -244,7 +275,7 @@ class LaporanController extends Controller
         ];
 
         return view('laporan.inventaris_pdf', compact(
-            'barangs', 'totalNilai', 'byKategori', 'filterLab', 'kepalaLabUsers', 'kepalaLabDefault'
+            'barangs', 'totalNilai', 'totalNilaiSum', 'totalUnitSum', 'byKategori', 'filterLab', 'filterKondisi', 'reqKondisi', 'kepalaLabUsers', 'kepalaLabDefault'
         ));
     }
 

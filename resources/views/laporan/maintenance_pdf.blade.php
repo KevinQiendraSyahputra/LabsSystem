@@ -94,7 +94,7 @@
         <span>Laboratorium: <strong>{{ $filterLab ?? 'Semua' }}</strong></span>
         <span>Total Record: <strong>{{ $maintenances->count() }} Data</strong></span>
         <span>Total Biaya: <strong>Rp {{ number_format($totalBiaya ?? 0, 0, ',', '.') }}</strong></span>
-        <span>Dicetak: <strong>{{ now()->format('d/m/Y H:i') }}</strong></span>
+        <span>Dicetak: <strong>{{ now()->setTimezone('Asia/Jakarta')->translatedFormat('d/m/Y H:i:s') }} WIB</strong></span>
     </div>
 
     {{-- Tabel --}}
