@@ -1839,5 +1839,42 @@
     })();
 </script>
 
+@auth
+<script>
+    (function() {
+        function sendPresenceHeartbeat() {
+            if (document.visibilityState === 'visible') {
+                fetch('{{ route('user.heartbeat') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).catch(function() {});
+            }
+        }
+
+        // Jalankan heartbeat berkala setiap 20 detik
+        sendPresenceHeartbeat();
+        setInterval(sendPresenceHeartbeat, 20000);
+
+        // Kirim status offline saat user menutup tab / keluar dari web
+        window.addEventListener('pagehide', function() {
+            if (navigator.sendBeacon) {
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                navigator.sendBeacon('{{ route('user.offline') }}', formData);
+            }
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                sendPresenceHeartbeat();
+            }
+        });
+    })();
+</script>
+@endauth
+
 </body>
 </html>

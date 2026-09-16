@@ -5,7 +5,140 @@
 @section('page_subtitle', 'Kelola peralatan, aset laboratorium, dan stiker QR Code')
 
 @section('content')
-<div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 w-full max-w-9xl mx-auto space-y-4 sm:space-y-6" x-data="barangIndexPage()" @open-delete-barang.window="confirmDelete($event.detail.url, $event.detail.name)">
+<div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 w-full max-w-9xl mx-auto space-y-4 sm:space-y-6"
+     x-data="{
+        search: @js(request('search', '')),
+        selectedLaboratorium: @js(request('laboratorium', '')),
+        selectedKategori: @js(request('kategori', '')),
+        selectedKondisi: @js(request('kondisi', '')),
+        openDropdown: null,
+        isLoading: false,
+        deleteModal: false,
+        bulkDeleteModal: false,
+        isBulkDeleting: false,
+        deleteActionUrl: '',
+        deleteItemName: '',
+        selectedRows: [],
+        selectAll: false,
+
+        toggleSelectAll(event) {
+            const checkboxes = document.querySelectorAll('input[name=\'barang_select[]\']');
+            if (event.target.checked) {
+                this.selectedRows = Array.from(checkboxes).map(cb => cb.value);
+                this.selectAll = true;
+            } else {
+                this.selectedRows = [];
+                this.selectAll = false;
+            }
+        },
+
+        toggleRow(id) {
+            const strId = String(id);
+            const idx = this.selectedRows.indexOf(strId);
+            if (idx > -1) {
+                this.selectedRows.splice(idx, 1);
+            } else {
+                this.selectedRows.push(strId);
+            }
+            const checkboxes = document.querySelectorAll('input[name=\'barang_select[]\']');
+            this.selectAll = checkboxes.length > 0 && this.selectedRows.length === checkboxes.length;
+        },
+
+        confirmBulkDelete() {
+            if (this.selectedRows.length === 0) return;
+            this.isBulkDeleting = false;
+            this.bulkDeleteModal = true;
+        },
+
+        confirmDelete(url, name) {
+            this.deleteActionUrl = url;
+            this.deleteItemName = name;
+            this.deleteModal = true;
+        },
+
+        toggle(name) {
+            this.openDropdown = (this.openDropdown === name) ? null : name;
+        },
+
+        closeIf(name) {
+            if (this.openDropdown === name) {
+                this.openDropdown = null;
+            }
+        },
+
+        selectLaboratorium(val) {
+            this.selectedLaboratorium = val;
+            this.openDropdown = null;
+            this.fetchData();
+        },
+
+        selectKategori(val) {
+            this.selectedKategori = val;
+            this.openDropdown = null;
+            this.fetchData();
+        },
+
+        selectKondisi(val) {
+            this.selectedKondisi = val;
+            this.openDropdown = null;
+            this.fetchData();
+        },
+
+        resetFilters() {
+            this.search = '';
+            this.selectedLaboratorium = '';
+            this.selectedKategori = '';
+            this.selectedKondisi = '';
+            this.openDropdown = null;
+            this.fetchData();
+        },
+
+        async fetchData(customUrl = null) {
+            this.isLoading = true;
+
+            let url = customUrl;
+            if (!url) {
+                const params = new URLSearchParams();
+                if (this.search) params.append('search', this.search);
+                if (this.selectedLaboratorium) params.append('laboratorium', this.selectedLaboratorium);
+                if (this.selectedKategori) params.append('kategori', this.selectedKategori);
+                if (this.selectedKondisi) params.append('kondisi', this.selectedKondisi);
+                url = '{{ route('barang.index') }}' + (params.toString() ? '?' + params.toString() : '');
+            }
+            window.history.pushState({}, '', url);
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) throw new Error('Network response error');
+                const htmlText = await res.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const newContainer = doc.getElementById('barangDataContainer');
+
+                if (newContainer) {
+                    const currentContainer = document.getElementById('barangDataContainer');
+                    if (currentContainer) {
+                        currentContainer.innerHTML = newContainer.innerHTML;
+                        this.selectedRows = [];
+                        this.selectAll = false;
+                        if (window.Alpine) {
+                            window.Alpine.initTree(currentContainer);
+                        }
+                    }
+                } else {
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error('Fetch filter error:', err);
+            } finally {
+                this.isLoading = false;
+            }
+        }
+     }"
+     @open-delete-barang.window="confirmDelete($event.detail.url, $event.detail.name)">
 
     {{-- Header Page (Clean Text & Action - No heavy card) --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -13,28 +146,33 @@
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Data Barang</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">Kelola data peralatan, aset, dan stiker QR Code</p>
         </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            {{-- Tombol Sampah / Hapus Data Terpilih --}}
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {{-- Tombol Hapus Massal --}}
             <button type="button" 
-                    x-show="selectedItems.length > 0"
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    @click="confirmBulkDelete()"
-                    style="display: none;"
-                    title="Hapus data barang yang dipilih"
-                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-rose-600 bg-white border border-rose-300 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-700 shadow-xs transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-rose-500">
-                <svg class="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    x-show="selectedRows.length > 0" 
+                    @click="confirmBulkDelete()" 
+                    class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700 bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold shadow-2xs transition-colors" 
+                    style="display: none;">
+                <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
-                <span>Hapus (<span x-text="selectedItems.length"></span>)</span>
+                <span>Hapus (<span x-text="selectedRows.length"></span>)</span>
+            </button>
+
+            {{-- Tombol Batal Pilihan --}}
+            <button type="button" 
+                    x-show="selectedRows.length > 0" 
+                    @click="selectedRows = []; selectAll = false" 
+                    class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs transition-colors active:scale-95" 
+                    style="display: none;">
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <span>Batal</span>
             </button>
 
             @if(Auth::check() && (Auth::user()->role === 'admin' || Auth::user()->role === 'kepala_lab'))
-            <a href="{{ route('barang.create') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition active:scale-95">
+            <a href="{{ route('barang.create') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-9 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition active:scale-95">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 <span>Tambah Barang</span>
             </a>
@@ -225,32 +363,14 @@
         @if($barangs->count() > 0)
         <div class="flex items-center justify-between p-3 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
             <div class="flex items-center gap-2.5">
-                <label for="cbx-mob-all" class="cbx" title="Pilih Semua">
-                    <div class="checkmark">
-                        <input type="checkbox" id="cbx-mob-all" :checked="isAllSelected" @change="toggleSelectAll()">
-                        <div class="flip">
-                            <div class="front"></div>
-                            <div class="back">
-                                <svg viewBox="0 0 16 14" height="14" width="16">
-                                    <path d="M2 8.5L6 12.5L14 1.5"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </label>
-                <span class="text-xs font-bold text-slate-700">Pilih Semua</span>
+                <input type="checkbox" id="cbx-mob-all" :checked="selectAll" @change="toggleSelectAll($event)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer">
+                <label for="cbx-mob-all" class="text-xs font-bold text-slate-700 cursor-pointer select-none">Pilih Semua</label>
             </div>
-            <div class="flex items-center gap-2">
-                <span x-show="selectedItems.length > 0" class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100" x-text="selectedItems.length + ' dipilih'"></span>
-                <button type="button" 
-                        x-show="selectedItems.length > 0" 
-                        @click="confirmBulkDelete()"
-                        style="display: none;"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs">
-                    <svg class="w-3.5 h-3.5 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span>Hapus (<span x-text="selectedItems.length"></span>)</span>
+            <div x-show="selectedRows.length > 0" class="flex items-center gap-2" style="display: none;">
+                <span class="text-xs text-slate-700 font-medium" x-text="selectedRows.length + ' dipilih'"></span>
+                <button type="button" @click="selectedRows = []; selectAll = false" class="h-7 px-2.5 inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition active:scale-95">
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>Batal</span>
                 </button>
             </div>
         </div>
@@ -268,26 +388,16 @@
             };
         @endphp
         <div class="bg-white border rounded-2xl p-4 shadow-xs space-y-3 transition"
-             :class="isItemSelected({{ $barang->id }}) ? 'border-indigo-400 bg-indigo-50/20 ring-2 ring-indigo-200 shadow-sm' : 'border-slate-200/90 hover:shadow-md'">
+             :class="selectedRows.includes('{{ $barang->id }}') ? 'ring-2 ring-rose-500/50 bg-rose-50/10' : 'border-slate-200/90 hover:shadow-md'">
             
             {{-- Header: Checkbox, Foto, Nama & Badge Kondisi --}}
             <div class="flex items-start justify-between gap-2.5">
                 <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                    {{-- 3D Flip Checkbox --}}
-                    <div class="shrink-0 pt-1">
-                        <label :for="'cbx-mob-' + {{ $barang->id }}" class="cbx" :title="'Pilih ' + @js($barang->nama_barang)">
-                            <div class="checkmark">
-                                <input type="checkbox" name="barang_checkbox_ids[]" value="{{ $barang->id }}" :id="'cbx-mob-' + {{ $barang->id }}" :checked="isItemSelected({{ $barang->id }})" @change="toggleItem({{ $barang->id }})">
-                                <div class="flip">
-                                    <div class="front"></div>
-                                    <div class="back">
-                                        <svg viewBox="0 0 16 14" height="14" width="16">
-                                            <path d="M2 8.5L6 12.5L14 1.5"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </label>
+                    <div class="shrink-0 pt-0.5">
+                        <input type="checkbox" name="barang_select[]" value="{{ $barang->id }}"
+                               :checked="selectedRows.includes('{{ $barang->id }}')"
+                               @change="toggleRow('{{ $barang->id }}')"
+                               class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer">
                     </div>
 
                     <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl border border-slate-200/80 bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
@@ -399,19 +509,11 @@
                 <thead class="text-[10px] sm:text-xs uppercase bg-slate-900 border-b border-slate-900 font-bold tracking-wider">
                     <tr>
                         <th scope="col" class="px-4 sm:px-6 py-4 text-center w-12 text-white font-bold">
-                            <label for="cbx-all" class="cbx" title="Pilih Semua">
-                                <div class="checkmark">
-                                    <input type="checkbox" id="cbx-all" :checked="isAllSelected" @change="toggleSelectAll()">
-                                    <div class="flip">
-                                        <div class="front"></div>
-                                        <div class="back">
-                                            <svg viewBox="0 0 16 14" height="14" width="16">
-                                                <path d="M2 8.5L6 12.5L14 1.5"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
+                            <input type="checkbox"
+                                   id="cbx-desk-all"
+                                   :checked="selectAll"
+                                   @change="toggleSelectAll($event)"
+                                   class="rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 h-4 w-4 cursor-pointer">
                         </th>
                         <th scope="col" class="px-6 py-4 text-white font-bold">Item Barang</th>
                         <th scope="col" class="px-6 py-4 text-white font-bold">Kategori & Lokasi</th>
@@ -454,21 +556,12 @@
                             $unitTagStr = 'Unit ' . implode(', ', $matchingUnitIndices);
                         }
                     @endphp
-                    <tr class="transition" :class="isItemSelected({{ $barang->id }}) ? 'bg-indigo-50/50 hover:bg-indigo-50/70' : 'hover:bg-slate-50/80'">
+                    <tr class="transition hover:bg-slate-50/80" :class="selectedRows.includes('{{ $barang->id }}') ? 'bg-rose-50/20 hover:bg-rose-50/30' : ''">
                         <td class="px-4 sm:px-6 py-3.5 whitespace-nowrap text-center w-12">
-                            <label :for="'cbx-' + {{ $barang->id }}" class="cbx" :title="'Pilih ' + @js($barang->nama_barang)">
-                                <div class="checkmark">
-                                    <input type="checkbox" name="barang_checkbox_ids[]" value="{{ $barang->id }}" :id="'cbx-' + {{ $barang->id }}" :checked="isItemSelected({{ $barang->id }})" @change="toggleItem({{ $barang->id }})">
-                                    <div class="flip">
-                                        <div class="front"></div>
-                                        <div class="back">
-                                            <svg viewBox="0 0 16 14" height="14" width="16">
-                                                <path d="M2 8.5L6 12.5L14 1.5"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
+                            <input type="checkbox" name="barang_select[]" value="{{ $barang->id }}"
+                                   :checked="selectedRows.includes('{{ $barang->id }}')"
+                                   @change="toggleRow('{{ $barang->id }}')"
+                                   class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer">
                         </td>
                         <td class="px-6 py-3.5 whitespace-nowrap">
                             <div class="flex items-center gap-3">
@@ -641,195 +734,57 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95">
 
-                {{-- Icon Alert --}}
-                <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200/60">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </div>
-
-                {{-- Text Alert --}}
-                <h2 id="modal-bulk-delete-title" class="text-base sm:text-lg font-extrabold text-slate-900">Hapus Data Terpilih?</h2>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-                    Anda akan menghapus <span class="font-bold text-rose-600" x-text="selectedItems.length"></span> barang yang dipilih secara permanen dari database. Tindakan ini tidak dapat dibatalkan.
-                </p>
-
-                {{-- Action Buttons Form --}}
-                <form action="{{ route('barang.bulk-delete') }}" method="POST" class="mt-6">
-                    @csrf
-                    <template x-for="id in selectedItems" :key="id">
-                        <input type="hidden" name="ids[]" :value="id">
-                    </template>
-
-                    <div class="flex items-center justify-center gap-3">
-                        <button type="button" @click="bulkDeleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition focus:outline-none focus:ring-2 focus:ring-slate-400">
-                            Batal
-                        </button>
-                        <button type="submit" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-rose-500">
-                            Ya, Hapus Semua
-                        </button>
-                    </div>
-                </form>
+    {{-- MODAL KONFIRMASI HAPUS BANYAK (BULK DELETE) --}}
+    <div x-show="bulkDeleteModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-md" style="display: none;"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div @click.away="if(!isBulkDeleting) bulkDeleteModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-90 translate-y-3"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-90 translate-y-3">
+            
+            <div class="w-14 h-14 bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border border-rose-200/60 dark:border-rose-800/60">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
             </div>
+
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-white">
+                Hapus <span x-text="selectedRows.length"></span> Barang Terpilih?
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                Anda akan menghapus data <span class="font-bold text-slate-800 dark:text-slate-200" x-text="selectedRows.length + ' data barang'"></span> yang telah dicentang. Tindakan ini tidak dapat dibatalkan.
+            </p>
+
+            <form action="{{ route('barang.bulk-delete') }}" method="POST" @submit="isBulkDeleting = true" class="mt-6">
+                @csrf
+                <template x-for="id in selectedRows" :key="id">
+                    <input type="hidden" name="ids[]" :value="id">
+                </template>
+                
+                <div class="flex items-center justify-center gap-3">
+                    <button type="button" :disabled="isBulkDeleting" @click="bulkDeleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition">
+                        Batal
+                    </button>
+                    <button type="submit" :disabled="isBulkDeleting" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
+                        <svg x-show="isBulkDeleting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span x-text="isBulkDeleting ? 'Menghapus...' : 'Ya, Hapus Semua'"></span>
+                    </button>
+                </div>
+            </form>
         </div>
-    </template>
+    </div>
 </div>
 
-@push('scripts')
-<script>
-window.barangIndexPage = function() {
-    return {
-        search: @js(request('search', '')),
-        selectedLaboratorium: @js(request('laboratorium', '')),
-        selectedKategori: @js(request('kategori', '')),
-        selectedKondisi: @js(request('kondisi', '')),
-        openDropdown: null,
-        isLoading: false,
-        deleteModal: false,
-        bulkDeleteModal: false,
-        deleteActionUrl: '',
-        deleteItemName: '',
-
-        selectedItems: [],
-        get allItemIds() {
-            return Array.from(document.querySelectorAll('input[name="barang_checkbox_ids[]"]')).map(function(el) {
-                return parseInt(el.value);
-            });
-        },
-        get isAllSelected() {
-            var ids = this.allItemIds;
-            return ids.length > 0 && ids.every(function(id) {
-                return this.selectedItems.includes(id);
-            }.bind(this));
-        },
-        toggleSelectAll() {
-            var ids = this.allItemIds;
-            if (this.isAllSelected) {
-                this.selectedItems = this.selectedItems.filter(function(id) {
-                    return !ids.includes(id);
-                });
-            } else {
-                this.selectedItems = Array.from(new Set(this.selectedItems.concat(ids)));
-            }
-        },
-        toggleItem(id) {
-            id = parseInt(id);
-            var idx = this.selectedItems.indexOf(id);
-            if (idx > -1) {
-                this.selectedItems.splice(idx, 1);
-            } else {
-                this.selectedItems.push(id);
-            }
-        },
-        isItemSelected(id) {
-            return this.selectedItems.includes(parseInt(id));
-        },
-
-        confirmBulkDelete() {
-            if (this.selectedItems.length > 0) {
-                this.bulkDeleteModal = true;
-            }
-        },
-
-        init() {
-            if (typeof this.search !== 'string') this.search = '';
-            if (typeof this.selectedLaboratorium !== 'string') this.selectedLaboratorium = '';
-            if (typeof this.selectedKategori !== 'string') this.selectedKategori = '';
-            if (typeof this.selectedKondisi !== 'string') this.selectedKondisi = '';
-        },
-
-        confirmDelete(url, name) {
-            this.deleteActionUrl = url;
-            this.deleteItemName = name;
-            this.deleteModal = true;
-        },
-
-        toggle(name) {
-            this.openDropdown = (this.openDropdown === name) ? null : name;
-        },
-
-        closeIf(name) {
-            if (this.openDropdown === name) {
-                this.openDropdown = null;
-            }
-        },
-
-        selectLaboratorium(val) {
-            this.selectedLaboratorium = val;
-            this.openDropdown = null;
-            this.fetchData();
-        },
-
-        selectKategori(val) {
-            this.selectedKategori = val;
-            this.openDropdown = null;
-            this.fetchData();
-        },
-
-        selectKondisi(val) {
-            this.selectedKondisi = val;
-            this.openDropdown = null;
-            this.fetchData();
-        },
-
-        resetFilters() {
-            this.search = '';
-            this.selectedLaboratorium = '';
-            this.selectedKategori = '';
-            this.selectedKondisi = '';
-            this.openDropdown = null;
-            this.fetchData();
-        },
-
-        async fetchData(customUrl) {
-            this.isLoading = true;
-
-            if (typeof this.search !== 'string') this.search = '';
-            if (typeof this.selectedLaboratorium !== 'string') this.selectedLaboratorium = '';
-            if (typeof this.selectedKategori !== 'string') this.selectedKategori = '';
-            if (typeof this.selectedKondisi !== 'string') this.selectedKondisi = '';
-
-            var url = customUrl;
-            if (!url) {
-                var params = new URLSearchParams();
-                if (this.search) params.append('search', this.search);
-                if (this.selectedLaboratorium) params.append('laboratorium', this.selectedLaboratorium);
-                if (this.selectedKategori) params.append('kategori', this.selectedKategori);
-                if (this.selectedKondisi) params.append('kondisi', this.selectedKondisi);
-                url = '{{ route('barang.index') }}' + (params.toString() ? '?' + params.toString() : '');
-            }
-            window.history.pushState({}, '', url);
-
-            try {
-                var res = await fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (!res.ok) throw new Error('Network response error');
-                var htmlText = await res.text();
-
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(htmlText, 'text/html');
-                var newContainer = doc.getElementById('barangDataContainer');
-
-                if (newContainer) {
-                    var currentContainer = document.getElementById('barangDataContainer');
-                    if (currentContainer) {
-                        currentContainer.innerHTML = newContainer.innerHTML;
-                        if (window.Alpine) {
-                            window.Alpine.initTree(currentContainer);
-                        }
-                    }
-                } else {
-                    window.location.reload();
-                }
-            } catch (err) {
-                console.error('Fetch filter error:', err);
-            } finally {
-                this.isLoading = false;
-            }
-        }
-    };
-}
-</script>
-@endpush
 @endsection

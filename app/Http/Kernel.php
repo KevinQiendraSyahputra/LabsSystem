@@ -37,6 +37,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\NoCacheHeaders::class, // Otomatis buang cache lama di setiap update
+            \App\Http\Middleware\UserActivity::class,
         ],
 
         'api' => [

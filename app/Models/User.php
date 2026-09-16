@@ -183,5 +183,14 @@ class User extends Authenticatable
         }
         return asset('storage/' . $clean) . '?v=' . ($this->updated_at ? $this->updated_at->timestamp : time());
     }
+
+    /**
+     * Cek apakah user sedang aktif / online secara real-time
+     */
+    public function isOnline(): bool
+    {
+        return \Illuminate\Support\Facades\Cache::has('user-is-online-' . $this->id);
+    }
 }
+
 

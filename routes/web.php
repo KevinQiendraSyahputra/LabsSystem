@@ -66,6 +66,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/laporan/inventaris/pdf', [LaporanController::class, 'inventarisPdf'])->name('laporan.inventaris.pdf');
 
     // 5. Manajemen Pengguna & Hak Akses
+    Route::get('pengguna/online-statuses', [UserController::class, 'onlineStatuses'])->name('pengguna.online-statuses');
     Route::post('pengguna/bulk-delete', [UserController::class, 'bulkDelete'])->name('pengguna.bulk-delete');
     Route::resource('pengguna', UserController::class)->parameters(['pengguna' => 'pengguna']);
 });
@@ -87,6 +88,23 @@ Route::middleware(['auth', 'can_maintenance'])->group(function () {
 // AUTHENTICATED USER ROUTES (Admin, Guru, Siswa)
 // ==========================================
 Route::middleware('auth')->group(function () {
+    // Presensi Real-Time User (Heartbeat & Tab Close Tracker)
+    Route::post('/user-heartbeat', function () {
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            $userId = \Illuminate\Support\Facades\Auth::id();
+            \Illuminate\Support\Facades\Cache::put('user-is-online-' . $userId, true, now()->addSeconds(45));
+            \Illuminate\Support\Facades\Cache::put('user-last-seen-' . $userId, now()->timestamp, now()->addDays(7));
+        }
+        return response()->json(['status' => 'online']);
+    })->name('user.heartbeat');
+
+    Route::match(['GET', 'POST'], '/user-offline', function () {
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            \Illuminate\Support\Facades\Cache::forget('user-is-online-' . \Illuminate\Support\Facades\Auth::id());
+        }
+        return response()->noContent();
+    })->name('user.offline');
+
     // Layanan Katalog Alat & Peminjaman Mandiri
     Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
     Route::get('/katalog/{barang}', [KatalogController::class, 'show'])->name('katalog.show');

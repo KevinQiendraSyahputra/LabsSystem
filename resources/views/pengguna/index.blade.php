@@ -29,6 +29,11 @@
         'Laboratorium AKL',
         'Laboratorium Pemasaran',
     ];
+
+    $initialStatuses = [];
+    foreach ($users as $userItem) {
+        $initialStatuses[$userItem->id] = (bool) $userItem->isOnline();
+    }
 @endphp
 
 {{-- Container Utama dengan Alpine.js AJAX State & Row Selection --}}
@@ -44,14 +49,48 @@
     _loadingDone: false,
     search: @js(request('search', '')),
     role: @js(request('role', '')),
+    perPage: @js((int) request('per_page', 10)),
     openRoleFilter: false,
     selectedRows: [],
     selectAll: false,
+    userStatuses: @js($initialStatuses),
+    _statusInterval: null,
 
     init() {
+        this.startStatusPolling();
         if (this._loadingDone) return;
         document.body.style.overflow = 'hidden';
         this.verifyAndCompleteLoading();
+    },
+
+    startStatusPolling() {
+        if (this._statusInterval) clearInterval(this._statusInterval);
+        this._statusInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                this.checkOnlineStatuses();
+            }
+        }, 3000);
+    },
+
+    async checkOnlineStatuses() {
+        const checkboxes = document.querySelectorAll('input[name=\'user_select[]\']');
+        const ids = Array.from(checkboxes).map(cb => cb.value).filter(Boolean);
+        if (ids.length === 0) return;
+
+        try {
+            const url = '{{ route('pengguna.online-statuses') }}?ids=' + ids.join(',');
+            const res = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.online_statuses) {
+                    this.userStatuses = { ...this.userStatuses, ...data.online_statuses };
+                }
+            }
+        } catch (e) {
+            // Silent error on polling
+        }
     },
 
     verifyAndCompleteLoading() {
@@ -117,16 +156,24 @@
         this.bulkDeleteModal = true;
     },
 
-    async fetchData(customUrl = null) {
-        this.initLoading = true;
-        this._loadingDone = false;
-        document.body.style.overflow = 'hidden';
+    setPerPage(val) {
+        this.perPage = parseInt(val, 10) || 10;
+        this.fetchData(null, false);
+    },
+
+    async fetchData(customUrl = null, showLoading = false) {
+        if (showLoading) {
+            this.initLoading = true;
+            this._loadingDone = false;
+            document.body.style.overflow = 'hidden';
+        }
 
         let url = customUrl;
         if (!url) {
             const params = new URLSearchParams();
             if (this.search) params.append('search', this.search);
             if (this.role) params.append('role', this.role);
+            if (this.perPage) params.append('per_page', this.perPage);
             url = '{{ route('pengguna.index') }}' + (params.toString() ? '?' + params.toString() : '');
         }
         window.history.pushState({}, '', url);
@@ -149,26 +196,30 @@
                     if (window.Alpine) {
                         window.Alpine.initTree(currentContainer);
                     }
+                    this.checkOnlineStatuses();
                 }
             }
         } catch (err) {
             console.error('Gagal memuat data pengguna secara live:', err);
         } finally {
-            this.verifyAndCompleteLoading();
+            if (showLoading) {
+                this.verifyAndCompleteLoading();
+            }
         }
     },
 
     selectRole(r) {
         this.role = r;
         this.openRoleFilter = false;
-        this.fetchData();
+        this.fetchData(null, false);
     },
 
     resetFilters() {
         this.search = '';
         this.role = '';
+        this.perPage = 10;
         this.openRoleFilter = false;
-        this.fetchData();
+        this.fetchData(null, false);
     },
 
     confirmDelete(url, name) {
@@ -222,8 +273,20 @@
                 <span>Hapus (<span x-text="selectedRows.length"></span>)</span>
             </button>
 
+            {{-- Tombol Batal Pilihan --}}
+            <button type="button" 
+                    x-show="selectedRows.length > 0" 
+                    @click="selectedRows = []; selectAll = false" 
+                    class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs transition-colors active:scale-95" 
+                    style="display: none;">
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <span>Batal</span>
+            </button>
+
             {{-- Tombol Segarkan --}}
-            <button type="button" @click="fetchData()" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs transition active:scale-95">
+            <button type="button" @click="fetchData(null, true)" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs transition active:scale-95">
                 <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
@@ -445,13 +508,6 @@
                 <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Semua Pengguna</h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar seluruh akun pengguna laboratorium, kontak, dan hak akses.</p>
             </div>
-            
-            {{-- Bulk Selection Status Indicator (Teks Polos & Font Natural) --}}
-            <div x-show="selectedRows.length > 0" class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium py-1" style="display: none;">
-                <span class="text-slate-700 dark:text-slate-200 font-medium" x-text="selectedRows.length + ' pengguna dipilih'"></span>
-                <span class="text-slate-300 dark:text-slate-600">•</span>
-                <button type="button" @click="selectedRows = []; selectAll = false" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline font-medium">Batal</button>
-            </div>
         </div>
 
         {{-- Toolbar: Search & Filters --}}
@@ -538,7 +594,7 @@
         </div>
 
         {{-- Kontainer Dinamis Data Pengguna (Live Update) --}}
-        <div id="usersDataContainer" @click="const a = $event.target.closest('a'); if (a && a.href && (a.closest('nav') || a.closest('.pagination'))) { $event.preventDefault(); fetchData(a.href); }">
+        <div id="usersDataContainer" @click="const a = $event.target.closest('a'); if (a && a.href && (a.closest('nav') || a.closest('.pagination'))) { $event.preventDefault(); fetchData(a.href, false); }">
             
             {{-- 1. Mobile Cards View (md:hidden) --}}
             <div id="mobileCardsContainer" class="p-4 space-y-3 md:hidden">
@@ -565,7 +621,17 @@
                                 </div>
                                 
                                 <div class="min-w-0">
-                                    <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{{ $u->name }}</p>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{{ $u->name }}</p>
+                                        <span x-show="userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }}" class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0" {!! $u->isOnline() ? '' : 'style="display:none;"' !!}>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Aktif</span>
+                                        </span>
+                                        <span x-show="!(userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }})" class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 dark:text-slate-500 shrink-0" {!! $u->isOnline() ? 'style="display:none;"' : '' !!}>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                            <span>Terdaftar</span>
+                                        </span>
+                                    </div>
                                     <p class="text-slate-400 dark:text-slate-500 text-[11px] truncate">{{ $u->email }}</p>
                                 </div>
                             </div>
@@ -1002,17 +1068,14 @@
 
                                 {{-- Status Pulsing Dot --}}
                                 <td class="py-3.5 px-4 whitespace-nowrap">
-                                    @if($u->peminjamans_count > 0)
-                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span>Aktif</span>
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
-                                            <span>Terdaftar</span>
-                                        </span>
-                                    @endif
+                                    <span x-show="userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400" {!! $u->isOnline() ? '' : 'style="display:none;"' !!}>
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span>Aktif</span>
+                                    </span>
+                                    <span x-show="!(userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }})" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400" {!! $u->isOnline() ? 'style="display:none;"' : '' !!}>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+                                        <span>Terdaftar</span>
+                                    </span>
                                 </td>
 
                                 {{-- Total Pinjam --}}
@@ -1298,13 +1361,97 @@
             </div>
 
             {{-- CARD FOOTER (Gentelella v4 Paging & Info) --}}
-            <div class="px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/30 dark:bg-slate-850/30">
-                <div class="text-xs text-slate-500 dark:text-slate-400">
-                    Menampilkan <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }}</span> dari <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $users->total() }}</span> pengguna
+            <div class="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-slate-50/40 dark:bg-slate-850/40">
+                <div class="flex flex-wrap items-center justify-between sm:justify-start gap-2.5 sm:gap-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div>
+                        Menampilkan <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }}</span> dari <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->total() }}</span> pengguna
+                    </div>
+
+                    <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+
+                    {{-- Selector Jumlah Tampilan (Show Per Page) --}}
+                    <div class="flex items-center gap-1.5">
+                        <label for="perPageSelect" class="text-slate-500 dark:text-slate-400 font-medium">Tampilkan:</label>
+                        <select id="perPageSelect" 
+                                x-model="perPage" 
+                                @change="setPerPage($event.target.value)"
+                                class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">baris</span>
+                    </div>
                 </div>
                 
-                <div class="shrink-0">
-                    {{ $users->withQueryString()->links() }}
+                <div class="shrink-0 flex items-center justify-between sm:justify-end">
+                    @if ($users->hasPages())
+                        <nav role="navigation" aria-label="Navigasi Halaman" class="flex items-center gap-1.5 sm:gap-2">
+                            {{-- Previous Page Link --}}
+                            @if ($users->onFirstPage())
+                                <span aria-disabled="true" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                    </svg>
+                                </span>
+                            @else
+                                <a href="{{ $users->previousPageUrl() }}" rel="prev" aria-label="Sebelumnya" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                    </svg>
+                                </a>
+                            @endif
+
+                            {{-- First Page (if far from current) --}}
+                            @if ($users->currentPage() > 3)
+                                <a href="{{ $users->url(1) }}" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    1
+                                </a>
+                                @if ($users->currentPage() > 4)
+                                    <span class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
+                                @endif
+                            @endif
+
+                            {{-- Page Numbers Range --}}
+                            @foreach ($users->getUrlRange(max(1, $users->currentPage() - 2), min($users->lastPage(), $users->currentPage() + 2)) as $page => $url)
+                                @if ($page == $users->currentPage())
+                                    <span aria-current="page" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs select-none">
+                                        {{ $page }}
+                                    </span>
+                                @else
+                                    <a href="{{ $url }}" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                        {{ $page }}
+                                    </a>
+                                @endif
+                            @endforeach
+
+                            {{-- Last Page (if far from current) --}}
+                            @if ($users->currentPage() < $users->lastPage() - 2)
+                                @if ($users->currentPage() < $users->lastPage() - 3)
+                                    <span class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
+                                @endif
+                                <a href="{{ $users->url($users->lastPage()) }}" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    {{ $users->lastPage() }}
+                                </a>
+                            @endif
+
+                            {{-- Next Page Link --}}
+                            @if ($users->hasMorePages())
+                                <a href="{{ $users->nextPageUrl() }}" rel="next" aria-label="Berikutnya" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            @else
+                                <span aria-disabled="true" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </span>
+                            @endif
+                        </nav>
+                    @endif
                 </div>
             </div>
 

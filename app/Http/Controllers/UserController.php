@@ -57,7 +57,12 @@ class UserController extends Controller
             }
         }
 
-        $users = $query->latest('id')->paginate(10)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $users = $query->latest('id')->paginate($perPage)->withQueryString();
         
         $roleList = property_exists(User::class, 'roleList') 
             ? User::$roleList 
@@ -182,5 +187,32 @@ class UserController extends Controller
         });
 
         return redirect()->route('pengguna.index')->with('success', "{$count} akun pengguna berhasil dihapus!");
+    }
+
+    /**
+     * Endpoint live polling status real-time pengguna
+     */
+    public function onlineStatuses(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (is_string($ids)) {
+            $ids = array_filter(explode(',', $ids), fn($v) => is_numeric($v));
+        }
+
+        $statuses = [];
+        $currentAuthId = (int) auth()->id();
+
+        if (is_array($ids) && count($ids) > 0) {
+            foreach ($ids as $id) {
+                $numId = (int) $id;
+                if ($numId <= 0) continue;
+                $statuses[$numId] = \Illuminate\Support\Facades\Cache::has('user-is-online-' . $numId);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'online_statuses' => $statuses,
+        ]);
     }
 }

@@ -1,4 +1,40 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # 1. Nonaktifkan Directory Listing (Mencegah publik mengintip isi folder)
+    <IfModule mod_negotiation.c>
+        Options -Indexes -MultiViews
+    </IfModule>
+
+    # 2. Blokir Keras Akses ke File Sensitif (.env, artisan, composer, log, sql, git)
+    <FilesMatch "^(\.env|\.git|artisan|composer\.(json|lock)|package(-lock)?\.json|pnpm-lock\.yaml|\.htaccess|.*\.log|.*\.sql|.*\.md)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    # Proteksi Rewrite Engine (Kirim Response 403 Forbidden jika ada yang mencoba akses langsung)
+    RewriteRule ^(\.env|\.git|artisan|composer\.(json|lock)|package.*\.json|.*\.sql|.*\.log) - [F,L,NC]
+
+    # 3. Blokir Akses Langsung ke Folder Core Laravel
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|vendor)(/.*)?$ - [F,L,NC]
+
+    # 4. Arahkan Seluruh Trafik Masuk ke Folder public/
+    RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Proteksi Tambahan Apache 2.4+
+<IfModule mod_authz_core.c>
+    <Files ".env*">
+        Require all denied
+    </Files>
+    <Files "artisan">
+        Require all denied
+    </Files>
+    <Files "composer.*">
+        Require all denied
+    </Files>
+    <Files "*.sql">
+        Require all denied
+    </Files>
 </IfModule>
