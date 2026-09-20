@@ -258,7 +258,7 @@
     }
 @endphp
 
-<div id="dashboardAdminContainer" class="dashboard-reveal-container min-h-full bg-slate-50/70 pb-12 sm:pb-16 pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
+<div id="dashboardAdminContainer" x-data x-init="$nextTick(() => { $el.classList.add('is-revealed'); if(typeof window.initGentelellaDashboardCharts === 'function') { try { window.initGentelellaDashboardCharts(); } catch(e) {} } })" class="dashboard-reveal-container min-h-full bg-slate-50/70 pb-12 sm:pb-16 pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
     <div class="mx-auto w-full max-w-screen-2xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div class="space-y-4 sm:space-y-6">
 
@@ -785,12 +785,14 @@
         function triggerReveal() {
             if (revealed) return;
             revealed = true;
-            container.classList.add('is-revealed');
+            if (container) {
+                container.classList.add('is-revealed');
+            }
 
             // Re-inisialisasi chart animasi agar mulai menggambar kurva tepat saat dashboard tersingkap
             if (typeof window.initGentelellaDashboardCharts === 'function') {
                 requestAnimationFrame(function() {
-                    window.initGentelellaDashboardCharts();
+                    try { window.initGentelellaDashboardCharts(); } catch(e) {}
                 });
             }
         }
@@ -801,7 +803,6 @@
             var onSlideStart = function() {
                 if (slideTriggered) return;
                 slideTriggered = true;
-                // Mulai trigger pada awal hingga pertengahan slide (~100ms) agar elemen naik tersinkron saat tirai naik
                 setTimeout(triggerReveal, 100);
             };
 
@@ -814,11 +815,14 @@
             }, 1200);
         } else {
             // Akses langsung / refresh biasa / SPA: jalankan animasi masuk seketika
+            triggerReveal();
             requestAnimationFrame(function() {
-                setTimeout(triggerReveal, 40);
+                triggerReveal();
             });
         }
     }
+
+    window.initDashboardEntrance = initDashboardEntrance;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initDashboardEntrance);

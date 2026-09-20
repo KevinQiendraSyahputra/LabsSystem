@@ -51,6 +51,7 @@
     role: @js(request('role', '')),
     perPage: @js((int) request('per_page', 10)),
     openRoleFilter: false,
+    openPerPage: false,
     selectedRows: [],
     selectAll: false,
     userStatuses: @js($initialStatuses),
@@ -158,6 +159,7 @@
 
     setPerPage(val) {
         this.perPage = parseInt(val, 10) || 10;
+        this.openPerPage = false;
         this.fetchData(null, false);
     },
 
@@ -253,19 +255,19 @@
     </div>
 
     {{-- PAGE HEADER (Gentelella v4 Style) --}}
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Data Master</div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Kelola Pengguna</h1>
+            <div class="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Data Master</div>
+            <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Kelola Pengguna</h1>
         </div>
         
-        <div class="flex flex-wrap items-center gap-2.5" x-data="{ openModal: false, isSubmittingStore: false }">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto" x-data="{ openModal: false, isSubmittingStore: false }">
             
             {{-- Tombol Hapus Massal --}}
             <button type="button" 
                     x-show="selectedRows.length > 0" 
                     @click="confirmBulkDelete()" 
-                    class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700 bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold shadow-2xs transition-colors" 
+                    class="h-8.5 sm:h-9 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700 bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] sm:text-xs font-semibold shadow-2xs transition-colors" 
                     style="display: none;">
                 <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -277,7 +279,7 @@
             <button type="button" 
                     x-show="selectedRows.length > 0" 
                     @click="selectedRows = []; selectAll = false" 
-                    class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs transition-colors active:scale-95" 
+                    class="h-8.5 sm:h-9 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] sm:text-xs font-semibold shadow-2xs transition-colors active:scale-95" 
                     style="display: none;">
                 <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -286,7 +288,7 @@
             </button>
 
             {{-- Tombol Segarkan --}}
-            <button type="button" @click="fetchData(null, true)" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs transition active:scale-95">
+            <button type="button" @click="fetchData(null, true)" class="h-8.5 sm:h-9 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs transition active:scale-95">
                 <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
@@ -294,8 +296,8 @@
             </button>
 
             {{-- Tombol Tambah Pengguna --}}
-            <button type="button" @click="openModal = true" class="h-9 px-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition active:scale-95">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" @click="openModal = true" class="h-8.5 sm:h-9 px-3.5 sm:px-4 inline-flex items-center gap-1.5 sm:gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-bold shadow-sm transition active:scale-95">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 <span>Tambah Pengguna</span>
@@ -511,13 +513,13 @@
         </div>
 
         {{-- Toolbar: Search & Filters --}}
-        <div class="p-4 bg-slate-50/50 dark:bg-slate-850/50 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <form id="filterForm" @submit.prevent="fetchData()" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+        <div class="p-3.5 sm:p-4 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <form id="filterForm" @submit.prevent="fetchData()" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 flex-1">
                 
                 {{-- Search Input (Gentelella Style with Icon) --}}
-                <div class="relative w-full sm:w-80">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="relative w-full sm:w-72 md:w-80">
+                    <div class="absolute inset-y-0 left-0 pl-3 sm:pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
@@ -525,14 +527,14 @@
                            name="search" 
                            x-model="search" 
                            placeholder="Cari nama, email, NIS, NIP..." 
-                           class="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition shadow-2xs">
+                           class="w-full pl-8 sm:pl-9 pr-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition shadow-2xs">
                 </div>
 
                 {{-- Filter Role Dropdown --}}
-                <div class="relative w-full sm:w-56" @click.outside="openRoleFilter = false">
+                <div class="relative w-full sm:w-48 md:w-56" @click.outside="openRoleFilter = false">
                     <input type="hidden" name="role" :value="role">
                     <button type="button" @click.stop="openRoleFilter = !openRoleFilter"
-                            class="w-full flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold shadow-2xs transition hover:bg-slate-50 dark:hover:bg-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                            class="w-full flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold shadow-2xs transition hover:bg-slate-50 dark:hover:bg-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                             :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-950/20': openRoleFilter}">
                         <span class="truncate text-slate-750 dark:text-slate-200" x-text="{
                             '': 'Semua Peran (Role)',
@@ -579,7 +581,7 @@
 
                 {{-- Action Filter Buttons --}}
                 <div class="flex items-center gap-2">
-                    <button type="submit" class="h-9 px-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold transition active:scale-95 shadow-2xs">
+                    <button type="submit" class="h-9 px-3.5 sm:px-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold transition active:scale-95 shadow-2xs">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span>Filter</span>
                     </button>
@@ -1361,43 +1363,61 @@
             </div>
 
             {{-- CARD FOOTER (Gentelella v4 Paging & Info) --}}
-            <div class="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-slate-50/40 dark:bg-slate-850/40">
-                <div class="flex flex-wrap items-center justify-between sm:justify-start gap-2.5 sm:gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <div class="px-3.5 sm:px-5 py-3 sm:py-3.5 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-800/40">
+                <div class="flex flex-wrap items-center justify-between sm:justify-start gap-2 sm:gap-4 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
                     <div>
                         Menampilkan <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }}</span> dari <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->total() }}</span> pengguna
                     </div>
 
                     <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
 
-                    {{-- Selector Jumlah Tampilan (Show Per Page) --}}
-                    <div class="flex items-center gap-1.5">
-                        <label for="perPageSelect" class="text-slate-500 dark:text-slate-400 font-medium">Tampilkan:</label>
-                        <select id="perPageSelect" 
-                                x-model="perPage" 
-                                @change="setPerPage($event.target.value)"
-                                class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
+                    {{-- Selector Jumlah Tampilan (Custom Modern Dropup - No Animation) --}}
+                    <div class="flex items-center gap-1.5 relative" @click.outside="openPerPage = false">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Tampilkan:</span>
+                        <div class="relative">
+                            <button type="button" 
+                                    @click="openPerPage = !openPerPage"
+                                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] sm:text-xs font-semibold rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer inline-flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
+                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20': openPerPage}">
+                                <span x-text="perPage"></span>
+                                <svg class="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': openPerPage}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <div x-show="openPerPage"
+                                 class="absolute bottom-full mb-1.5 left-0 z-50 w-24 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 overflow-hidden"
+                                 style="display: none;">
+                                @foreach([10, 20, 50, 100] as $option)
+                                    <button type="button" 
+                                            @click="setPerPage({{ $option }})"
+                                            class="w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center justify-between transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/60"
+                                            :class="{'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold': perPage === {{ $option }}, 'text-slate-700 dark:text-slate-300': perPage !== {{ $option }}}">
+                                        <span>{{ $option }}</span>
+                                        <svg x-show="perPage === {{ $option }}" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
                         <span class="text-slate-500 dark:text-slate-400 font-medium">baris</span>
                     </div>
                 </div>
                 
                 <div class="shrink-0 flex items-center justify-between sm:justify-end">
                     @if ($users->hasPages())
-                        <nav role="navigation" aria-label="Navigasi Halaman" class="flex items-center gap-1.5 sm:gap-2">
+                        <nav role="navigation" aria-label="Navigasi Halaman" class="flex items-center gap-1 sm:gap-1.5">
                             {{-- Previous Page Link --}}
                             @if ($users->onFirstPage())
-                                <span aria-disabled="true" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span aria-disabled="true" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                     </svg>
                                 </span>
                             @else
-                                <a href="{{ $users->previousPageUrl() }}" rel="prev" aria-label="Sebelumnya" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{{ $users->previousPageUrl() }}" rel="prev" aria-label="Sebelumnya" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                     </svg>
                                 </a>
@@ -1405,22 +1425,22 @@
 
                             {{-- First Page (if far from current) --}}
                             @if ($users->currentPage() > 3)
-                                <a href="{{ $users->url(1) }}" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                <a href="{{ $users->url(1) }}" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
                                     1
                                 </a>
                                 @if ($users->currentPage() > 4)
-                                    <span class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
+                                    <span class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
                                 @endif
                             @endif
 
                             {{-- Page Numbers Range --}}
                             @foreach ($users->getUrlRange(max(1, $users->currentPage() - 2), min($users->lastPage(), $users->currentPage() + 2)) as $page => $url)
                                 @if ($page == $users->currentPage())
-                                    <span aria-current="page" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs select-none">
+                                    <span aria-current="page" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs select-none">
                                         {{ $page }}
                                     </span>
                                 @else
-                                    <a href="{{ $url }}" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    <a href="{{ $url }}" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
                                         {{ $page }}
                                     </a>
                                 @endif
@@ -1429,23 +1449,23 @@
                             {{-- Last Page (if far from current) --}}
                             @if ($users->currentPage() < $users->lastPage() - 2)
                                 @if ($users->currentPage() < $users->lastPage() - 3)
-                                    <span class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
+                                    <span class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
                                 @endif
-                                <a href="{{ $users->url($users->lastPage()) }}" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                <a href="{{ $users->url($users->lastPage()) }}" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
                                     {{ $users->lastPage() }}
                                 </a>
                             @endif
 
                             {{-- Next Page Link --}}
                             @if ($users->hasMorePages())
-                                <a href="{{ $users->nextPageUrl() }}" rel="next" aria-label="Berikutnya" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{{ $users->nextPageUrl() }}" rel="next" aria-label="Berikutnya" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
                                 </a>
                             @else
-                                <span aria-disabled="true" class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span aria-disabled="true" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
                                 </span>

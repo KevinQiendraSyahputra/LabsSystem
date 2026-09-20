@@ -873,7 +873,7 @@
 </section>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    function initDashboardUserPage() {
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         /* Animasi masuk halaman */
@@ -960,8 +960,8 @@
                     observer.unobserve(entry.target);
                 });
             }, {
-                threshold: 0.55,
-                rootMargin: '0px 0px -2% 0px'
+                threshold: 0.2,
+                rootMargin: '0px 0px -6% 0px'
             });
 
             numberItems.forEach(function (item) {
@@ -971,11 +971,8 @@
             numberItems.forEach(runNumberFlow);
         }
 
-        /* Animasi struktur organisasi */
-        const charts = document.querySelectorAll('[data-org-chart]');
-
-        if (!charts.length) return;
-
+        /* Staggered visual chart flow */
+        const charts = document.querySelectorAll('.org-chart-wrapper');
         charts.forEach(function (chart) {
             chart.classList.add('org-animate-ready');
         });
@@ -1002,7 +999,15 @@
         charts.forEach(function (chart) {
             orgObserver.observe(chart);
         });
-    });
+    }
+
+    window.initDashboardUserPage = initDashboardUserPage;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDashboardUserPage);
+    } else {
+        initDashboardUserPage();
+    }
 </script>
 
 {{-- ===== FLOATING CUSTOMER SERVICE WIDGET ===== --}}

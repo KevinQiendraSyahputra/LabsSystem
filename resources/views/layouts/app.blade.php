@@ -1714,8 +1714,23 @@
 
                 await Promise.all(loadExternalPromises);
 
-                // 2. Eksekusi seluruh inline script halaman baru SEBELUM DOM diinjeksi
-                // agar fungsi global (misal: window.barangIndexPage) sudah siap saat Alpine mem-parsing DOM
+                // 2. Sinkronkan class CSS container & main agar tata letak halaman selalu sinkron
+                currentMain.className = newMain.className;
+                if (newMain.parentElement && currentMain.parentElement) {
+                    currentMain.parentElement.className = newMain.parentElement.className;
+                }
+
+                // 3. Injeksi DOM halaman baru ke viewport
+                currentMain.innerHTML = newMain.innerHTML;
+                currentMain.style.opacity = '1';
+
+                const introEl = document.getElementById('introScreen');
+                if (introEl) {
+                    introEl.style.display = 'none';
+                    introEl.classList.remove('is-active', 'no-transition');
+                }
+
+                // 4. Eksekusi seluruh inline script halaman baru SETELAH DOM diinjeksi
                 const inlineScripts = Array.from(newMain.querySelectorAll('script:not([src])'));
                 inlineScripts.forEach(scriptTag => {
                     const code = scriptTag.textContent.trim();
@@ -1728,22 +1743,7 @@
                     }
                 });
 
-                // 3. Sinkronkan class CSS container & main agar tata letak halaman selalu sinkron
-                currentMain.className = newMain.className;
-                if (newMain.parentElement && currentMain.parentElement) {
-                    currentMain.parentElement.className = newMain.parentElement.className;
-                }
-
-                currentMain.innerHTML = newMain.innerHTML;
-                currentMain.style.opacity = '1';
-
-                const introEl = document.getElementById('introScreen');
-                if (introEl) {
-                    introEl.style.display = 'none';
-                    introEl.classList.remove('is-active', 'no-transition');
-                }
-
-                // 4. Re-inisialisasi Alpine setelah fungsi komponen siap terdaftar di memori
+                // 5. Re-inisialisasi Alpine setelah fungsi komponen & DOM siap
                 if (window.Alpine) {
                     try {
                         window.Alpine.initTree(currentMain);
@@ -1752,14 +1752,29 @@
                     }
                 }
 
-                // 5. Inisialisasi ECharts Chart Hover jika elemen chart ada di DOM
+                // 6. Inisialisasi komponen spesifik halaman (Dashboard Admin, Dashboard User, Charts, dll.)
+                if (typeof window.initDashboardEntrance === 'function' && document.getElementById('dashboardAdminContainer')) {
+                    try { window.initDashboardEntrance(); } catch(e) {}
+                }
+                if (typeof window.initGentelellaDashboardCharts === 'function' && document.getElementById('echarts-activity-trend')) {
+                    requestAnimationFrame(() => {
+                        try { window.initGentelellaDashboardCharts(); } catch(e) {}
+                    });
+                }
+                if (typeof window.initDashboardUserPage === 'function') {
+                    try { window.initDashboardUserPage(); } catch(e) {}
+                }
                 if (typeof window.initDashboardHoverChart === 'function' && document.getElementById('echarts-hover-main')) {
                     requestAnimationFrame(() => {
-                        window.initDashboardHoverChart();
+                        try { window.initDashboardHoverChart(); } catch(e) {}
                     });
                 }
 
-                // 6. Trigger resize event untuk sinkronisasi layout chart & responsive container
+                // 7. Trigger event DOMContentLoaded / page-loaded & resize
+                window.dispatchEvent(new Event('DOMContentLoaded'));
+                window.dispatchEvent(new CustomEvent('page-loaded', { detail: { url: targetNormalized } }));
+                window.dispatchEvent(new CustomEvent('spa-loaded', { detail: { url: targetNormalized } }));
+
                 requestAnimationFrame(() => {
                     window.dispatchEvent(new Event('resize'));
                 });
