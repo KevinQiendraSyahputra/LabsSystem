@@ -145,7 +145,15 @@ Route::middleware('auth')->group(function () {
 
     // Halaman Bantuan & Live Chat Asisten Lab
     Route::get('/bantuan', [BantuanController::class, 'index'])->name('bantuan.index');
+    Route::post('/bantuan/start-cs', [BantuanController::class, 'startCsSession'])->name('bantuan.start-cs');
+    Route::post('/bantuan/send-cs', [BantuanController::class, 'sendCsMessage'])->name('bantuan.send-cs');
+    Route::get('/bantuan/poll', [BantuanController::class, 'pollMessages'])->name('bantuan.poll');
+    Route::post('/bantuan/close-cs', [BantuanController::class, 'closeCsSession'])->name('bantuan.close-cs');
 });
+
+// Telegram Bot Webhook & Setup Helper
+Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
+Route::get('/telegram/setup-webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'setupWebhook']);
 
 // ==========================================
 // SERVE STORAGE FILES (Kompatibilitas Penuh InfinityFree / CPanel tanpa symlink)

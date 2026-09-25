@@ -83,18 +83,18 @@
 
 @section('content')
 
-<div x-data="labChatBot()"
+<div x-data="labChatBot('{{ $initialCsSession }}')"
      x-init="init()"
      class="flex flex-col w-full max-w-full h-full min-h-0 flex-1 bg-slate-50 dark:bg-slate-950 relative select-text overflow-hidden">
     
-    {{-- 1. ASSISTANT HEADER --}}
+    {{-- 1. ASSISTANT / CS HEADER --}}
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between shrink-0 z-20 shadow-2xs gap-2 w-full max-w-full min-w-0">
         <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {{-- Mobile Sidebar Drawer Toggle Button --}}
             <button type="button" 
                     onclick="window.openSidebarDrawer()"
                     @click="window.openSidebarDrawer()" 
-                    class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs cursor-pointer active:scale-95" 
+                    class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:white transition-colors focus:outline-none shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs cursor-pointer active:scale-95" 
                     aria-label="Buka Menu Navigasi" 
                     title="Buka Menu">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,49 +102,79 @@
                 </svg>
             </button>
 
-            {{-- Avatar Bot Header (Sky Blue Theme) --}}
+            {{-- Avatar Header (Dinamis: Bot vs CS Langsung) --}}
             <div class="relative shrink-0">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-200 dark:border-sky-800/80 shadow-2xs">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-                        <rect x="3" y="8" width="18" height="12" rx="3"/>
-                        <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
-                        <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
-                        <path d="M9 17h6"/>
-                    </svg>
-                </div>
+                <template x-if="!isCsMode">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-200 dark:border-sky-800/80 shadow-2xs">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                            <rect x="3" y="8" width="18" height="12" rx="3"/>
+                            <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                            <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                            <path d="M9 17h6"/>
+                        </svg>
+                    </div>
+                </template>
+                <template x-if="isCsMode">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800/80 shadow-2xs">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                    </div>
+                </template>
                 <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
             </div>
 
-            {{-- Info Asisten --}}
+            {{-- Info Asisten / CS --}}
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                     <h1 class="text-xs sm:text-base font-bold text-slate-900 dark:text-white truncate">
-                        Asisten Lab
+                        <span x-text="isCsMode ? 'Customer Service Langsung' : 'Asisten Lab'"></span>
                     </h1>
-                    <span class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80 shrink-0">
+                    <span :class="isCsMode ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/80' : 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/80'"
+                          class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold border shrink-0">
                         {{ ucfirst(Auth::user()->role ?? 'Siswa') }}
                     </span>
+                    <template x-if="isCsMode && sessionCode">
+                        <span class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-mono font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shrink-0"
+                              x-text="sessionCode">
+                        </span>
+                    </template>
                 </div>
                 <p class="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 mt-0.5 truncate">
                     <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shrink-0"></span>
-                    <span class="truncate">Online • Bantuan Lab</span>
+                    <span class="truncate" x-text="isCsMode ? 'Terhubung dengan Admin Pengelola via Telegram' : 'Online • Bantuan Otomatis & CS'"></span>
                 </p>
             </div>
         </div>
 
         {{-- Action Buttons --}}
         <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-            <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." 
-               target="_blank" 
-               rel="noopener noreferrer"
-               title="Hubungi WhatsApp Teknisi"
-               class="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 text-[11px] sm:text-xs font-semibold transition-all shadow-2xs">
-                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-                <span class="hidden sm:inline">WhatsApp Teknisi</span>
-            </a>
+            {{-- Tombol Beralih ke CS Langsung jika belum aktif --}}
+            <template x-if="!isCsMode">
+                <button type="button" 
+                        @click="showCsConfirmModal = true" 
+                        title="Hubungi Customer Service Langsung"
+                        class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[11px] sm:text-xs font-bold transition-all shadow-2xs active:scale-95">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span>Hubungi CS</span>
+                </button>
+            </template>
+
+            {{-- Tombol Akhiri Sesi CS jika mode CS aktif --}}
+            <template x-if="isCsMode">
+                <button type="button" 
+                        @click="showCloseCsModal = true" 
+                        title="Akhiri Sesi CS Langsung"
+                        class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[11px] sm:text-xs font-bold transition-all shadow-2xs active:scale-95">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span>Tutup Sesi CS</span>
+                </button>
+            </template>
             
             <button type="button" 
                     @click="showClearModal = true" 
@@ -163,6 +193,19 @@
         {{-- KOLOM UTAMA: PERCAKAPAN CHAT --}}
         <div class="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950 relative w-full max-w-full min-w-0 overflow-hidden">
             
+            {{-- Banner Status CS Mode --}}
+            <template x-if="isCsMode">
+                <div class="bg-indigo-600 text-white px-3 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold flex items-center justify-between gap-2 shadow-xs shrink-0 z-10">
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shrink-0"></span>
+                        <span class="truncate">Mode Customer Service Aktif • Pesan Anda terhubung langsung dengan Admin Pengelola.</span>
+                    </div>
+                    <button type="button" @click="showCloseCsModal = true" class="underline shrink-0 text-white/90 hover:text-white font-bold ml-2">
+                        Kembali ke Bot
+                    </button>
+                </div>
+            </template>
+
             {{-- Scrollable Conversation Stream --}}
             <div id="chatMessages" 
                  @scroll="handleScroll()"
@@ -170,102 +213,145 @@
                 
                 <div class="w-full space-y-4 sm:space-y-5 pb-4 min-w-0">
                     
-                    {{-- Message Bubbles List (Base UI / Radix Bubble Style) --}}
+                    {{-- Message Bubbles List --}}
                     <template x-for="(msg, index) in messages" :key="index">
-                        <div :class="msg.sender === 'user' ? 'flex items-start justify-end gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0' : 'flex items-start justify-start gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0'">
-                            
-                            {{-- Avatar Bot (Kiri Pesan Bot) --}}
-                            <template x-if="msg.sender === 'bot'">
-                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-700 shadow-2xs mt-0.5">
-                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-                                        <rect x="3" y="8" width="18" height="12" rx="3"/>
-                                        <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
-                                        <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
-                                        <path d="M9 17h6"/>
-                                    </svg>
+                        <div>
+                            {{-- Pesan Tipe System --}}
+                            <template x-if="msg.sender === 'system'">
+                                <div class="flex justify-center my-2 w-full animate-fade-in">
+                                    <div class="bg-slate-200/80 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl px-3.5 py-1.5 text-[11px] sm:text-xs text-center max-w-[90%] sm:max-w-[75%] font-medium">
+                                        <span x-html="msg.text"></span>
+                                    </div>
                                 </div>
                             </template>
 
-                            {{-- Konten Bubble Pesan (Base UI Bubble Style) --}}
-                            <div :class="msg.sender === 'user' 
-                                 ? 'flex flex-col items-end min-w-0 max-w-[85%] sm:max-w-[78%] lg:max-w-[72%]' 
-                                 : 'flex flex-col items-start min-w-0 max-w-[88%] sm:max-w-[82%] lg:max-w-[78%]'">
-                                
-                                <div :class="msg.sender === 'user' 
-                                     ? 'bg-blue-600 dark:bg-blue-600 text-white rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal' 
-                                     : 'bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal'">
+                            {{-- Pesan Tipe User / Bot / Admin --}}
+                            <template x-if="msg.sender !== 'system'">
+                                <div :class="msg.sender === 'user' ? 'flex items-start justify-end gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0' : 'flex items-start justify-start gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0'">
                                     
-                                    <div class="break-words [overflow-wrap:anywhere]" x-html="msg.text"></div>
-                                    
-                                    {{-- Smart Suggestions Chips di Bawah Pesan Bot --}}
-                                    <template x-if="msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0">
-                                        <div class="mt-2.5 pt-2.5 border-t border-slate-300/60 dark:border-slate-700/70 flex flex-wrap gap-1.5 sm:gap-2">
-                                            <template x-for="(sug, sIndex) in msg.suggestions" :key="sIndex">
-                                                <button type="button" 
-                                                        @click="sendQuickReply(sug.action || sug.text)" 
-                                                        class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-700 dark:hover:text-sky-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10.5px] sm:text-xs font-semibold transition-all active:scale-95 shadow-2xs max-w-full">
-                                                    <svg class="w-2.5 h-2.5 text-slate-400 dark:text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                                                    </svg>
-                                                    <span class="truncate" x-text="sug.text"></span>
-                                                </button>
+                                    {{-- Avatar Pengirim Bot / Admin CS --}}
+                                    <template x-if="msg.sender === 'bot' || msg.sender === 'admin'">
+                                        <div :class="msg.sender === 'admin' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'"
+                                             class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 border shadow-2xs mt-0.5">
+                                            <template x-if="msg.sender === 'admin'">
+                                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                </svg>
+                                            </template>
+                                            <template x-if="msg.sender === 'bot'">
+                                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                                                    <rect x="3" y="8" width="18" height="12" rx="3"/>
+                                                    <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                                                    <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                                                    <path d="M9 17h6"/>
+                                                </svg>
                                             </template>
                                         </div>
                                     </template>
-                                </div>
 
-                                {{-- Metadata Timestamp --}}
-                                <div :class="msg.sender === 'user' ? 'text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 mr-1.5 flex items-center gap-1.5' : 'text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 ml-1.5 flex items-center gap-1'">
-                                    <span x-text="msg.time"></span>
-                                    <template x-if="msg.sender === 'user'">
-                                        <span class="flex items-center gap-1 text-slate-400 dark:text-slate-500">
-                                            <span>• Terkirim</span>
-                                            <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                        </span>
-                                    </template>
-                                    <template x-if="msg.sender === 'bot'">
-                                        <span>• Asisten Lab Virtual</span>
-                                    </template>
-                                </div>
+                                    {{-- Konten Bubble Pesan --}}
+                                    <div :class="msg.sender === 'user' 
+                                         ? 'flex flex-col items-end min-w-0 max-w-[85%] sm:max-w-[78%] lg:max-w-[72%]' 
+                                         : 'flex flex-col items-start min-w-0 max-w-[88%] sm:max-w-[82%] lg:max-w-[78%]'">
+                                        
+                                        {{-- Header Nama & Waktu di ATAS Bubble --}}
+                                        <div :class="msg.sender === 'user' ? 'text-[9.5px] sm:text-[10.5px] text-slate-400 dark:text-slate-500 mb-1 mr-1.5 flex items-center gap-1.5 justify-end' : 'text-[9.5px] sm:text-[10.5px] mb-1 ml-1.5 flex items-center gap-1.5 justify-start'">
+                                            <template x-if="msg.sender === 'admin'">
+                                                <span class="text-indigo-600 dark:text-indigo-400 font-bold text-[10px] sm:text-xs">Admin Pengelola Lab</span>
+                                            </template>
+                                            <template x-if="msg.sender === 'bot'">
+                                                <span class="text-slate-700 dark:text-slate-300 font-bold text-[10px] sm:text-xs">Asisten Lab Virtual</span>
+                                            </template>
+                                            <template x-if="msg.sender === 'user'">
+                                                <span class="text-slate-500 dark:text-slate-400 font-semibold">Anda</span>
+                                            </template>
+                                            <span class="text-slate-400 dark:text-slate-500 font-normal" x-text="msg.time"></span>
+                                        </div>
 
-                                {{-- Retry Jika Gagal --}}
-                                <template x-if="msg.failed">
-                                    <div class="mt-1 text-[11px] sm:text-xs text-rose-600 dark:text-rose-400 font-medium">
-                                        Gagal terkirim. <button type="button" @click="retryMessage(msg)" class="underline font-bold">Coba Lagi</button>
+                                        {{-- Bubble Pesan --}}
+                                        <div :class="msg.sender === 'user' 
+                                             ? 'bg-blue-600 text-white rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal' 
+                                             : (msg.sender === 'admin' 
+                                                ? 'bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal'
+                                                : 'bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal')">
+                                            
+                                            <div class="break-words [overflow-wrap:anywhere]" x-html="msg.text"></div>
+                                            
+                                            {{-- Smart Suggestions Chips di Bawah Pesan Bot --}}
+                                            <template x-if="msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0">
+                                                <div class="mt-2.5 pt-2.5 border-t border-slate-300/60 dark:border-slate-700/70 flex flex-wrap gap-1.5 sm:gap-2">
+                                                    <template x-for="(sug, sIndex) in msg.suggestions" :key="sIndex">
+                                                        <button type="button" 
+                                                                @click="handleSuggestionClick(sug)" 
+                                                                class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-700 dark:hover:text-sky-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10.5px] sm:text-xs font-semibold transition-all active:scale-95 shadow-2xs max-w-full">
+                                                            <svg class="w-2.5 h-2.5 text-slate-400 dark:text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                                            </svg>
+                                                            <span class="truncate" x-text="sug.text"></span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        {{-- Status Terkirim / Gagal di Bawah Bubble --}}
+                                        <template x-if="msg.sender === 'user'">
+                                            <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 mr-1.5 flex items-center gap-1">
+                                                <span>Terkirim</span>
+                                                <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            </div>
+                                        </template>
+
+                                        {{-- Retry Jika Gagal --}}
+                                        <template x-if="msg.failed">
+                                            <div class="mt-1 text-[11px] sm:text-xs text-rose-600 dark:text-rose-400 font-medium">
+                                                Gagal terkirim. <button type="button" @click="retryMessage(msg)" class="underline font-bold">Coba Lagi</button>
+                                            </div>
+                                        </template>
                                     </div>
-                                </template>
-                            </div>
 
-                            {{-- Foto Profil User (Kanan Pesan User) --}}
-                            <template x-if="msg.sender === 'user'">
-                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs mt-0.5 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    @if(Auth::user() && Auth::user()->foto)
-                                        <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
-                                    @else
-                                        <span class="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-200">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
-                                    @endif
+                                    {{-- Foto Profil User (Kanan Pesan User) --}}
+                                    <template x-if="msg.sender === 'user'">
+                                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs mt-0.5 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                            @if(Auth::user() && Auth::user()->foto)
+                                                <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
+                                            @else
+                                                <span class="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-200">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
+                                            @endif
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
                         </div>
                     </template>
 
-                    {{-- Typing Indicator (Base UI Bubble Style) --}}
-                    <div x-show="isTyping" class="flex items-start justify-start gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0" style="display: none;">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-700 shadow-2xs mt-0.5">
-                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-                                <rect x="3" y="8" width="18" height="12" rx="3"/>
-                                <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
-                                <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
-                                <path d="M9 17h6"/>
-                            </svg>
-                        </div>
-                        <div class="bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse"></span>
-                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse" style="animation-delay:200ms"></span>
-                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-sky-500 rounded-full animate-pulse" style="animation-delay:400ms"></span>
-                            <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 ml-1.5 font-medium">Asisten sedang menyusun jawaban...</span>
+                    {{-- Typing Indicator (Dinamis: Bot Otomatis vs Customer Service Admin) --}}
+                    <div x-show="isTyping || isCsTyping" class="flex items-start justify-start gap-2 sm:gap-2.5 animate-fade-in w-full min-w-0" style="display: none;">
+                        <template x-if="isCsMode || isCsTyping">
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0 border border-indigo-700 shadow-2xs mt-0.5">
+                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                        </template>
+                        <template x-if="!isCsMode && !isCsTyping">
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-700 shadow-2xs mt-0.5">
+                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                                    <rect x="3" y="8" width="18" height="12" rx="3"/>
+                                    <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                                    <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                                    <path d="M9 17h6"/>
+                                </svg>
+                            </div>
+                        </template>
+                        <div :class="isCsMode || isCsTyping ? 'bg-indigo-50/90 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-indigo-900 dark:text-indigo-200' : 'bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 text-slate-700 dark:text-slate-300'"
+                             class="rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs flex items-center gap-1.5">
+                            <span :class="isCsMode || isCsTyping ? 'bg-indigo-500' : 'bg-sky-500'" class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse"></span>
+                            <span :class="isCsMode || isCsTyping ? 'bg-indigo-500' : 'bg-sky-500'" class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse" style="animation-delay:200ms"></span>
+                            <span :class="isCsMode || isCsTyping ? 'bg-indigo-500' : 'bg-sky-500'" class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse" style="animation-delay:400ms"></span>
+                            <span class="text-[11px] sm:text-xs ml-1.5 font-medium" x-text="isCsMode || isCsTyping ? 'Customer Service sedang mengetik balasan...' : 'Asisten sedang menyusun jawaban...'"></span>
                         </div>
                     </div>
                 </div>
@@ -285,8 +371,16 @@
             <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 shrink-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xs w-full max-w-full min-w-0 overflow-x-hidden">
                 <div class="w-full space-y-2 sm:space-y-2.5 min-w-0">
                     
-                    {{-- Carousel Pilihan Tombol Topik Cepat (Bebas Emoji, Pure SVG Icons) --}}
+                    {{-- Carousel Pilihan Tombol Topik Cepat --}}
                     <div class="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full min-w-0">
+                        {{-- Tombol CS Langsung --}}
+                        <template x-if="!isCsMode">
+                            <button type="button" @click="showCsConfirmModal = true" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 text-[11px] sm:text-xs font-bold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800 transition-colors">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                <span>Hubungi CS Langsung</span>
+                            </button>
+                        </template>
+
                         <button type="button" @click="sendQuickReply('pinjam')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
                             <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             <span>Cara Pinjam</span>
@@ -307,14 +401,6 @@
                             <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>Jam Buka</span>
                         </button>
-                        <button type="button" @click="sendQuickReply('maintenance')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
-                            <span>Lapor Alat</span>
-                        </button>
-                        <button type="button" @click="sendQuickReply('mikrotik')" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 transition-colors">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-                            <span>MikroTik</span>
-                        </button>
                     </div>
 
                     {{-- Form Input Chat --}}
@@ -324,9 +410,9 @@
                                       x-model="inputText"
                                       @input="autoGrow()"
                                       @keydown="handleKeyDown($event)"
-                                      placeholder="Tanyakan hal seputar peminjaman atau lab..."
+                                      :placeholder="isCsMode ? 'Tuliskan pesan langsung ke Customer Service...' : 'Tanyakan hal seputar peminjaman atau lab...'"
                                       rows="1"
-                                      maxlength="400"
+                                      maxlength="500"
                                       class="w-full bg-transparent border-0 text-slate-900 dark:text-slate-100 text-xs sm:text-sm placeholder:text-[11px] sm:placeholder:text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 p-0 py-0.5 resize-none max-h-24 sm:max-h-28 min-h-[32px] sm:min-h-[38px] leading-relaxed"></textarea>
                         </div>
                         
@@ -354,6 +440,41 @@
         {{-- KOLOM KANAN: PUSAT INFORMASI & PANDUAN CEPAT (DESKTOP ONLY) --}}
         <aside class="hidden lg:flex flex-col w-84 xl:w-96 2xl:w-[26rem] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 h-full min-h-0 help-sidebar-scroll overflow-y-auto p-4 sm:p-5 xl:p-6 space-y-5 xl:space-y-6 shrink-0">
             
+            {{-- Panel CS Card --}}
+            <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-2xs">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-white">Customer Service Langsung</h4>
+                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">Terhubung dengan Admin via Telegram</p>
+                    </div>
+                </div>
+                <p class="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Ajukan pertanyaan atau konsultasi langsung dengan pengelola lab tanpa keluar dari antarmuka web ini.
+                </p>
+                <template x-if="!isCsMode">
+                    <button type="button" 
+                            @click="showCsConfirmModal = true" 
+                            class="w-full py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        <span>Mulai Chat CS</span>
+                    </button>
+                </template>
+                <template x-if="isCsMode">
+                    <button type="button" 
+                            @click="showCloseCsModal = true" 
+                            class="w-full py-2 sm:py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95">
+                        <span>Tutup Sesi CS</span>
+                    </button>
+                </template>
+            </div>
+
             {{-- Panel 1: Status & Jam Operasional Lab --}}
             <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-2xs">
                 <div class="flex items-center justify-between gap-2">
@@ -399,36 +520,88 @@
                         <p class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Prosedur pengembalian alat?</p>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Tata cara pengembalian fisik dan verifikasi data.</p>
                     </button>
-                    <button type="button" @click="sendQuickReply('mikrotik')" class="w-full text-left p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 transition-colors group">
-                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Panduan IP Default MikroTik?</p>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Informasi IP address dan reset routerboard.</p>
-                    </button>
                 </div>
-            </div>
-
-            {{-- Panel 3: Kontak Langsung Teknisi (Tema Biru Muda) --}}
-            <div class="bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-2xl p-4 sm:p-4.5 space-y-2.5">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-900 dark:text-white">Butuh Bantuan Langsung?</h4>
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">Hubungi pengurus atau teknisi lab.</p>
-                    </div>
-                </div>
-                <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   class="w-full py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    <span>Hubungi WhatsApp</span>
-                </a>
             </div>
         </aside>
     </div>
 
-    {{-- MODAL HAPUS PERCAKAPAN --}}
+    {{-- MODAL 1: KONFIRMASI HUBUNGI CUSTOMER SERVICE LANGSUNG --}}
+    <div x-show="showCsConfirmModal" 
+         x-cloak
+         @keydown.escape.window="showCsConfirmModal = false"
+         class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
+         style="display: none;" 
+         x-transition.opacity.duration.150ms>
+
+        <div @click.away="showCsConfirmModal = false" 
+             class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm sm:max-w-md shadow-xl border border-slate-200 dark:border-slate-800 text-center"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+
+            <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-indigo-100 dark:border-indigo-800/60">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+            </div>
+
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Hubungi Customer Service Langsung?</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                Apakah Anda ingin berkomunikasi langsung dengan Customer Service / Pengelola Lab? Pesan Anda akan langsung diteruskan ke bot pengelola lab dan admin dapat membalasnya seketika ke layar ini.
+            </p>
+
+            <div class="mt-6 flex gap-3">
+                <button type="button" 
+                        @click="showCsConfirmModal = false" 
+                        class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition-colors">
+                    Batal
+                </button>
+                <button type="button" 
+                        @click="startCsLiveChat()" 
+                        class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-xs active:scale-95">
+                    Mulai Obrolan CS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL 2: KONFIRMASI TUTUP SESI CUSTOMER SERVICE --}}
+    <div x-show="showCloseCsModal" 
+         x-cloak
+         @keydown.escape.window="showCloseCsModal = false"
+         class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
+         style="display: none;" 
+         x-transition.opacity.duration.150ms>
+
+        <div @click.away="showCloseCsModal = false" 
+             class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 text-center"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+
+            <div class="w-12 h-12 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-100 dark:border-amber-800/60">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+            </div>
+
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Akhiri Sesi CS Langsung?</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                Sesi obrolan dengan Customer Service akan ditutup dan Anda akan kembali ke mode Asisten Lab Otomatis.
+            </p>
+
+            <div class="mt-5 flex gap-3">
+                <button type="button" @click="showCloseCsModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors">
+                    Batal
+                </button>
+                <button type="button" @click="closeCsLiveChat()" class="flex-1 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
+                    Tutup Sesi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL 3: BERSIHKAN RIWAYAT PERCAKAPAN --}}
     <div x-show="showClearModal" 
          x-cloak
          @keydown.escape.window="showClearModal = false"
@@ -462,13 +635,21 @@
 </div>
 
 <script>
-function labChatBot() {
+function labChatBot(serverCsSession = null) {
     return {
         messages: [],
         inputText: '',
         isTyping: false,
+        isCsTyping: false,
+        isCsMode: false,
+        sessionCode: serverCsSession || null,
+        lastMessageId: 0,
+        pollingInterval: null,
+        showCsConfirmModal: false,
+        showCloseCsModal: false,
         showClearModal: false,
         showScrollBottomButton: false,
+        csrfToken: '{{ csrf_token() }}',
 
         kbFallback: [
             {
@@ -476,14 +657,16 @@ function labChatBot() {
                 response: '<strong>Alur Lengkap Peminjaman Alat:</strong><br><ol><li>Masuk ke menu <a href="{{ route("katalog.index") }}">Katalog Alat & Pinjam</a> di sidebar.</li><li>Cari dan pilih alat praktikum yang berstatus <em>Tersedia</em>.</li><li>Klik tombol <strong>Pinjam</strong> dan isi formulir keperluan praktikum.</li><li>Tunggu persetujuan pengelola lab, lalu ambil alat di ruang teknisi lab.</li></ol>',
                 suggestions: [
                     { text: 'Cek status pinjam', action: 'status' },
-                    { text: 'Jam operasional lab', action: 'jam' }
+                    { text: 'Jam operasional lab', action: 'jam' },
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' }
                 ]
             },
             {
                 keywords: ['status', 'cek status', 'persetujuan', 'disetujui', 'pending', 'menunggu'],
                 response: '<strong>Cara Cek Status Peminjaman:</strong><br>Buka menu <a href="{{ route("peminjaman.saya") }}">Peminjaman Saya</a>. Status Anda akan tertera: <em>Menunggu Persetujuan</em>, <em>Disetujui</em>, <em>Sedang Dipinjam</em>, atau <em>Selesai</em>.',
                 suggestions: [
-                    { text: 'Prosedur pengembalian', action: 'kembali' }
+                    { text: 'Prosedur pengembalian', action: 'kembali' },
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' }
                 ]
             },
             {
@@ -504,14 +687,14 @@ function labChatBot() {
                 keywords: ['jam', 'buka', 'tutup', 'operasional', 'jadwal'],
                 response: '<strong>Jam Operasional Laboratorium TKJ:</strong><br><ul><li><strong>Senin – Kamis:</strong> 07.00 – 16.00 WIB</li><li><strong>Jumat:</strong> 07.00 – 15.30 WIB</li><li><strong>Sabtu & Minggu:</strong> Libur</li></ul>',
                 suggestions: [
-                    { text: 'Kontak WhatsApp teknisi', action: 'admin' }
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' }
                 ]
             },
             {
                 keywords: ['maintenance', 'rusak', 'perbaikan', 'lapor', 'pecah', 'hilang', 'error'],
                 response: '<strong>Pelaporan Kendala & Maintenance:</strong><br>Jika menemukan perangkat yang rusak atau bermasalah saat praktikum, segera laporkan ke guru pembimbing atau koordinator laboratorium agar dapat dicatat pada modul <strong>Maintenance</strong>.',
                 suggestions: [
-                    { text: 'Kontak WhatsApp pengurus', action: 'admin' }
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' }
                 ]
             },
             {
@@ -543,31 +726,30 @@ function labChatBot() {
                 ]
             },
             {
-                keywords: ['instagram', 'ig', 'sosmed', 'medsos', 'feed'],
-                response: '<strong>Instagram Resmi Lab TKJ:</strong><br>Ikuti dokumentasi dan kegiatan praktikum kami di Instagram resmi: <a href="https://instagram.com/winshark_lab" target="_blank">@winshark_lab</a>',
+                keywords: ['admin', 'cs', 'customer service', 'operator', 'petugas', 'teknisi', 'bantuan langsung'],
+                response: '<strong>Layanan Customer Service Langsung:</strong><br>Anda dapat berkomunikasi dua arah secara langsung dengan Admin/Pengelola Laboratorium.',
                 suggestions: [
-                    { text: 'Kontak WhatsApp admin', action: 'admin' }
-                ]
-            },
-            {
-                keywords: ['admin', 'whatsapp', 'wa', 'kontak', 'hubungi', 'telepon'],
-                response: '<strong>Kontak Pengelola Lab:</strong><br>Hubungi Admin via WhatsApp di <a href="https://wa.me/6287874589054?text=Halo+Admin+Lab+TKJ%2C+saya+butuh+bantuan." target="_blank">0878-7458-9054</a> atau temui langsung di Ruang Teknisi Lab TKJ.',
-                suggestions: [
-                    { text: 'Jam operasional lab', action: 'jam' }
-                ]
-            },
-            {
-                keywords: ['profil', 'sandi', 'password', 'foto', 'ubah profil'],
-                response: '<strong>Pengaturan Akun & Profil:</strong><br>Anda dapat memperbarui foto profil, nama, dan kata sandi melalui halaman <a href="{{ route("profile.edit") }}">Profil Saya</a>.',
-                suggestions: [
-                    { text: 'Cek peminjaman saya', action: 'status' }
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' }
                 ]
             }
         ],
 
         init() {
+            if (this.sessionCode) {
+                this.isCsMode = true;
+                this.startPolling();
+            }
+
             try {
                 const saved = sessionStorage.getItem('lab_chat_messages');
+                const savedCs = sessionStorage.getItem('lab_chat_cs_session');
+
+                if (savedCs && !this.sessionCode) {
+                    this.sessionCode = savedCs;
+                    this.isCsMode = true;
+                    this.startPolling();
+                }
+
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     this.messages = parsed.map(m => {
@@ -588,6 +770,11 @@ function labChatBot() {
         persistMessages() {
             try {
                 sessionStorage.setItem('lab_chat_messages', JSON.stringify(this.messages));
+                if (this.sessionCode) {
+                    sessionStorage.setItem('lab_chat_cs_session', this.sessionCode);
+                } else {
+                    sessionStorage.removeItem('lab_chat_cs_session');
+                }
             } catch(e) {}
         },
 
@@ -595,16 +782,16 @@ function labChatBot() {
             this.messages = [
                 {
                     sender: 'bot',
-                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Selamat datang di <strong>Asisten Lab Virtual</strong>. Saya siap membantu Anda seputar prosedur peminjaman alat praktikum, pengecekan ketersediaan inventaris, panduan konfigurasi jaringan, jadwal operasional, hingga pelaporan kendala alat.<br><br>Ketik pertanyaan Anda di bawah atau pilih topik panduan cepat:',
+                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Selamat datang di <strong>Asisten Lab Virtual</strong>. Saya siap membantu Anda seputar prosedur peminjaman alat praktikum, inventaris, jadwal operasional, hingga panduan perangkat.<br><br>Jika Anda membutuhkan komunikasi dua arah langsung dengan pengelola lab, Anda juga dapat menekan opsi <strong>Hubungi CS Langsung</strong> di bawah.',
                     time: this.getTime(),
                     failed: false,
                     suggestions: [
+                        { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' },
                         { text: 'Cara Pinjam Alat', action: 'pinjam' },
                         { text: 'Cek Status Pinjam', action: 'status' },
                         { text: 'Prosedur Pengembalian', action: 'kembali' },
                         { text: 'Panduan Scan QR', action: 'scan' },
-                        { text: 'Jadwal & Jam Buka', action: 'jam' },
-                        { text: 'Panduan MikroTik', action: 'mikrotik' }
+                        { text: 'Jadwal & Jam Buka', action: 'jam' }
                     ]
                 }
             ];
@@ -649,6 +836,150 @@ function labChatBot() {
             });
         },
 
+        handleSuggestionClick(sug) {
+            if (sug.action === 'cs_direct') {
+                this.showCsConfirmModal = true;
+            } else {
+                this.sendQuickReply(sug.action || sug.text);
+            }
+        },
+
+        async startCsLiveChat() {
+            this.showCsConfirmModal = false;
+            this.isTyping = true;
+
+            try {
+                const res = await fetch('{{ route("bantuan.start-cs") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': this.csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await res.json();
+                this.isTyping = false;
+
+                if (data.status === 'success' && data.session_code) {
+                    this.sessionCode = data.session_code;
+                    this.isCsMode = true;
+
+                    this.messages.push({
+                        sender: 'system',
+                        text: '<strong>Sesi Customer Service Langsung Aktif (' + this.sessionCode + ')</strong><br>Pesan yang Anda ketik akan langsung diteruskan ke bot pengelola lab.',
+                        time: this.getTime()
+                    });
+
+                    this.persistMessages();
+                    this.scrollToBottom(true);
+                    this.startPolling();
+                }
+            } catch (err) {
+                this.isTyping = false;
+                alert('Gagal memulai sesi Customer Service. Silakan periksa koneksi internet Anda.');
+            }
+        },
+
+        startPolling() {
+            this.stopPolling();
+            this.pollMessages();
+            this.pollingInterval = setInterval(() => {
+                if (this.isCsMode && this.sessionCode) {
+                    this.pollMessages();
+                }
+            }, 2000);
+        },
+
+        stopPolling() {
+            if (this.pollingInterval) {
+                clearInterval(this.pollingInterval);
+                this.pollingInterval = null;
+            }
+        },
+
+        async pollMessages() {
+            if (!this.sessionCode) return;
+
+            try {
+                const url = '{{ route("bantuan.poll") }}?session_code=' + encodeURIComponent(this.sessionCode) + '&last_id=' + this.lastMessageId;
+                const res = await fetch(url, { credentials: 'same-origin' });
+                if (!res.ok) return;
+
+                const data = await res.json();
+                if (data && data.messages && data.messages.length > 0) {
+                    let hasNew = false;
+                    data.messages.forEach(m => {
+                        if (m.id > this.lastMessageId) {
+                            this.lastMessageId = m.id;
+                            this.messages.push({
+                                sender: m.sender,
+                                text: m.text,
+                                time: m.time || this.getTime(),
+                                failed: false
+                            });
+                            hasNew = true;
+
+                            // Jika admin membalas, sembunyikan animasi typing
+                            if (m.sender === 'admin') {
+                                this.isCsTyping = false;
+                            }
+                        }
+                    });
+
+                    if (hasNew) {
+                        this.persistMessages();
+                        this.scrollToBottom(true);
+                    }
+                }
+
+                // Sinkronisasi status sedang mengetik dari CS
+                if (data && typeof data.is_typing !== 'undefined') {
+                    this.isCsTyping = Boolean(data.is_typing);
+                }
+
+                if (data && data.status === 'closed' && this.isCsMode) {
+                    this.isCsMode = false;
+                    this.isCsTyping = false;
+                    this.sessionCode = null;
+                    this.stopPolling();
+                    this.persistMessages();
+                }
+            } catch (e) {}
+        },
+
+        async closeCsLiveChat() {
+            this.showCloseCsModal = false;
+            const code = this.sessionCode;
+            this.isCsMode = false;
+            this.isCsTyping = false;
+            this.sessionCode = null;
+            this.stopPolling();
+
+            if (code) {
+                try {
+                    await fetch('{{ route("bantuan.close-cs") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.csrfToken
+                        },
+                        body: JSON.stringify({ session_code: code })
+                    });
+                } catch (e) {}
+            }
+
+            this.messages.push({
+                sender: 'system',
+                text: 'Sesi Customer Service telah ditutup. Anda telah kembali ke mode Asisten Lab Otomatis.',
+                time: this.getTime()
+            });
+
+            this.persistMessages();
+            this.scrollToBottom(true);
+        },
+
         findFallbackAnswer(query, exactOnly = false) {
             const q = query.toLowerCase().trim();
             for (const item of this.kbFallback) {
@@ -664,8 +995,9 @@ function labChatBot() {
             if (exactOnly) return null;
 
             return {
-                reply: 'Terima kasih atas pertanyaannya. Jika Anda membutuhkan bantuan mendesak, silakan hubungi <strong>WhatsApp Teknisi Lab di 0878-7458-9054</strong> atau pilih opsi topik panduan di bawah.',
+                reply: 'Terima kasih atas pertanyaannya. Jika Anda membutuhkan bantuan langsung dari pengelola, silakan pilih menu <strong>Hubungi Customer Service Langsung</strong>.',
                 suggestions: [
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' },
                     { text: 'Cara Pinjam Alat', action: 'pinjam' },
                     { text: 'Cek Status Pinjam', action: 'status' }
                 ]
@@ -694,10 +1026,45 @@ function labChatBot() {
             this.messages.push(userMsg);
             this.persistMessages();
             this.scrollToBottom(true);
-            this.isTyping = true;
 
+            // JIKA MODE CS AKTIF: Kirim langsung ke backend Laravel untuk diteruskan ke Telegram Bot
+            if (this.isCsMode && this.sessionCode) {
+                this.isTyping = false;
+                this.isCsTyping = true;
+                try {
+                    const res = await fetch('{{ route("bantuan.send-cs") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            session_code: this.sessionCode,
+                            message: text
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (data.status === 'success' && data.message_id) {
+                        this.lastMessageId = Math.max(this.lastMessageId, data.message_id);
+                    } else if (data.status === 'error') {
+                        userMsg.failed = true;
+                        this.isCsTyping = false;
+                    }
+                } catch (err) {
+                    this.isCsTyping = false;
+                    userMsg.failed = true;
+                }
+
+                this.persistMessages();
+                this.scrollToBottom(true);
+                return;
+            }
+
+            // JIKA MODE BOT OTOMATIS:
             try {
-                // 1. Cek terlebih dahulu apakah ada jawaban presisi di Knowledge Base internal
                 const localMatch = this.findFallbackAnswer(text, true);
 
                 if (localMatch) {
@@ -765,8 +1132,12 @@ function labChatBot() {
         },
 
         sendQuickReply(keyword) {
+            if (keyword === 'cs_direct') {
+                this.showCsConfirmModal = true;
+                return;
+            }
+
             const labelMap = {
-                'instagram': 'Bagaimana akun Instagram resmi Lab TKJ?',
                 'pinjam': 'Bagaimana alur dan cara meminjam alat laboratorium?',
                 'status': 'Bagaimana cara mengecek status persetujuan peminjaman?',
                 'kembali': 'Bagaimana prosedur pengembalian alat praktikum?',
@@ -778,7 +1149,7 @@ function labChatBot() {
                 'fiber': 'Apa saja peralatan fiber optic di lab TKJ?',
                 'lokasi': 'Dimana lokasi laboratorium TKJ?',
                 'profil': 'Bagaimana cara mengubah profil dan sandi akun?',
-                'admin': 'Saya butuh bantuan kontak WhatsApp admin pengelola'
+                'admin': 'Saya butuh bantuan kontak customer service pengelola'
             };
             const textToSend = labelMap[keyword] || keyword;
             this.sendMessage(textToSend);
@@ -786,6 +1157,10 @@ function labChatBot() {
 
         confirmResetChat() {
             this.showClearModal = false;
+            this.stopPolling();
+            this.isCsMode = false;
+            this.isCsTyping = false;
+            this.sessionCode = null;
             this.messages = [];
             this.persistMessages();
             this.sendWelcome();

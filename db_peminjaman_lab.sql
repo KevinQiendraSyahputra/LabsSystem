@@ -220,4 +220,41 @@ INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `ro
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `role`, `nomor_induk`, `kelas_atau_jabatan`, `telepon`, `remember_token`, `created_at`, `updated_at`) VALUES ('2', 'Bpk. Rian Hidayat, S.Kom', 'guru@labtkj.sch.id', NULL, '$2y$12$bUbK5uAEBKkhlGCIUZyM9eS5xLD5pMgqW4QigTAPZwV/qO.rpRPsq', 'guru', '199003202015021004', 'Guru Produktif TKJ', '082198765432', NULL, '2026-08-19 08:20:46', '2026-08-19 08:20:46');
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `role`, `nomor_induk`, `kelas_atau_jabatan`, `telepon`, `remember_token`, `created_at`, `updated_at`) VALUES ('3', 'Ahmad Fajar', 'siswa@labtkj.sch.id', NULL, '$2y$12$1t1VThtbynmT5qqBlFZfL.Fy5HDOWCOaaSkV2SxTm4CD1PGcWCWEq', 'siswa', '202410101', 'XII TKJ 1', '085712345678', NULL, '2026-08-19 08:20:46', '2026-08-19 08:20:46');
 
+DROP TABLE IF EXISTS `live_chats`;
+CREATE TABLE `live_chats` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `session_code` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `user_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_role` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `telegram_chat_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `telegram_last_message_id` bigint DEFAULT NULL,
+  `admin_typing_until` timestamp NULL DEFAULT NULL,
+  `status` enum('active','closed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `live_chats_session_code_unique` (`session_code`),
+  KEY `live_chats_telegram_last_message_id_index` (`telegram_last_message_id`),
+  KEY `live_chats_user_id_foreign` (`user_id`),
+  CONSTRAINT `live_chats_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `live_chat_messages`;
+CREATE TABLE `live_chat_messages` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `live_chat_id` bigint unsigned NOT NULL,
+  `sender` enum('user','admin','bot','system') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'user',
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telegram_message_id` bigint DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `live_chat_messages_telegram_message_id_index` (`telegram_message_id`),
+  KEY `live_chat_messages_live_chat_id_foreign` (`live_chat_id`),
+  CONSTRAINT `live_chat_messages_live_chat_id_foreign` FOREIGN KEY (`live_chat_id`) REFERENCES `live_chats` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS=1;
