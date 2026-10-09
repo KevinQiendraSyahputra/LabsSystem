@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-4 sm:space-y-6" x-data="{
+<div class="space-y-4 sm:space-y-6" 
+     @peminjaman-updated.window="fetchData()"
+     x-data="{
     search: @js(request('search', '')),
     selectedStatus: @js(request('status', '')),
     statusDropdownOpen: false,
@@ -13,6 +15,9 @@
     init() {
         if (typeof this.search !== 'string') this.search = '';
         if (typeof this.selectedStatus !== 'string') this.selectedStatus = '';
+        this.$watch('deleteModal', value => {
+            document.body.classList.toggle('overflow-hidden', !!value);
+        });
     },
 
     confirmDelete(url, name) {
@@ -428,52 +433,62 @@
     </div>
 
     {{-- MODAL KONFIRMASI HAPUS --}}
-    <div x-show="deleteModal" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" style="display: none;"
-         x-transition:enter="transition ease-out duration-150"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-100"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-        
-        <div @click.away="deleteModal = false" class="bg-white rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 text-center"
+    <template x-teleport="body">
+        <div x-cloak
+             x-show="deleteModal" 
+             @keydown.escape.window="deleteModal = false"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="deleteModalTitle"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
+             style="display: none;"
              x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
              x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95">
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
             
-            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200/60">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </div>
-
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Hapus Data Peminjaman Ini?</h3>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-                Anda akan menghapus data <strong class="text-slate-800" x-text="deleteItemName"></strong>. Tindakan ini tidak dapat dibatalkan.
-            </p>
-
-            <form :action="deleteActionUrl" method="POST" @submit="isSubmitting = true" class="mt-6 flex items-center justify-center gap-3" x-data="{ isSubmitting: false }">
-                @csrf
-                @method('DELETE')
+            <div @click.away="deleteModal = false" 
+                 class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 text-center"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
                 
-                <button type="button" :disabled="isSubmitting" @click="deleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition disabled:opacity-50">
-                    Batal
-                </button>
-                <button type="submit" :disabled="isSubmitting" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
-                    <span x-show="!isSubmitting">Ya, Hapus</span>
-                    <span x-show="isSubmitting" class="flex items-center gap-1.5" style="display: none;">
-                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Menghapus...
-                    </span>
-                </button>
-            </form>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-rose-200/60 shadow-xs">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+
+                <h3 id="deleteModalTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900">Hapus Data Peminjaman Ini?</h3>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+                    Anda akan menghapus data <strong class="text-slate-800" x-text="deleteItemName"></strong>. Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <form :action="deleteActionUrl" method="POST" @submit="isSubmitting = true" class="mt-5 sm:mt-6 flex items-center justify-center gap-2.5 sm:gap-3" x-data="{ isSubmitting: false }">
+                    @csrf
+                    @method('DELETE')
+                    
+                    <button type="button" :disabled="isSubmitting" @click="deleteModal = false" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition disabled:opacity-50">
+                        Batal
+                    </button>
+                    <button type="submit" :disabled="isSubmitting" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                        <span x-show="!isSubmitting">Ya, Hapus</span>
+                        <span x-show="isSubmitting" class="flex items-center gap-1.5" style="display: none;">
+                            <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Menghapus...
+                        </span>
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
+    </template>
 </div>
 @endsection

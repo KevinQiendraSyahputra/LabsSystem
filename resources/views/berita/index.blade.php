@@ -11,6 +11,9 @@
         deleteModal: false,
         deleteActionUrl: '',
         deleteTitle: '',
+        init() {
+            this.$watch('deleteModal', val => document.body.classList.toggle('overflow-hidden', !!val));
+        },
         confirmDelete(url, title) {
             this.deleteActionUrl = url;
             this.deleteTitle = title;
@@ -214,16 +217,17 @@
 
     {{-- Delete Modal --}}
     <template x-teleport="body">
-        <div x-show="deleteModal"
-             x-cloak
+        <div x-cloak
+             x-show="deleteModal"
              @keydown.escape.window="deleteModal = false"
-             class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/45 p-4"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="delete-modal-title"
+             class="fixed inset-0 z-[999999] flex items-center justify-center bg-slate-950/65 backdrop-blur-md p-3 sm:p-4"
+             style="display: none;"
              x-transition.opacity.duration.150ms>
             <div @click.outside="deleteModal = false"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="delete-modal-title"
-                 class="w-full max-w-sm rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl text-center"
+                 class="w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md rounded-2xl sm:rounded-3xl border border-slate-100 bg-white p-5 sm:p-7 shadow-2xl text-center"
                  x-transition:enter="transition ease-out duration-150"
                  x-transition:enter-start="opacity-0 scale-95"
                  x-transition:enter-end="opacity-100 scale-100"
@@ -231,13 +235,13 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95">
 
-                <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200/60">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-rose-200/60 shadow-xs">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
 
-                <h3 id="delete-modal-title" class="text-base sm:text-lg font-extrabold text-slate-900">
+                <h3 id="delete-modal-title" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900">
                     Hapus Pengumuman?
                 </h3>
 
@@ -245,18 +249,18 @@
                     Pengumuman <span class="font-bold text-slate-800" x-text="deleteTitle"></span> akan dihapus secara permanen dari sistem.
                 </p>
 
-                <form :action="deleteActionUrl" method="POST" class="mt-6 flex items-center justify-center gap-3">
+                <form :action="deleteActionUrl" method="POST" class="mt-5 sm:mt-6 flex items-center justify-center gap-2.5 sm:gap-3">
                     @csrf
                     @method('DELETE')
 
                     <button type="button"
                             @click="deleteModal = false"
-                            class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition">
+                            class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition">
                         Batal
                     </button>
 
                     <button type="submit"
-                            class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95">
+                            class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95">
                         Ya, Hapus
                     </button>
                 </form>

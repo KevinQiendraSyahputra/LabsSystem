@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('peminjamans', function (Blueprint $table) {
-            $table->integer('unit_index')->nullable()->after('jumlah_pinjam');
+            if (!Schema::hasColumn('peminjamans', 'unit_index')) {
+                $table->integer('unit_index')->nullable()->after('jumlah_pinjam');
+            }
         });
     }
 
@@ -19,7 +21,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('peminjamans', function (Blueprint $table) {
-            $table->dropColumn('unit_index');
+            if (Schema::hasColumn('peminjamans', 'unit_index')) {
+                $table->dropColumn('unit_index');
+            }
         });
     }
 };

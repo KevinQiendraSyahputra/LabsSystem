@@ -77,3 +77,17 @@ Kegunaan: Tampilan data tabel barang inventaris, filter kategori dinamis, badge 
 
 Path: resources/views/items/form.blade.php
 Kegunaan: Form input penambahan dan pengeditan data barang tanpa auto-cropping horizontal/vertikal.
+ts/InventarisUpdated.php
+Kegunaan: Event real-time perubahan stok, kondisi, penambahan, dan penghapusan data barang inventaris pada channel 'inventaris-tracker'.
+
+E. REALTIME BROADCASTING EVENTS (app/Events/)
+
+Path: app/Even
+Path: app/Events/PeminjamanUpdated.php
+Kegunaan: Event real-time transaksi peminjaman, pengajuan pengembalian, dan persetujuan pengembalian pada channel 'peminjaman-tracker' dan user channel.
+
+Path: app/Events/MaintenanceUpdated.php
+Kegunaan: Event real-time perbaikan dan pencatatan pemeliharaan alat pada channel 'maintenance-tracker'.
+
+Path: app/Events/RealtimeNotificationSent.php
+Kegunaan: Event real-time pengiriman notifikasi instan lintas pengguna dan admin.

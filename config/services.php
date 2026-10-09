@@ -31,4 +31,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'discord' => [
+        'bot_token'      => env('DISCORD_BOT_TOKEN', ''),
+        'channel_id'     => env('DISCORD_CHANNEL_ID', ''),
+        'log_channel_id' => env('DISCORD_LOG_CHANNEL_ID', ''),
+        'enabled'        => (bool) env('DISCORD_ENABLED', false),
+    ],
+
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN', ''),
+        'admin_id'  => env('TELEGRAM_ADMIN_ID', ''),
+        'enabled'   => (bool) env('TELEGRAM_ENABLED', false),
+    ],
+
 ];

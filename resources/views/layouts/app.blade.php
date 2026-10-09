@@ -51,15 +51,18 @@
         (function() {
             try {
                 var storedTheme = localStorage.getItem('theme');
-                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+                // Standar bawaan selalu Light Mode saat pengunjung atau pengguna membuka sistem (tidak dipaksa dark mode dari OS/Browser)
+                if (storedTheme === 'dark') {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.setAttribute('data-theme', 'light');
                 }
-            } catch(e) {}
+            } catch(e) {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
         })();
 
         window.toggleThemeMode = function() {
@@ -143,6 +146,68 @@
                 document.body.classList.add('overflow-hidden');
             }
         };
+
+        // Universal Modal Scroll Lock Engine (Berlaku untuk Seluruh Sistem & Semua Halaman)
+        (function() {
+            let isLocked = false;
+
+            function checkActiveModals() {
+                // Query seluruh overlay modal / card CRUD / dialog preview di halaman
+                const modalOverlays = document.querySelectorAll(
+                    '[role="dialog"], [aria-modal="true"], .fixed.inset-0:not(#sidebarBackdrop):not(#progressBarContainer)'
+                );
+
+                let hasOpenModal = false;
+                modalOverlays.forEach(el => {
+                    if (el.id === 'sidebarBackdrop' || el.id === 'mainSidebar' || el.closest('#mainSidebar')) return;
+                    const style = window.getComputedStyle(el);
+                    if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0)) {
+                        const zIndex = parseInt(style.zIndex, 10) || 0;
+                        if (zIndex >= 30) {
+                            hasOpenModal = true;
+                        }
+                    }
+                });
+
+                const isSidebarOpen = window.Alpine && window.Alpine.store && window.Alpine.store('sidebar') && window.Alpine.store('sidebar').open;
+                const shouldLock = hasOpenModal || (isSidebarOpen && window.innerWidth < 1024);
+
+                if (shouldLock && !isLocked) {
+                    isLocked = true;
+                    document.body.classList.add('has-active-modal');
+                } else if (!shouldLock && isLocked) {
+                    isLocked = false;
+                    document.body.classList.remove('has-active-modal');
+                }
+            }
+
+            const observer = new MutationObserver(() => {
+                requestAnimationFrame(checkActiveModals);
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                observer.observe(document.body, {
+                    attributes: true,
+                    childList: true,
+                    subtree: true,
+                    attributeFilter: ['style', 'class', 'aria-hidden', 'aria-modal', 'x-show']
+                });
+                checkActiveModals();
+            });
+
+            // Prevent background touch scrolling on mobile when modal is active
+            document.addEventListener('touchmove', function(e) {
+                if (document.body.classList.contains('has-active-modal')) {
+                    const scrollableParent = e.target.closest('.overflow-y-auto, .overflow-auto, [class*="overflow-y-"]');
+                    if (!scrollableParent) {
+                        e.preventDefault();
+                    }
+                }
+            }, { passive: false });
+
+            window.syncGlobalScrollLock = checkActiveModals;
+            window.addEventListener('resize', checkActiveModals, { passive: true });
+        })();
     </script>
 
     <!-- Alpine.js CDN -->
@@ -157,6 +222,18 @@
 
     <style>
         [x-cloak] { display: none !important; }
+
+        /* Universal Modal Scroll Lock (Preserves background scroll position) */
+        body.has-active-modal {
+            overflow: hidden !important;
+            touch-action: none !important;
+        }
+
+        [role="dialog"] > div,
+        .fixed.inset-0 .overflow-y-auto {
+            touch-action: pan-y !important;
+            overscroll-behavior: contain !important;
+        }
 
         /* Fluid Responsiveness: Menyesuaikan skala elemen secara proporsional sesuai ukuran device */
         html {
@@ -1890,6 +1967,113 @@
     })();
 </script>
 @endauth
+
+<!-- Realtime WebSocket & Laravel Reverb Integration (Graceful Offline Fallback) -->
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+    (function() {
+        // UI Real-time Toast Handler (Clean Professional SVG, No Emoji)
+        window.showRealtimeToast = function(title, message) {
+            let container = document.getElementById('realtimeToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'realtimeToastContainer';
+                container.className = 'fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto flex items-start gap-3 p-4 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-700/80 transform transition-all duration-300 translate-y-2 opacity-0 dark:bg-slate-800 dark:border-slate-600';
+            toast.innerHTML = `
+                <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-semibold text-white truncate">${title}</h4>
+                    <p class="text-xs text-slate-300 mt-1 line-clamp-2">${message}</p>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-white p-1" onclick="this.closest('div').remove()">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4500);
+        };
+
+        try {
+            const reverbKey = "{{ env('REVERB_APP_KEY', 'uppbzlyjq9xh2ap35fke') }}";
+            const reverbHost = "{{ env('REVERB_HOST', 'localhost') }}";
+            const reverbPort = parseInt("{{ env('REVERB_PORT', 8080) }}", 10) || 8080;
+            const reverbScheme = "{{ env('REVERB_SCHEME', 'http') }}";
+
+            if (window.Pusher && reverbKey) {
+                const pusherClient = new Pusher(reverbKey, {
+                    wsHost: reverbHost,
+                    wsPort: reverbPort,
+                    wssPort: reverbPort,
+                    forceTLS: reverbScheme === 'https',
+                    enabledTransports: ['ws', 'wss'],
+                    disableStats: true,
+                    cluster: 'mt1'
+                });
+
+                // 1. Inventaris Tracker Channel
+                const inventarisChan = pusherClient.subscribe('inventaris-tracker');
+                inventarisChan.bind('InventarisUpdated', function(data) {
+                    window.dispatchEvent(new CustomEvent('inventaris-updated', { detail: data }));
+                    if (data && data.nama_barang) {
+                        window.showRealtimeToast('Inventaris Real-time', 'Data ' + data.nama_barang + ' diperbarui.');
+                    }
+                });
+
+                // 2. Peminjaman Tracker Channel
+                const peminjamanChan = pusherClient.subscribe('peminjaman-tracker');
+                peminjamanChan.bind('PeminjamanUpdated', function(data) {
+                    window.dispatchEvent(new CustomEvent('peminjaman-updated', { detail: data }));
+                    if (data && data.kode_peminjaman) {
+                        window.showRealtimeToast('Peminjaman Real-time', 'Transaksi ' + data.kode_peminjaman + ' status: ' + (data.status || 'Berubah'));
+                    }
+                });
+
+                // 3. Maintenance Tracker Channel
+                const maintenanceChan = pusherClient.subscribe('maintenance-tracker');
+                maintenanceChan.bind('MaintenanceUpdated', function(data) {
+                    window.dispatchEvent(new CustomEvent('maintenance-updated', { detail: data }));
+                    if (data && data.teknisi) {
+                        window.showRealtimeToast('Pemeliharaan Real-time', 'Log pemeliharaan ' + data.teknisi + ' (' + (data.status || 'Update') + ')');
+                    }
+                });
+
+                @auth
+                // 4. Personal User Notification Channel
+                const userChan = pusherClient.subscribe('user.{{ Auth::id() }}');
+                userChan.bind('PeminjamanUpdated', function(data) {
+                    window.dispatchEvent(new CustomEvent('user-peminjaman-updated', { detail: data }));
+                    window.showRealtimeToast('Notifikasi Peminjaman Anda', 'Status peminjaman ' + (data.kode_peminjaman || '') + ' saat ini: ' + (data.status || ''));
+                });
+                userChan.bind('RealtimeNotificationSent', function(data) {
+                    window.dispatchEvent(new CustomEvent('user-notification-received', { detail: data }));
+                    window.showRealtimeToast(data.title || 'Pemberitahuan Sistem', data.message || '');
+                });
+                @endauth
+            }
+        } catch (e) {
+            console.warn('Realtime client initialized in passive/offline fallback mode.');
+        }
+    })();
+</script>
 
 </body>
 </html>

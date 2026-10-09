@@ -260,6 +260,10 @@ class BeritaController extends Controller
      */
     private function markAsRead($user, int $beritaId): void
     {
+        if (!$user) {
+            return;
+        }
+
         $readIds = $this->getReadIds($user);
 
         if (in_array($beritaId, $readIds, true)) {

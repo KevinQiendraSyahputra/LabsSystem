@@ -21,6 +21,7 @@ class User extends Authenticatable
         'kelas_atau_jabatan',
         'laboratorium_penugasan',
         'telepon',
+        'read_beritas',
     ];
 
     protected $hidden = [
@@ -164,7 +165,7 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         if ($this->isKepalaLab()) {
-            return 'Guru (Kepala Lab)';
+            return 'Kepala Lab';
         }
         return self::$roleList[$this->role] ?? ucfirst($this->role);
     }

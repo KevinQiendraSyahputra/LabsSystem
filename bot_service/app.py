@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # Konfigurasi 9Router
-NINEROUTER_BASE_URL = os.getenv("NINEROUTER_BASE_URL", "http://localhost:8000/v1")
+NINEROUTER_BASE_URL = os.getenv("NINEROUTER_BASE_URL", "http://localhost:20128/v1")
 NINEROUTER_API_KEY = os.getenv("NINEROUTER_API_KEY", "sk-5194cd09ab459bfb-rsn0sz-ce29ee51")
 NINEROUTER_MODEL = os.getenv("NINEROUTER_MODEL", "gemini/gemini-3.5-flash-lite")
 

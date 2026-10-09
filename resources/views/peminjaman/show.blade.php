@@ -14,7 +14,18 @@
          isDeleting: false,
          isApproving: false,
          isRejecting: false,
-         isReturning: false
+         isReturning: false,
+
+         init() {
+             const checkLock = () => {
+                 const anyOpen = this.showKembaliModal || this.showApproveModal || this.showRejectModal || this.showDeleteModal;
+                 document.body.classList.toggle('overflow-hidden', anyOpen);
+             };
+             this.$watch('showKembaliModal', checkLock);
+             this.$watch('showApproveModal', checkLock);
+             this.$watch('showRejectModal', checkLock);
+             this.$watch('showDeleteModal', checkLock);
+         }
      }">
 
     {{-- Breadcrumb & Actions --}}
@@ -193,8 +204,10 @@
     {{-- MODAL ADMIN: Konfirmasi Hapus Peminjaman --}}
     @if(Auth::user()->isAdmin())
     <template x-teleport="body">
-        <div x-show="showDeleteModal" 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md" 
+        <div x-cloak
+             x-show="showDeleteModal" 
+             @keydown.escape.window="if(!isDeleting) showDeleteModal = false"
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
              style="display: none;" 
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0"
@@ -203,7 +216,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             <div @click.away="if(!isDeleting) showDeleteModal = false" 
-                 class="bg-white rounded-3xl p-6 sm:p-7 w-full max-w-md shadow-2xl border border-slate-100"
+                 class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 text-center sm:text-left"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -248,8 +261,10 @@
 
     {{-- MODAL USER: Ajukan Pengembalian (Full Screen Blur via Teleport) --}}
     <template x-teleport="body">
-        <div x-show="showKembaliModal" 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md" 
+        <div x-cloak
+             x-show="showKembaliModal" 
+             @keydown.escape.window="if(!isReturning) showKembaliModal = false"
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
              style="display: none;" 
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0"
@@ -258,15 +273,15 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             <div @click.away="if(!isReturning) showKembaliModal = false" 
-                 class="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl border border-slate-100"
+                 class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(26rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2">
-                <h3 class="font-bold text-base text-slate-800 mb-2">Ajukan Pengembalian Alat</h3>
-                <p class="text-xs text-slate-500 mb-4">Pengajuan Anda akan diverifikasi oleh Admin/Teknisi Laboratorium saat barang diserahkan kembali.</p>
+                <h3 class="font-bold text-sm sm:text-base text-slate-800 mb-1.5">Ajukan Pengembalian Alat</h3>
+                <p class="text-xs text-slate-500 mb-4 leading-relaxed">Pengajuan Anda akan diverifikasi oleh Admin/Teknisi Laboratorium saat barang diserahkan kembali.</p>
 
                 <form action="{{ route('peminjaman.ajukan.kembali', $peminjaman->id) }}" method="POST" @submit="isReturning = true" class="space-y-4 text-xs">
                     @csrf
@@ -275,9 +290,9 @@
                         <textarea name="catatan_pengembalian" rows="3" placeholder="Contoh: Alat telah diletakkan di meja teknisi dalam kondisi baik dan lengkap..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"></textarea>
                     </div>
 
-                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" :disabled="isReturning" @click="showKembaliModal = false" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl font-medium disabled:opacity-50">Batal</button>
-                        <button type="submit" :disabled="isReturning" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition flex items-center gap-1.5 active:scale-95">
+                    <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+                        <button type="button" :disabled="isReturning" @click="showKembaliModal = false" class="px-3.5 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium text-xs sm:text-sm transition disabled:opacity-50">Batal</button>
+                        <button type="submit" :disabled="isReturning" class="px-4 sm:px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold text-xs sm:text-sm shadow-xs transition flex items-center gap-1.5 active:scale-95">
                             <svg x-show="isReturning" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -293,8 +308,10 @@
     {{-- MODAL ADMIN: Setujui Pengembalian (Full Screen Blur via Teleport) --}}
     @if(Auth::user()->isAdmin())
     <template x-teleport="body">
-        <div x-show="showApproveModal" 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md" 
+        <div x-cloak
+             x-show="showApproveModal" 
+             @keydown.escape.window="if(!isApproving) showApproveModal = false"
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
              style="display: none;" 
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0"
@@ -303,25 +320,25 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             <div @click.away="if(!isApproving) showApproveModal = false" 
-                 class="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl border border-slate-100"
+                 class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(28rem,calc(100vw-2rem))] sm:max-w-lg shadow-2xl border border-slate-100"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2">
-                <h3 class="font-bold text-base text-slate-800 mb-1">Persetujuan & Pemeriksaan Fisik Alat</h3>
-                <p class="text-xs text-slate-500 mb-4">Periksa kondisi fisik alat sebelum mengonfirmasi pengembalian.</p>
+                <h3 class="font-bold text-sm sm:text-base text-slate-800 mb-1">Persetujuan & Pemeriksaan Fisik Alat</h3>
+                <p class="text-xs text-slate-500 mb-4 leading-relaxed">Periksa kondisi fisik alat sebelum mengonfirmasi pengembalian.</p>
 
                 <form action="{{ route('peminjaman.kembali', $peminjaman->id) }}" method="POST" @submit="isApproving = true" class="space-y-4 text-xs">
                     @csrf
                     <div>
-                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Tanggal Terima Kembali <span class="text-red-500">*</span></label>
+                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Tanggal Terima Kembali <span class="text-rose-500">*</span></label>
                         <input type="date" name="tanggal_kembali_aktual" value="{{ date('Y-m-d') }}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Kondisi Alat Saat Diterima <span class="text-red-500">*</span></label>
+                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Kondisi Alat Saat Diterima <span class="text-rose-500">*</span></label>
                         <select name="kondisi_kembali" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
                             <option value="Baik">Baik (Siap Digunakan Lagi)</option>
                             <option value="Perawatan">Perawatan (Perlu Pengecekan Ringan)</option>
@@ -336,9 +353,9 @@
                         <textarea name="catatan" rows="2" placeholder="Catat kelengkapan kabel, baut, atau kondisi unit..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"></textarea>
                     </div>
 
-                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" :disabled="isApproving" @click="showApproveModal = false" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl font-medium disabled:opacity-50">Batal</button>
-                        <button type="submit" :disabled="isApproving" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-xl font-bold transition flex items-center gap-1.5 active:scale-95">
+                    <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+                        <button type="button" :disabled="isApproving" @click="showApproveModal = false" class="px-3.5 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium text-xs sm:text-sm transition disabled:opacity-50">Batal</button>
+                        <button type="submit" :disabled="isApproving" class="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-xl font-bold text-xs sm:text-sm shadow-xs transition flex items-center gap-1.5 active:scale-95">
                             <svg x-show="isApproving" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -353,8 +370,10 @@
 
     {{-- MODAL ADMIN: Tolak Pengembalian (Full Screen Blur via Teleport) --}}
     <template x-teleport="body">
-        <div x-show="showRejectModal" 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md" 
+        <div x-cloak
+             x-show="showRejectModal" 
+             @keydown.escape.window="if(!isRejecting) showRejectModal = false"
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
              style="display: none;" 
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0"
@@ -363,26 +382,26 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             <div @click.away="if(!isRejecting) showRejectModal = false" 
-                 class="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl border border-slate-100"
+                 class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(26rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2">
-                <h3 class="font-bold text-base text-red-800 mb-1">Tolak Pengajuan Pengembalian</h3>
-                <p class="text-xs text-slate-500 mb-4">Berikan alasan penolakan (misal: barang belum diserahkan fisik atau kelengkapan kurang).</p>
+                <h3 class="font-bold text-sm sm:text-base text-rose-800 mb-1">Tolak Pengajuan Pengembalian</h3>
+                <p class="text-xs text-slate-500 mb-4 leading-relaxed">Berikan alasan penolakan (misal: barang belum diserahkan fisik atau kelengkapan kurang).</p>
 
                 <form action="{{ route('peminjaman.tolak.kembali', $peminjaman->id) }}" method="POST" @submit="isRejecting = true" class="space-y-4 text-xs">
                     @csrf
                     <div>
-                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Alasan Penolakan <span class="text-red-500">*</span></label>
-                        <textarea name="alasan_penolakan" required rows="3" placeholder="Contoh: Unit belum diserahkan ke ruang teknisi atau kabel adaptor belum lengkap..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-red-500 focus:outline-none resize-none"></textarea>
+                        <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Alasan Penolakan <span class="text-rose-500">*</span></label>
+                        <textarea name="alasan_penolakan" required rows="3" placeholder="Contoh: Unit belum diserahkan ke ruang teknisi atau kabel adaptor belum lengkap..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none resize-none"></textarea>
                     </div>
 
-                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" :disabled="isRejecting" @click="showRejectModal = false" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl font-medium disabled:opacity-50">Batal</button>
-                        <button type="submit" :disabled="isRejecting" class="px-5 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-xl font-bold transition flex items-center gap-1.5 active:scale-95">
+                    <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+                        <button type="button" :disabled="isRejecting" @click="showRejectModal = false" class="px-3.5 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium text-xs sm:text-sm transition disabled:opacity-50">Batal</button>
+                        <button type="submit" :disabled="isRejecting" class="px-4 sm:px-5 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-xl font-bold text-xs sm:text-sm shadow-xs transition flex items-center gap-1.5 active:scale-95">
                             <svg x-show="isRejecting" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

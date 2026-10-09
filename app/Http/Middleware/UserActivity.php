@@ -21,7 +21,24 @@ class UserActivity
             $expiresAt = now()->addSeconds(45);
             Cache::put('user-is-online-' . $userId, true, $expiresAt);
             Cache::put('user-last-seen-' . $userId, now()->timestamp, now()->addDays(7));
+
+            // Jika user sedang membuka halaman website, perbarui aktivitas live chat miliknya jika ada
+            try {
+                \App\Models\LiveChat::where('user_id', $userId)
+                    ->where('status', 'active')
+                    ->update([
+                        'updated_at' => now(),
+                    ]);
+            } catch (\Throwable $e) {}
         }
+
+        // Auto-close tiket yang tidak ada percakapan selama 5 menit (dijalankan berkala setiap 15 detik)
+        try {
+            if (!Cache::has('auto_close_tickets_lock')) {
+                Cache::put('auto_close_tickets_lock', true, 15);
+                \App\Services\DiscordService::autoCloseInactiveTickets(5);
+            }
+        } catch (\Throwable $e) {}
 
         return $next($request);
     }

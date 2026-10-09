@@ -78,12 +78,66 @@
         to   { opacity: 1; transform: translateY(0); }
     }
     .animate-fade-in { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    @keyframes bubbleBounceUser {
+        0% {
+            opacity: 0;
+            transform: scale(0.65) translateY(12px) translateX(6px);
+            transform-origin: bottom right;
+        }
+        55% {
+            opacity: 1;
+            transform: scale(1.05) translateY(-3px) translateX(-1px);
+            transform-origin: bottom right;
+        }
+        75% {
+            transform: scale(0.97) translateY(1px);
+            transform-origin: bottom right;
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0) translateX(0);
+            transform-origin: bottom right;
+        }
+    }
+
+    @keyframes bubbleBounceOther {
+        0% {
+            opacity: 0;
+            transform: scale(0.65) translateY(12px) translateX(-6px);
+            transform-origin: bottom left;
+        }
+        55% {
+            opacity: 1;
+            transform: scale(1.05) translateY(-3px) translateX(1px);
+            transform-origin: bottom left;
+        }
+        75% {
+            transform: scale(0.97) translateY(1px);
+            transform-origin: bottom left;
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0) translateX(0);
+            transform-origin: bottom left;
+        }
+    }
+
+    .animate-bubble-bounce-user {
+        animation: bubbleBounceUser 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        will-change: transform, opacity;
+    }
+
+    .animate-bubble-bounce-other {
+        animation: bubbleBounceOther 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        will-change: transform, opacity;
+    }
 </style>
 @endpush
 
 @section('content')
 
-<div x-data="labChatBot('{{ $initialCsSession }}')"
+<div x-data="labChatBot('{{ $initialCsSession }}', {{ json_encode($initialMessages) }}, '{{ $initialAdminName }}', {{ $operationalStatus['is_open'] ? 'true' : 'false' }}, {{ json_encode($operationalStatus['message']) }})"
      x-init="init()"
      class="flex flex-col w-full max-w-full h-full min-h-0 flex-1 bg-slate-50 dark:bg-slate-950 relative select-text overflow-hidden">
     
@@ -102,7 +156,7 @@
                 </svg>
             </button>
 
-            {{-- Avatar Header (Dinamis: Bot vs CS Langsung) --}}
+            {{-- Avatar Header (Dinamis: Bot vs CS Menunggu vs Admin Bernama) --}}
             <div class="relative shrink-0">
                 <template x-if="!isCsMode">
                     <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-200 dark:border-sky-800/80 shadow-2xs">
@@ -116,25 +170,42 @@
                     </div>
                 </template>
                 <template x-if="isCsMode">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800/80 shadow-2xs">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                        </svg>
+                    <div>
+                        <template x-if="adminName">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs border border-indigo-200 dark:border-indigo-700">
+                                <span x-text="adminName.charAt(0).toUpperCase()"></span>
+                            </div>
+                        </template>
+                        <template x-if="!adminName">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800/80 shadow-2xs">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                                </svg>
+                            </div>
+                        </template>
                     </div>
                 </template>
-                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white dark:border-slate-900 rounded-full"
+                      :class="isCsMode && !adminName ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'"></span>
             </div>
 
             {{-- Info Asisten / CS --}}
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                     <h1 class="text-xs sm:text-base font-bold text-slate-900 dark:text-white truncate">
-                        <span x-text="isCsMode ? 'Customer Service Langsung' : 'Asisten Lab'"></span>
+                        <span x-text="isCsMode ? (adminName || 'Customer Service Langsung') : 'Asisten Lab'"></span>
                     </h1>
-                    <span :class="isCsMode ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/80' : 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/80'"
-                          class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold border shrink-0">
-                        {{ ucfirst(Auth::user()->role ?? 'Siswa') }}
-                    </span>
+                    <template x-if="isCsMode">
+                        <span :class="adminName ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/80' : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80'"
+                              class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-bold border shrink-0"
+                              x-text="adminName ? 'Admin' : 'Menunggu Admin'">
+                        </span>
+                    </template>
+                    <template x-if="!isCsMode">
+                        <span class="bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80 inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-semibold shrink-0">
+                            {{ ucfirst(Auth::user()->role ?? 'Siswa') }}
+                        </span>
+                    </template>
                     <template x-if="isCsMode && sessionCode">
                         <span class="inline-flex px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-mono font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shrink-0"
                               x-text="sessionCode">
@@ -142,8 +213,9 @@
                     </template>
                 </div>
                 <p class="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 mt-0.5 truncate">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shrink-0"></span>
-                    <span class="truncate" x-text="isCsMode ? 'Terhubung dengan Admin Pengelola via Telegram' : 'Online • Bantuan Otomatis & CS'"></span>
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                          :class="isCsMode ? (adminName ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse') : 'bg-emerald-500 animate-pulse'"></span>
+                    <span class="truncate" x-text="isCsMode ? (adminName ? 'Aktif Melayani • Admin Pengelola Lab' : 'Menghubungkan ke Admin Lab • Mohon Menunggu') : 'Online • Bantuan Otomatis & CS'"></span>
                 </p>
             </div>
         </div>
@@ -154,32 +226,28 @@
             <template x-if="!isCsMode">
                 <button type="button" 
                         @click="showCsConfirmModal = true" 
-                        title="Hubungi Customer Service Langsung"
-                        class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[11px] sm:text-xs font-bold transition-all shadow-2xs active:scale-95">
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        :title="isOperationalOpen ? 'Hubungi Customer Service Langsung' : 'Customer Service Sedang Tutup (08.00 – 17.00 WIB)'"
+                        class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition-all shadow-2xs active:scale-95"
+                        :class="isOperationalOpen ? 'border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" :class="isOperationalOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
-                    <span>Hubungi CS</span>
+                    <span x-text="isOperationalOpen ? 'Hubungi CS' : 'CS Tutup'"></span>
                 </button>
             </template>
 
-            {{-- Tombol Akhiri Sesi CS jika mode CS aktif --}}
+            {{-- Status Badge Sesi CS jika mode CS aktif (Hanya CS yang dapat menutup) --}}
             <template x-if="isCsMode">
-                <button type="button" 
-                        @click="showCloseCsModal = true" 
-                        title="Akhiri Sesi CS Langsung"
-                        class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[11px] sm:text-xs font-bold transition-all shadow-2xs active:scale-95">
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    <span>Tutup Sesi CS</span>
-                </button>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 text-[11px] sm:text-xs font-bold shadow-2xs">
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Sesi CS Aktif</span>
+                </div>
             </template>
             
             <button type="button" 
                     @click="showClearModal = true" 
                     title="Bersihkan Percakapan"
-                    class="h-7 w-7 sm:h-8.5 sm:w-8.5 flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors shadow-2xs">
+                    class="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors shadow-2xs">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                 </svg>
@@ -215,7 +283,7 @@
                     
                     {{-- Message Bubbles List --}}
                     <template x-for="(msg, index) in messages" :key="index">
-                        <div>
+                        <div :class="shouldShowHeader(index) ? 'mt-3 sm:mt-4' : 'mt-1 sm:mt-1.5'">
                             {{-- Pesan Tipe System --}}
                             <template x-if="msg.sender === 'system'">
                                 <div class="flex justify-center my-2 w-full animate-fade-in">
@@ -231,14 +299,23 @@
                                     
                                     {{-- Avatar Pengirim Bot / Admin CS --}}
                                     <template x-if="msg.sender === 'bot' || msg.sender === 'admin'">
-                                        <div :class="msg.sender === 'admin' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'"
-                                             class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 border shadow-2xs mt-0.5">
-                                            <template x-if="msg.sender === 'admin'">
-                                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                                </svg>
+                                        <div :class="shouldShowHeader(index) 
+                                             ? (msg.sender === 'admin' ? 'bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white border-indigo-700' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700') 
+                                             : 'invisible'"
+                                             class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 border shadow-2xs mt-0.5 font-bold text-xs sm:text-sm">
+                                            <template x-if="shouldShowHeader(index) && msg.sender === 'admin'">
+                                                <div>
+                                                    <template x-if="msg.sender_name || adminName">
+                                                        <span x-text="(msg.sender_name || adminName || 'A').charAt(0).toUpperCase()"></span>
+                                                    </template>
+                                                    <template x-if="!msg.sender_name && !adminName">
+                                                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                        </svg>
+                                                    </template>
+                                                </div>
                                             </template>
-                                            <template x-if="msg.sender === 'bot'">
+                                            <template x-if="shouldShowHeader(index) && msg.sender === 'bot'">
                                                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                                                     <rect x="3" y="8" width="18" height="12" rx="3"/>
@@ -255,26 +332,31 @@
                                          ? 'flex flex-col items-end min-w-0 max-w-[85%] sm:max-w-[78%] lg:max-w-[72%]' 
                                          : 'flex flex-col items-start min-w-0 max-w-[88%] sm:max-w-[82%] lg:max-w-[78%]'">
                                         
-                                        {{-- Header Nama & Waktu di ATAS Bubble --}}
-                                        <div :class="msg.sender === 'user' ? 'text-[9.5px] sm:text-[10.5px] text-slate-400 dark:text-slate-500 mb-1 mr-1.5 flex items-center gap-1.5 justify-end' : 'text-[9.5px] sm:text-[10.5px] mb-1 ml-1.5 flex items-center gap-1.5 justify-start'">
-                                            <template x-if="msg.sender === 'admin'">
-                                                <span class="text-indigo-600 dark:text-indigo-400 font-bold text-[10px] sm:text-xs">Admin Pengelola Lab</span>
-                                            </template>
-                                            <template x-if="msg.sender === 'bot'">
-                                                <span class="text-slate-700 dark:text-slate-300 font-bold text-[10px] sm:text-xs">Asisten Lab Virtual</span>
-                                            </template>
-                                            <template x-if="msg.sender === 'user'">
-                                                <span class="text-slate-500 dark:text-slate-400 font-semibold">Anda</span>
-                                            </template>
-                                            <span class="text-slate-400 dark:text-slate-500 font-normal" x-text="msg.time"></span>
-                                        </div>
+                                        {{-- Header Nama & Waktu di ATAS Bubble (Hanya jika pesan pertama / jam berubah) --}}
+                                        <template x-if="shouldShowHeader(index)">
+                                            <div :class="msg.sender === 'user' ? 'text-[9.5px] sm:text-[10.5px] text-slate-400 dark:text-slate-500 mb-1 mr-1.5 flex items-center gap-1.5 justify-end' : 'text-[9.5px] sm:text-[10.5px] mb-1 ml-1.5 flex items-center gap-1.5 justify-start'">
+                                                <template x-if="msg.sender === 'admin'">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-indigo-600 dark:text-indigo-400 font-bold text-[10px] sm:text-xs" x-text="msg.sender_name || adminName || 'Admin Pengelola Lab'"></span>
+                                                        <span class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[8.5px] sm:text-[9.5px] font-bold px-1.5 py-0.2 rounded border border-indigo-200 dark:border-indigo-800">Admin</span>
+                                                    </div>
+                                                </template>
+                                                <template x-if="msg.sender === 'bot'">
+                                                    <span class="text-slate-700 dark:text-slate-300 font-bold text-[10px] sm:text-xs" x-text="msg.sender_name || 'Asisten Lab Virtual'"></span>
+                                                </template>
+                                                <template x-if="msg.sender === 'user'">
+                                                    <span class="text-slate-500 dark:text-slate-400 font-semibold">Anda</span>
+                                                </template>
+                                                <span class="text-slate-400 dark:text-slate-500 font-normal" x-text="msg.time"></span>
+                                            </div>
+                                        </template>
 
-                                        {{-- Bubble Pesan --}}
+                                        {{-- Bubble Pesan dengan Animasi Bounce Halus --}}
                                         <div :class="msg.sender === 'user' 
-                                             ? 'bg-blue-600 text-white rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal' 
+                                             ? 'bg-blue-600 text-white rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal animate-bubble-bounce-user' 
                                              : (msg.sender === 'admin' 
-                                                ? 'bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal'
-                                                : 'bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal')">
+                                                ? 'bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal animate-bubble-bounce-other'
+                                                : 'bg-slate-200/90 dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-[1.35rem] px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs text-xs sm:text-sm leading-relaxed chat-bubble-content break-words [overflow-wrap:anywhere] max-w-full font-normal animate-bubble-bounce-other')">
                                             
                                             <div class="break-words [overflow-wrap:anywhere]" x-html="msg.text"></div>
                                             
@@ -295,8 +377,8 @@
                                             </template>
                                         </div>
 
-                                        {{-- Status Terkirim / Gagal di Bawah Bubble --}}
-                                        <template x-if="msg.sender === 'user'">
+                                        {{-- Status Terkirim / Gagal di Bawah Bubble (Hanya di Pesan Terakhir dari Rangkaian) --}}
+                                        <template x-if="msg.sender === 'user' && isLastInGroup(index)">
                                             <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 mr-1.5 flex items-center gap-1">
                                                 <span>Terkirim</span>
                                                 <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -313,7 +395,8 @@
 
                                     {{-- Foto Profil User (Kanan Pesan User) --}}
                                     <template x-if="msg.sender === 'user'">
-                                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs mt-0.5 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                        <div :class="shouldShowHeader(index) ? '' : 'invisible'"
+                                             class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 shadow-2xs mt-0.5 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                             @if(Auth::user() && Auth::user()->foto)
                                                 <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
                                             @else
@@ -375,9 +458,12 @@
                     <div class="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full min-w-0">
                         {{-- Tombol CS Langsung --}}
                         <template x-if="!isCsMode">
-                            <button type="button" @click="showCsConfirmModal = true" class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 text-[11px] sm:text-xs font-bold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800 transition-colors">
-                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                                <span>Hubungi CS Langsung</span>
+                            <button type="button" 
+                                    @click="showCsConfirmModal = true" 
+                                    class="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border transition-colors"
+                                    :class="isOperationalOpen ? 'bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" :class="isOperationalOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                <span x-text="isOperationalOpen ? 'Hubungi CS' : 'CS Tutup (08.00 – 17.00)'"></span>
                             </button>
                         </template>
 
@@ -450,13 +536,18 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-bold text-slate-900 dark:text-white">Customer Service Langsung</h4>
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">Terhubung dengan Admin via Telegram</p>
+                        <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400" x-text="isOperationalOpen ? 'Terhubung dengan Admin Lab' : 'Di Luar Jam Operasional'"></p>
                     </div>
                 </div>
                 <p class="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Ajukan pertanyaan atau konsultasi langsung dengan pengelola lab tanpa keluar dari antarmuka web ini.
+                    <template x-if="isOperationalOpen">
+                        <span>Ajukan pertanyaan atau konsultasi langsung dengan pengelola lab tanpa keluar dari antarmuka web ini.</span>
+                    </template>
+                    <template x-if="!isOperationalOpen">
+                        <span>Layanan chat Customer Service aktif pada jam <strong>08.00 – 17.00 WIB</strong> (Senin – Jumat). Di luar jam tersebut, silakan gunakan Asisten Lab Otomatis.</span>
+                    </template>
                 </p>
-                <template x-if="!isCsMode">
+                <template x-if="!isCsMode && isOperationalOpen">
                     <button type="button" 
                             @click="showCsConfirmModal = true" 
                             class="w-full py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95">
@@ -466,12 +557,24 @@
                         <span>Mulai Chat CS</span>
                     </button>
                 </template>
-                <template x-if="isCsMode">
+                <template x-if="!isCsMode && !isOperationalOpen">
                     <button type="button" 
-                            @click="showCloseCsModal = true" 
-                            class="w-full py-2 sm:py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95">
-                        <span>Tutup Sesi CS</span>
+                            @click="showCsConfirmModal = true" 
+                            class="w-full py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-300 dark:border-slate-700">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>CS Tutup (08.00 – 17.00 WIB)</span>
                     </button>
+                </template>
+                <template x-if="isCsMode">
+                    <div class="p-3 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] sm:text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
+                        <div class="flex items-center gap-1.5 font-bold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Sesi CS Sedang Berlangsung</span>
+                        </div>
+                        <p class="text-[10.5px] sm:text-[11px] text-emerald-700 dark:text-emerald-300/90 leading-relaxed">
+                            Sesi ini dikelola langsung oleh Admin CS dan akan diselesaikan oleh admin setelah kendala Anda tuntas.
+                        </p>
+                    </div>
                 </template>
             </div>
 
@@ -479,19 +582,26 @@
             <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-2xs">
                 <div class="flex items-center justify-between gap-2">
                     <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Status Operasional</span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shrink-0">
-                        <span class="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-pulse"></span>
-                        Buka
-                    </span>
+                    @if(!empty($operationalStatus['is_open']))
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shrink-0">
+                            <span class="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-pulse"></span>
+                            Buka
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shrink-0">
+                            <span class="w-1.5 h-1.5 bg-rose-600 rounded-full"></span>
+                            Tutup
+                        </span>
+                    @endif
                 </div>
                 <div class="text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-300 space-y-2 pt-1">
                     <div class="flex items-center justify-between gap-3">
                         <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Senin – Kamis</span>
-                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-right whitespace-nowrap">07.00 – 16.00 WIB</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-right whitespace-nowrap">08.00 – 17.00 WIB</span>
                     </div>
                     <div class="flex items-center justify-between gap-3">
                         <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Jumat</span>
-                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-right whitespace-nowrap">07.00 – 15.30 WIB</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-right whitespace-nowrap">08.00 – 17.00 WIB</span>
                     </div>
                     <div class="flex items-center justify-between gap-3">
                         <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Sabtu & Minggu</span>
@@ -500,7 +610,7 @@
                 </div>
                 <div class="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/80 text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-1.5 leading-relaxed">
                     <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span class="break-words">Gedung Praktikum Barat, Lt. 2 (R. 204 & 205)</span>
+                    <span class="break-words">Ruangan Laboratorium TKJ Lantai dasar</span>
                 </div>
             </div>
 
@@ -525,126 +635,150 @@
         </aside>
     </div>
 
-    {{-- MODAL 1: KONFIRMASI HUBUNGI CUSTOMER SERVICE LANGSUNG --}}
-    <div x-show="showCsConfirmModal" 
-         x-cloak
-         @keydown.escape.window="showCsConfirmModal = false"
-         class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
-         style="display: none;" 
-         x-transition.opacity.duration.150ms>
+    {{-- MODAL 1: KONFIRMASI HUBUNGI CUSTOMER SERVICE LANGSUNG / INFO JAM OPERASIONAL --}}
+    <template x-teleport="body">
+        <div x-cloak
+             x-show="showCsConfirmModal" 
+             @keydown.escape.window="showCsConfirmModal = false"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="csConfirmModalTitle"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
+             style="display: none;" 
+             x-transition.opacity.duration.150ms>
 
-        <div @click.away="showCsConfirmModal = false" 
-             class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm sm:max-w-md shadow-xl border border-slate-200 dark:border-slate-800 text-center"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100">
+            <div @click.away="showCsConfirmModal = false" 
+                 class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(26rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
 
-            <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-indigo-100 dark:border-indigo-800/60">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-            </div>
+                {{-- Mode Buka: Konfirmasi Mulai Chat --}}
+                <template x-if="isOperationalOpen">
+                    <div>
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-indigo-100 dark:border-indigo-800/60 shadow-xs">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
 
-            <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Hubungi Customer Service Langsung?</h2>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                Apakah Anda ingin berkomunikasi langsung dengan Customer Service / Pengelola Lab? Pesan Anda akan langsung diteruskan ke bot pengelola lab dan admin dapat membalasnya seketika ke layar ini.
-            </p>
+                        <h3 id="csConfirmModalTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 dark:text-white">Hubungi Customer Service Langsung?</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                            Apakah Anda ingin berkomunikasi langsung dengan Customer Service / Pengelola Lab? Pesan Anda akan langsung diteruskan ke admin pengelola lab dan admin dapat membalasnya seketika ke layar ini.
+                        </p>
 
-            <div class="mt-6 flex gap-3">
-                <button type="button" 
-                        @click="showCsConfirmModal = false" 
-                        class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition-colors">
-                    Batal
-                </button>
-                <button type="button" 
-                        @click="startCsLiveChat()" 
-                        class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-xs active:scale-95">
-                    Mulai Obrolan CS
-                </button>
+                        <div class="mt-5 sm:mt-6 flex gap-2.5 sm:gap-3">
+                            <button type="button" 
+                                    @click="showCsConfirmModal = false" 
+                                    class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition-colors">
+                                Batal
+                            </button>
+                            <button type="button" 
+                                    @click="startCsLiveChat()" 
+                                    class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-xs active:scale-95">
+                                Mulai Obrolan CS
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Mode Tutup: Informasi Jam Operasional --}}
+                <template x-if="!isOperationalOpen">
+                    <div>
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-amber-100 dark:border-amber-800/60 shadow-xs">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+
+                        <h3 id="csConfirmModalTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 dark:text-white">Customer Service Di Luar Jam Operasional</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                            Layanan komunikasi langsung dengan Customer Service hanya aktif pada jadwal berikut:
+                        </p>
+
+                        <div class="my-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-left text-xs space-y-1.5">
+                            <div class="flex justify-between items-center text-slate-700 dark:text-slate-200">
+                                <span class="font-medium">Senin – Jumat:</span>
+                                <span class="font-bold text-indigo-600 dark:text-indigo-400">08.00 – 17.00 WIB</span>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-700 dark:text-slate-200">
+                                <span class="font-medium">Sabtu & Minggu:</span>
+                                <span class="font-bold text-rose-600 dark:text-rose-400">Libur / Tutup</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Anda tetap dapat mengajukan pertanyaan kepada <strong>Asisten Lab Otomatis</strong> untuk panduan peminjaman dan prosedur laboratorium 24 jam.
+                        </p>
+
+                        <div class="mt-5">
+                            <button type="button" 
+                                    @click="showCsConfirmModal = false" 
+                                    class="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-xs active:scale-95">
+                                Mengerti & Gunakan Bot Otomatis
+                            </button>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
-    </div>
-
-    {{-- MODAL 2: KONFIRMASI TUTUP SESI CUSTOMER SERVICE --}}
-    <div x-show="showCloseCsModal" 
-         x-cloak
-         @keydown.escape.window="showCloseCsModal = false"
-         class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
-         style="display: none;" 
-         x-transition.opacity.duration.150ms>
-
-        <div @click.away="showCloseCsModal = false" 
-             class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 text-center"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100">
-
-            <div class="w-12 h-12 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-100 dark:border-amber-800/60">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-            </div>
-
-            <h2 class="text-base font-bold text-slate-900 dark:text-white">Akhiri Sesi CS Langsung?</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                Sesi obrolan dengan Customer Service akan ditutup dan Anda akan kembali ke mode Asisten Lab Otomatis.
-            </p>
-
-            <div class="mt-5 flex gap-3">
-                <button type="button" @click="showCloseCsModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors">
-                    Batal
-                </button>
-                <button type="button" @click="closeCsLiveChat()" class="flex-1 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
-                    Tutup Sesi
-                </button>
-            </div>
-        </div>
-    </div>
+    </template>
 
     {{-- MODAL 3: BERSIHKAN RIWAYAT PERCAKAPAN --}}
-    <div x-show="showClearModal" 
-         x-cloak
-         @keydown.escape.window="showClearModal = false"
-         class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
-         style="display: none;" 
-         x-transition.opacity.duration.150ms>
+    <template x-teleport="body">
+        <div x-cloak
+             x-show="showClearModal" 
+             @keydown.escape.window="showClearModal = false"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="clearChatModalTitle"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
+             style="display: none;" 
+             x-transition.opacity.duration.150ms>
 
-        <div @click.away="showClearModal = false" 
-             class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-200 dark:border-slate-800 text-center"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100">
+            <div @click.away="showClearModal = false" 
+                 class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
 
-            <div class="w-12 h-12 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-rose-100 dark:border-rose-800/60">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </div>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-rose-100 dark:border-rose-800/60 shadow-xs">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </div>
 
-            <h2 class="text-base font-bold text-slate-900 dark:text-white">Bersihkan Percakapan?</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">Riwayat sesi tanya jawab saat ini akan dihapus dan dimulai ulang.</p>
+                <h3 id="clearChatModalTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 dark:text-white">Bersihkan Percakapan?</h3>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">Riwayat sesi tanya jawab saat ini akan dihapus dan dimulai ulang.</p>
 
-            <div class="mt-5 flex gap-3">
-                <button type="button" @click="showClearModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors">
-                    Batal
-                </button>
-                <button type="button" @click="confirmResetChat()" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
-                    Hapus Riwayat
-                </button>
+                <div class="mt-5 sm:mt-6 flex gap-2.5 sm:gap-3">
+                    <button type="button" @click="showClearModal = false" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition-colors">
+                        Batal
+                    </button>
+                    <button type="button" @click="confirmResetChat()" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-xs active:scale-95">
+                        Hapus Riwayat
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+    </template>
 </div>
 
 <script>
-function labChatBot(serverCsSession = null) {
+function labChatBot(serverCsSession = null, serverMessages = [], serverAdminName = null, isOperationalOpen = true, operationalMessage = '') {
     return {
         messages: [],
         inputText: '',
         isTyping: false,
         isCsTyping: false,
         isCsMode: false,
+        isOperationalOpen: Boolean(isOperationalOpen),
+        operationalMessage: operationalMessage || 'Layanan Customer Service beroperasi Senin – Jumat pukul 08.00 – 17.00 WIB.',
         sessionCode: serverCsSession || null,
+        adminName: serverAdminName || null,
         lastMessageId: 0,
         pollingInterval: null,
+        lastUserActivityTime: Date.now(),
+        inactivityTimeoutMs: 300000, // 5 menit inaktivitas
+        inactivityInterval: null,
         showCsConfirmModal: false,
         showCloseCsModal: false,
         showClearModal: false,
@@ -685,9 +819,10 @@ function labChatBot(serverCsSession = null) {
             },
             {
                 keywords: ['jam', 'buka', 'tutup', 'operasional', 'jadwal'],
-                response: '<strong>Jam Operasional Laboratorium TKJ:</strong><br><ul><li><strong>Senin – Kamis:</strong> 07.00 – 16.00 WIB</li><li><strong>Jumat:</strong> 07.00 – 15.30 WIB</li><li><strong>Sabtu & Minggu:</strong> Libur</li></ul>',
+                response: '<strong>Jam Operasional Layanan & Customer Service Lab:</strong><br><ul><li><strong>Senin – Jumat:</strong> 08.00 – 17.00 WIB</li><li><strong>Sabtu & Minggu:</strong> Libur / Tutup</li></ul><br><em>Layanan chat interaktif Customer Service aktif selama rentang jam operasional di atas. Di luar jam tersebut, Anda tetap dapat menggunakan Asisten Lab Otomatis 24 jam.</em>',
                 suggestions: [
-                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' }
+                    { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' },
+                    { text: 'Cara Pinjam Alat', action: 'pinjam' }
                 ]
             },
             {
@@ -735,6 +870,42 @@ function labChatBot(serverCsSession = null) {
         ],
 
         init() {
+            const checkLock = () => {
+                const anyOpen = this.showCsConfirmModal || this.showClearModal || this.showCloseCsModal;
+                document.body.classList.toggle('overflow-hidden', anyOpen);
+            };
+            this.$watch('showCsConfirmModal', checkLock);
+            this.$watch('showClearModal', checkLock);
+            this.$watch('showCloseCsModal', checkLock);
+
+            if (serverAdminName) {
+                this.adminName = serverAdminName;
+            }
+
+            // JIKA ADA SESI CS DARI SERVER (DATABASE)
+            if (this.sessionCode && Array.isArray(serverMessages) && serverMessages.length > 0) {
+                this.isCsMode = true;
+                this.messages = serverMessages.map(m => ({
+                    id: (typeof m.id === 'number' && m.id < 1000000000) ? m.id : null,
+                    sender: m.sender,
+                    sender_name: m.sender_name || (m.sender === 'admin' ? this.adminName : (m.sender === 'bot' ? 'Asisten Lab Virtual' : null)),
+                    text: m.text,
+                    time: m.time || this.getTime(),
+                    failed: false,
+                    is_system: Boolean(m.is_system)
+                }));
+                const lastAdminMsg = [...this.messages].reverse().find(m => m.sender === 'admin' && m.sender_name);
+                if (lastAdminMsg && !this.adminName) {
+                    this.adminName = lastAdminMsg.sender_name;
+                }
+                this.lastMessageId = this.messages.reduce((max, m) => (typeof m.id === 'number' && m.id < 1000000000) ? Math.max(max, m.id) : max, 0);
+                this.startPolling();
+                this.persistMessages();
+                this.scrollToBottom();
+                this.setupActivityListeners();
+                return;
+            }
+
             if (this.sessionCode) {
                 this.isCsMode = true;
                 this.startPolling();
@@ -743,6 +914,11 @@ function labChatBot(serverCsSession = null) {
             try {
                 const saved = sessionStorage.getItem('lab_chat_messages');
                 const savedCs = sessionStorage.getItem('lab_chat_cs_session');
+                const savedAdmin = sessionStorage.getItem('lab_chat_admin_name');
+
+                if (savedAdmin && !this.adminName) {
+                    this.adminName = savedAdmin;
+                }
 
                 if (savedCs && !this.sessionCode) {
                     this.sessionCode = savedCs;
@@ -756,15 +932,74 @@ function labChatBot(serverCsSession = null) {
                         if (m.sender === 'bot' && m.text) {
                             m.text = this.cleanAndFormatMessage(m.text);
                         }
-                        return m;
+                        return {
+                            ...m,
+                            id: (typeof m.id === 'number' && m.id < 1000000000) ? m.id : null
+                        };
                     });
+                    this.lastMessageId = this.messages.reduce((max, m) => (typeof m.id === 'number' && m.id < 1000000000) ? Math.max(max, m.id) : max, 0);
                 } else {
                     this.sendWelcome();
                 }
             } catch(e) {
                 this.sendWelcome();
             }
+            this.setupActivityListeners();
             this.scrollToBottom();
+        },
+
+        setupActivityListeners() {
+            const touchActivity = () => {
+                this.lastUserActivityTime = Date.now();
+            };
+
+            ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+                window.addEventListener(evt, touchActivity, { passive: true });
+            });
+
+            if (this.inactivityInterval) {
+                clearInterval(this.inactivityInterval);
+            }
+            this.inactivityInterval = setInterval(() => {
+                if (this.isCsMode && this.sessionCode) {
+                    const idleTime = Date.now() - this.lastUserActivityTime;
+                    if (idleTime >= this.inactivityTimeoutMs) {
+                        this.autoCloseDueToInactivity();
+                    }
+                }
+            }, 10000);
+        },
+
+        async autoCloseDueToInactivity() {
+            if (!this.isCsMode || !this.sessionCode) return;
+            const currentCode = this.sessionCode;
+            this.isCsMode = false;
+            this.isCsTyping = false;
+            this.sessionCode = null;
+            this.stopPolling();
+
+            try {
+                await fetch('{{ route("bantuan.close-cs") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': this.csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ session_code: currentCode, reason: 'inactivity' })
+                });
+            } catch (e) {}
+
+            this.messages.push({
+                id: 'temp-' + Date.now(),
+                sender: 'system',
+                text: 'Sesi Customer Service telah ditutup secara otomatis oleh sistem karena tidak ada percakapan selama 5 menit.',
+                time: this.getTime(),
+                failed: false,
+                is_system: true
+            });
+            this.persistMessages();
+            this.scrollToBottom(true);
         },
 
         persistMessages() {
@@ -775,18 +1010,31 @@ function labChatBot(serverCsSession = null) {
                 } else {
                     sessionStorage.removeItem('lab_chat_cs_session');
                 }
+                if (this.adminName) {
+                    sessionStorage.setItem('lab_chat_admin_name', this.adminName);
+                } else {
+                    sessionStorage.removeItem('lab_chat_admin_name');
+                }
             } catch(e) {}
         },
 
         sendWelcome() {
+            const csOptionLabel = this.isOperationalOpen 
+                ? 'Hubungi Customer Service Langsung' 
+                : 'Jadwal CS (08.00 – 17.00 WIB)';
+            const introNotice = this.isOperationalOpen
+                ? 'Jika Anda membutuhkan komunikasi dua arah langsung dengan pengelola lab, Anda juga dapat menekan opsi <strong>Hubungi CS Langsung</strong> di bawah.'
+                : '<em>Catatan: Layanan Customer Service langsung saat ini sedang <strong>Tutup</strong> (Buka Senin – Jumat, pukul 08.00 – 17.00 WIB). Anda tetap dapat menggunakan Asisten Lab Otomatis di bawah ini.</em>';
+
             this.messages = [
                 {
                     sender: 'bot',
-                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Selamat datang di <strong>Asisten Lab Virtual</strong>. Saya siap membantu Anda seputar prosedur peminjaman alat praktikum, inventaris, jadwal operasional, hingga panduan perangkat.<br><br>Jika Anda membutuhkan komunikasi dua arah langsung dengan pengelola lab, Anda juga dapat menekan opsi <strong>Hubungi CS Langsung</strong> di bawah.',
+                    sender_name: 'Asisten Lab Virtual',
+                    text: 'Halo <strong>{{ Auth::user()->name ?? 'Pengguna' }}</strong>!<br><br>Selamat datang di <strong>Asisten Lab Virtual</strong>. Saya siap membantu Anda seputar prosedur peminjaman alat praktikum, inventaris, jadwal operasional, hingga panduan perangkat.<br><br>' + introNotice,
                     time: this.getTime(),
                     failed: false,
                     suggestions: [
-                        { text: 'Hubungi Customer Service Langsung', action: 'cs_direct' },
+                        { text: csOptionLabel, action: 'cs_direct' },
                         { text: 'Cara Pinjam Alat', action: 'pinjam' },
                         { text: 'Cek Status Pinjam', action: 'status' },
                         { text: 'Prosedur Pengembalian', action: 'kembali' },
@@ -846,6 +1094,27 @@ function labChatBot(serverCsSession = null) {
 
         async startCsLiveChat() {
             this.showCsConfirmModal = false;
+
+            if (!this.isOperationalOpen) {
+                this.messages.push({
+                    id: 'temp-' + Date.now(),
+                    sender: 'bot',
+                    sender_name: 'Asisten Lab Virtual',
+                    text: 'Mohon maaf, layanan Customer Service langsung saat ini sedang <strong>Tutup</strong> (di luar jam operasional). Jam operasional kami adalah <strong>Senin – Jumat pukul 08.00 – 17.00 WIB</strong>.<br><br>Anda tetap dapat bertanya kepada saya seputar prosedur peminjaman alat dan panduan laboratorium.',
+                    time: this.getTime(),
+                    failed: false,
+                    is_system: false,
+                    suggestions: [
+                        { text: 'Cara Pinjam Alat', action: 'pinjam' },
+                        { text: 'Cek Status Peminjaman', action: 'status' },
+                        { text: 'Jadwal & Jam Buka', action: 'jam' }
+                    ]
+                });
+                this.persistMessages();
+                this.scrollToBottom(true);
+                return;
+            }
+
             this.isTyping = true;
 
             try {
@@ -862,23 +1131,61 @@ function labChatBot(serverCsSession = null) {
                 const data = await res.json();
                 this.isTyping = false;
 
-                if (data.status === 'success' && data.session_code) {
+                if (res.ok && data.status === 'success' && data.session_code) {
                     this.sessionCode = data.session_code;
+                    this.adminName = null;
                     this.isCsMode = true;
+                    this.lastUserActivityTime = Date.now();
 
-                    this.messages.push({
-                        sender: 'system',
-                        text: '<strong>Sesi Customer Service Langsung Aktif (' + this.sessionCode + ')</strong><br>Pesan yang Anda ketik akan langsung diteruskan ke bot pengelola lab.',
-                        time: this.getTime()
-                    });
+                    const greetingMsg = {
+                        id: (typeof data.greeting_id === 'number' && data.greeting_id < 1000000000) ? data.greeting_id : null,
+                        sender: 'bot',
+                        sender_name: 'Asisten Lab Virtual',
+                        text: data.greeting_text || ('Sesi Customer Service langsung telah aktif (' + this.sessionCode + '). Pesan Anda telah terhubung dengan Admin Pengelola Lab. Mohon menunggu sejenak sementara admin kami membalas pesan Anda. Anda dapat langsung menuliskan pertanyaan atau kendala yang dihadapi di bawah ini.'),
+                        time: this.getTime(),
+                        failed: false,
+                        is_system: false
+                    };
 
+                    if (typeof data.greeting_id === 'number' && data.greeting_id < 1000000000) {
+                        this.lastMessageId = Math.max(this.lastMessageId, data.greeting_id);
+                    }
+
+                    this.messages.push(greetingMsg);
                     this.persistMessages();
                     this.scrollToBottom(true);
                     this.startPolling();
+                } else {
+                    const errMsg = data.message || 'Layanan Customer Service saat ini sedang di luar jam operasional atau tidak dapat diakses.';
+                    this.messages.push({
+                        id: 'temp-' + Date.now(),
+                        sender: 'bot',
+                        sender_name: 'Asisten Lab Virtual',
+                        text: errMsg,
+                        time: this.getTime(),
+                        failed: false,
+                        is_system: false,
+                        suggestions: [
+                            { text: 'Jadwal & Jam Buka', action: 'jam' },
+                            { text: 'Cara Pinjam Alat', action: 'pinjam' }
+                        ]
+                    });
+                    this.persistMessages();
+                    this.scrollToBottom(true);
                 }
             } catch (err) {
                 this.isTyping = false;
-                alert('Gagal memulai sesi Customer Service. Silakan periksa koneksi internet Anda.');
+                this.messages.push({
+                    id: 'temp-' + Date.now(),
+                    sender: 'bot',
+                    sender_name: 'Asisten Lab Virtual',
+                    text: 'Gagal menghubungkan ke layanan Customer Service. Silakan periksa koneksi internet Anda.',
+                    time: this.getTime(),
+                    failed: false,
+                    is_system: false
+                });
+                this.persistMessages();
+                this.scrollToBottom(true);
             }
         },
 
@@ -908,76 +1215,73 @@ function labChatBot(serverCsSession = null) {
                 if (!res.ok) return;
 
                 const data = await res.json();
-                if (data && data.messages && data.messages.length > 0) {
-                    let hasNew = false;
-                    data.messages.forEach(m => {
-                        if (m.id > this.lastMessageId) {
-                            this.lastMessageId = m.id;
-                            this.messages.push({
-                                sender: m.sender,
-                                text: m.text,
-                                time: m.time || this.getTime(),
-                                failed: false
-                            });
-                            hasNew = true;
+                if (data) {
+                    if (data.admin_name) {
+                        this.adminName = data.admin_name;
+                    }
+                    if (data.messages && data.messages.length > 0) {
+                        let hasNew = false;
+                        data.messages.forEach(m => {
+                            const alreadyExists = this.messages.some(existing => existing.id && existing.id === m.id);
+                            if (!alreadyExists) {
+                                if (typeof m.id === 'number' && m.id < 1000000000) {
+                                    this.lastMessageId = Math.max(this.lastMessageId, m.id);
+                                }
+                                this.messages.push({
+                                    id: m.id,
+                                    sender: m.sender,
+                                    sender_name: m.sender_name || (m.sender === 'admin' ? this.adminName : (m.sender === 'bot' ? 'Asisten Lab Virtual' : null)),
+                                    text: m.text,
+                                    time: m.time || this.getTime(),
+                                    failed: false,
+                                    is_system: Boolean(m.is_system)
+                                });
+                                hasNew = true;
 
-                            // Jika admin membalas, sembunyikan animasi typing
-                            if (m.sender === 'admin') {
-                                this.isCsTyping = false;
+                                // Jika admin membalas, perbarui adminName dan sembunyikan animasi typing
+                                if (m.sender === 'admin') {
+                                    if (m.sender_name) {
+                                        this.adminName = m.sender_name;
+                                    }
+                                    this.isCsTyping = false;
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    if (hasNew) {
+                        if (hasNew) {
+                            this.persistMessages();
+                            this.scrollToBottom(true);
+                        }
+                    }
+
+                    // Sinkronisasi status sedang mengetik dari CS
+                    if (typeof data.is_typing !== 'undefined') {
+                        this.isCsTyping = Boolean(data.is_typing);
+                    }
+
+                    if (data.status === 'closed' && this.isCsMode) {
+                        this.isCsMode = false;
+                        this.isCsTyping = false;
+                        this.sessionCode = null;
+                        this.stopPolling();
+
+                        const hasCloseMsg = this.messages.some(m => m.is_system && m.text && m.text.includes('ditutup'));
+                        if (!hasCloseMsg) {
+                            this.messages.push({
+                                id: 'temp-' + Date.now(),
+                                sender: 'system',
+                                text: 'Sesi Customer Service telah diselesaikan dan ditutup oleh Admin Customer Service. Anda telah kembali ke mode Asisten Lab Otomatis.',
+                                time: this.getTime(),
+                                failed: false,
+                                is_system: true
+                            });
+                        }
+
                         this.persistMessages();
                         this.scrollToBottom(true);
                     }
                 }
-
-                // Sinkronisasi status sedang mengetik dari CS
-                if (data && typeof data.is_typing !== 'undefined') {
-                    this.isCsTyping = Boolean(data.is_typing);
-                }
-
-                if (data && data.status === 'closed' && this.isCsMode) {
-                    this.isCsMode = false;
-                    this.isCsTyping = false;
-                    this.sessionCode = null;
-                    this.stopPolling();
-                    this.persistMessages();
-                }
             } catch (e) {}
-        },
-
-        async closeCsLiveChat() {
-            this.showCloseCsModal = false;
-            const code = this.sessionCode;
-            this.isCsMode = false;
-            this.isCsTyping = false;
-            this.sessionCode = null;
-            this.stopPolling();
-
-            if (code) {
-                try {
-                    await fetch('{{ route("bantuan.close-cs") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': this.csrfToken
-                        },
-                        body: JSON.stringify({ session_code: code })
-                    });
-                } catch (e) {}
-            }
-
-            this.messages.push({
-                sender: 'system',
-                text: 'Sesi Customer Service telah ditutup. Anda telah kembali ke mode Asisten Lab Otomatis.',
-                time: this.getTime()
-            });
-
-            this.persistMessages();
-            this.scrollToBottom(true);
         },
 
         findFallbackAnswer(query, exactOnly = false) {
@@ -1016,6 +1320,7 @@ function labChatBot(serverCsSession = null) {
             }
 
             const userMsg = {
+                id: null,
                 sender: 'user',
                 text: this.escapeHtml(text),
                 rawText: text,
@@ -1027,7 +1332,7 @@ function labChatBot(serverCsSession = null) {
             this.persistMessages();
             this.scrollToBottom(true);
 
-            // JIKA MODE CS AKTIF: Kirim langsung ke backend Laravel untuk diteruskan ke Telegram Bot
+            // JIKA MODE CS AKTIF: Kirim langsung ke backend Laravel untuk diteruskan ke Discord & Telegram Bot
             if (this.isCsMode && this.sessionCode) {
                 this.isTyping = false;
                 this.isCsTyping = true;
@@ -1048,10 +1353,23 @@ function labChatBot(serverCsSession = null) {
                     const data = await res.json();
 
                     if (data.status === 'success' && data.message_id) {
-                        this.lastMessageId = Math.max(this.lastMessageId, data.message_id);
+                        userMsg.id = data.message_id;
+                        if (typeof data.message_id === 'number' && data.message_id < 1000000000) {
+                            this.lastMessageId = Math.max(this.lastMessageId, data.message_id);
+                        }
                     } else if (data.status === 'error') {
                         userMsg.failed = true;
                         this.isCsTyping = false;
+                        if (res.status === 403 || (data.message && data.message.includes('operasional'))) {
+                            this.messages.push({
+                                id: 'temp-' + Date.now(),
+                                sender: 'system',
+                                text: data.message || 'Layanan Customer Service saat ini di luar jam operasional (08.00 – 17.00 WIB).',
+                                time: this.getTime(),
+                                failed: false,
+                                is_system: true
+                            });
+                        }
                     }
                 } catch (err) {
                     this.isCsTyping = false;
@@ -1080,7 +1398,7 @@ function labChatBot(serverCsSession = null) {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-                    const response = await fetch('https://bot-lab-tkj-production.up.railway.app/api/chat', {
+                    const response = await fetch('https://dirty-paths-warn.loca.lt/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: text }),
@@ -1157,10 +1475,22 @@ function labChatBot(serverCsSession = null) {
 
         confirmResetChat() {
             this.showClearModal = false;
-            this.stopPolling();
-            this.isCsMode = false;
-            this.isCsTyping = false;
-            this.sessionCode = null;
+
+            // Jika dalam mode CS aktif, bersihkan tampilan lokal tanpa menutup sesi di server (hanya Admin/CS yang dapat menutup sesi)
+            if (this.isCsMode && this.sessionCode) {
+                this.messages = [{
+                    id: 'temp-' + Date.now(),
+                    sender: 'system',
+                    text: 'Riwayat tampilan percakapan telah dibersihkan. Sesi obrolan Anda tetap aktif terhubung dengan Customer Service.',
+                    time: this.getTime(),
+                    failed: false,
+                    is_system: true
+                }];
+                this.persistMessages();
+                this.scrollToBottom(true);
+                return;
+            }
+
             this.messages = [];
             this.persistMessages();
             this.sendWelcome();
@@ -1189,6 +1519,30 @@ function labChatBot(serverCsSession = null) {
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;')
                 .replace(/\n/g, '<br>');
+        },
+
+        shouldShowHeader(index) {
+            if (index === 0) return true;
+            const current = this.messages[index];
+            const prev = this.messages[index - 1];
+            if (!prev || !current) return true;
+            if (current.sender === 'system' || prev.sender === 'system') return true;
+            if (prev.sender !== current.sender) return true;
+            if (prev.sender_name !== current.sender_name) return true;
+            if (prev.time !== current.time) return true;
+            return false;
+        },
+
+        isLastInGroup(index) {
+            if (index === this.messages.length - 1) return true;
+            const current = this.messages[index];
+            const next = this.messages[index + 1];
+            if (!next || !current) return true;
+            if (next.sender === 'system' || current.sender === 'system') return true;
+            if (next.sender !== current.sender) return true;
+            if (next.sender_name !== current.sender_name) return true;
+            if (next.time !== current.time) return true;
+            return false;
         }
     };
 }

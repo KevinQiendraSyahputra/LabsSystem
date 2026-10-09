@@ -69,6 +69,20 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::create($validated);
         $peminjaman->load('barang');
 
+        try {
+            event(new \App\Events\PeminjamanUpdated([
+                'action'          => 'created',
+                'id'              => $peminjaman->id,
+                'user_id'         => $peminjaman->user_id,
+                'nama_peminjam'   => $peminjaman->nama_peminjam,
+                'barang_nama'     => $peminjaman->barang->nama_barang ?? '-',
+                'jumlah_pinjam'   => $peminjaman->jumlah_pinjam,
+                'status'          => $peminjaman->status,
+                'kode_peminjaman' => $peminjaman->kode_peminjaman,
+                'updated_at'      => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
         // Kirim Notifikasi ke Bot Telegram
         try {
             TelegramService::sendPeminjamanBaru($peminjaman);
@@ -133,6 +147,20 @@ class PeminjamanController extends Controller
         $peminjaman->load('barang');
 
         try {
+            event(new \App\Events\PeminjamanUpdated([
+                'action'          => 'status_changed',
+                'id'              => $peminjaman->id,
+                'user_id'         => $peminjaman->user_id,
+                'nama_peminjam'   => $peminjaman->nama_peminjam,
+                'barang_nama'     => $peminjaman->barang->nama_barang ?? '-',
+                'jumlah_pinjam'   => $peminjaman->jumlah_pinjam,
+                'status'          => $peminjaman->status,
+                'kode_peminjaman' => $peminjaman->kode_peminjaman,
+                'updated_at'      => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
+        try {
             TelegramService::sendAjukanKembali($peminjaman, $request->catatan_pengembalian);
         } catch (\Throwable $e) {
             // Silence error
@@ -168,6 +196,20 @@ class PeminjamanController extends Controller
         $peminjaman->load('barang');
 
         try {
+            event(new \App\Events\PeminjamanUpdated([
+                'action'          => 'status_changed',
+                'id'              => $peminjaman->id,
+                'user_id'         => $peminjaman->user_id,
+                'nama_peminjam'   => $peminjaman->nama_peminjam,
+                'barang_nama'     => $peminjaman->barang->nama_barang ?? '-',
+                'jumlah_pinjam'   => $peminjaman->jumlah_pinjam,
+                'status'          => $peminjaman->status,
+                'kode_peminjaman' => $peminjaman->kode_peminjaman,
+                'updated_at'      => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
+        try {
             TelegramService::sendKonfirmasiKembali($peminjaman);
         } catch (\Throwable $e) {
             // Silence error
@@ -191,6 +233,22 @@ class PeminjamanController extends Controller
             'alasan_penolakan' => $request->alasan_penolakan,
         ]);
 
+        $peminjaman->load('barang');
+
+        try {
+            event(new \App\Events\PeminjamanUpdated([
+                'action'          => 'status_changed',
+                'id'              => $peminjaman->id,
+                'user_id'         => $peminjaman->user_id,
+                'nama_peminjam'   => $peminjaman->nama_peminjam,
+                'barang_nama'     => $peminjaman->barang->nama_barang ?? '-',
+                'jumlah_pinjam'   => $peminjaman->jumlah_pinjam,
+                'status'          => $peminjaman->status,
+                'kode_peminjaman' => $peminjaman->kode_peminjaman,
+                'updated_at'      => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
         return redirect()->route('peminjaman.show', $peminjaman)->with('error', 'Pengajuan pengembalian ditolak.');
     }
 
@@ -200,7 +258,19 @@ class PeminjamanController extends Controller
             abort(403, 'Hanya admin yang diizinkan untuk menghapus data peminjaman.');
         }
 
+        $id = $peminjaman->id;
+        $userId = $peminjaman->user_id;
         $peminjaman->delete();
+
+        try {
+            event(new \App\Events\PeminjamanUpdated([
+                'action'     => 'deleted',
+                'id'         => $id,
+                'user_id'    => $userId,
+                'updated_at' => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
         return redirect()->route('peminjaman.index')->with('success', 'Data peminjaman berhasil dihapus!');
     }
 }

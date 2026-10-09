@@ -121,7 +121,21 @@ class BarangController extends Controller
         }
         $validated['kondisi_per_unit'] = json_encode($kondisiPerUnit);
 
-        Barang::create($validated);
+        $barang = Barang::create($validated);
+
+        try {
+            event(new \App\Events\InventarisUpdated([
+                'action'           => 'created',
+                'id'               => $barang->id,
+                'nama_barang'      => $barang->nama_barang,
+                'kode_barang'      => $barang->kode_barang,
+                'kategori'         => $barang->kategori,
+                'jumlah'           => $barang->jumlah,
+                'kondisi'          => $barang->kondisi,
+                'kondisi_per_unit' => $barang->kondisi_per_unit,
+                'updated_at'       => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil ditambahkan! Kode: ' . $validated['kode_barang']);
     }
@@ -200,6 +214,20 @@ class BarangController extends Controller
 
         $barang->update($validated);
 
+        try {
+            event(new \App\Events\InventarisUpdated([
+                'action'           => 'updated',
+                'id'               => $barang->id,
+                'nama_barang'      => $barang->nama_barang,
+                'kode_barang'      => $barang->kode_barang,
+                'kategori'         => $barang->kategori,
+                'jumlah'           => $barang->jumlah,
+                'kondisi'          => $barang->kondisi,
+                'kondisi_per_unit' => $barang->kondisi_per_unit,
+                'updated_at'       => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
         return redirect()->route('barang.index')->with('success', 'Data barang ' . $barang->nama_barang . ' berhasil diperbarui!');
     }
 
@@ -241,6 +269,20 @@ class BarangController extends Controller
                 'kondisi'          => $globalKondisi,
             ]);
 
+            try {
+                event(new \App\Events\InventarisUpdated([
+                    'action'           => 'updated_kondisi',
+                    'id'               => $barang->id,
+                    'nama_barang'      => $barang->nama_barang,
+                    'kode_barang'      => $barang->kode_barang,
+                    'kategori'         => $barang->kategori,
+                    'jumlah'           => $barang->jumlah,
+                    'kondisi'          => $globalKondisi,
+                    'kondisi_per_unit' => $barang->kondisi_per_unit,
+                    'updated_at'       => now()->toDateTimeString(),
+                ]));
+            } catch (\Throwable $e) {}
+
             return response()->json([
                 'status'         => 'success',
                 'message'        => 'Kondisi ' . $barang->nama_barang . ' Unit ' . $unitIndex . ' berhasil diubah menjadi ' . $validated['kondisi'] . '!',
@@ -252,6 +294,20 @@ class BarangController extends Controller
 
         $barang->update(['kondisi' => $validated['kondisi']]);
 
+        try {
+            event(new \App\Events\InventarisUpdated([
+                'action'           => 'updated_kondisi',
+                'id'               => $barang->id,
+                'nama_barang'      => $barang->nama_barang,
+                'kode_barang'      => $barang->kode_barang,
+                'kategori'         => $barang->kategori,
+                'jumlah'           => $barang->jumlah,
+                'kondisi'          => $validated['kondisi'],
+                'kondisi_per_unit' => $barang->kondisi_per_unit,
+                'updated_at'       => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'status'         => 'success',
             'message'        => 'Kondisi barang berhasil diubah menjadi ' . $validated['kondisi'] . '!',
@@ -261,8 +317,17 @@ class BarangController extends Controller
 
     public function destroy(Barang $barang)
     {
+        $id = $barang->id;
         $this->safeDeleteFoto($barang->foto);
         $barang->delete();
+
+        try {
+            event(new \App\Events\InventarisUpdated([
+                'action'     => 'deleted',
+                'id'         => $id,
+                'updated_at' => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus!');
     }
@@ -278,14 +343,26 @@ class BarangController extends Controller
         ]);
 
         $count = 0;
-        DB::transaction(function () use ($validated, &$count) {
+        $deletedIds = [];
+        DB::transaction(function () use ($validated, &$count, &$deletedIds) {
             $barangs = Barang::whereIn('id', $validated['ids'])->get();
             foreach ($barangs as $barang) {
+                $deletedIds[] = $barang->id;
                 $this->safeDeleteFoto($barang->foto);
                 $barang->delete();
                 $count++;
             }
         });
+
+        try {
+            foreach ($deletedIds as $delId) {
+                event(new \App\Events\InventarisUpdated([
+                    'action'     => 'deleted',
+                    'id'         => $delId,
+                    'updated_at' => now()->toDateTimeString(),
+                ]));
+            }
+        } catch (\Throwable $e) {}
 
         return redirect()->route('barang.index')->with('success', "{$count} data barang berhasil dihapus!");
     }

@@ -50,6 +50,8 @@
     search: @js(request('search', '')),
     role: @js(request('role', '')),
     perPage: @js((int) request('per_page', 10)),
+    goToPageInput: '',
+    showFilterSection: true,
     openRoleFilter: false,
     openPerPage: false,
     selectedRows: [],
@@ -60,7 +62,6 @@
     init() {
         this.startStatusPolling();
         if (this._loadingDone) return;
-        document.body.style.overflow = 'hidden';
         this.verifyAndCompleteLoading();
     },
 
@@ -70,7 +71,7 @@
             if (document.visibilityState === 'visible') {
                 this.checkOnlineStatuses();
             }
-        }, 3000);
+        }, 3000);+
     },
 
     async checkOnlineStatuses() {
@@ -224,6 +225,20 @@
         this.fetchData(null, false);
     },
 
+    goToPage() {
+        const page = parseInt(this.goToPageInput, 10);
+        if (page && page >= 1) {
+            const params = new URLSearchParams();
+            if (this.search) params.append('search', this.search);
+            if (this.role) params.append('role', this.role);
+            if (this.perPage) params.append('per_page', this.perPage);
+            params.append('page', page);
+            const targetUrl = '{{ route('pengguna.index') }}?' + params.toString();
+            this.fetchData(targetUrl, false);
+            this.goToPageInput = '';
+        }
+    },
+
     confirmDelete(url, name) {
         this.deleteActionUrl = url;
         this.deleteUserName = name;
@@ -254,301 +269,108 @@
         </div>
     </div>
 
-    {{-- PAGE HEADER (Gentelella v4 Style) --}}
-    <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <div>
-            <div class="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Data Master</div>
-            <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Kelola Pengguna</h1>
+    {{-- CRM HEADER & OUTLINED FILTER BAR --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs mb-4 sm:mb-6 overflow-visible" x-data="{ openModal: false, isSubmittingStore: false }">
+        {{-- Row 1: Header / Title & Action Buttons --}}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div>
+                <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Data Master</div>
+                <h1 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Setting Pengguna & Hak Akses</h1>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                {{-- Tombol Filter Toggle --}}
+                <button type="button" 
+                        @click="showFilterSection = !showFilterSection" 
+                        class="h-9 sm:h-10 px-3.5 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 inline-flex items-center gap-1.5 transition active:scale-95 shadow-2xs">
+                    <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>hhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                    </svg>
+                    <span>Filter</span>
+                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{'rotate-180': showFilterSection}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                {{-- Tombol Hapus Massal --}}
+                <button type="button" 
+                        x-show="selectedRows.length > 0" 
+                        @click="confirmBulkDelete()" 
+                        class="h-9 sm:h-10 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-lg border border-rose-300 dark:border-rose-700 bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] sm:text-xs font-semibold shadow-2xs transition-colors" 
+                        style="display: none;">
+                    <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    <span>Hapus (<span x-text="selectedRows.length"></span>)</span>
+                </button>
+
+                {{-- Tombol Batal Pilihan --}}
+                <button type="button" 
+                        x-show="selectedRows.length > 0" 
+                        @click="selectedRows = []; selectAll = false" 
+                        class="h-9 sm:h-10 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] sm:text-xs font-semibold shadow-2xs transition-colors active:scale-95" 
+                        style="display: none;">
+                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span>Batal</span>
+                </button>
+
+                {{-- Tombol Segarkan --}}
+                <button type="button" @click="fetchData(null, true)" class="h-9 sm:h-10 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-2xs transition active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>Segarkan</span>
+                </button>
+
+                {{-- Tombol Tambah Pengguna --}}
+                <button type="button" @click="openModal = true" class="h-9 sm:h-10 px-3.5 sm:px-4 inline-flex items-center gap-1.5 sm:gap-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-[11px] sm:text-xs font-semibold shadow-sm transition active:scale-95">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Tambah Pengguna</span>
+                </button>
+            </div>
         </div>
-        
-        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto" x-data="{ openModal: false, isSubmittingStore: false }">
-            
-            {{-- Tombol Hapus Massal --}}
-            <button type="button" 
-                    x-show="selectedRows.length > 0" 
-                    @click="confirmBulkDelete()" 
-                    class="h-8.5 sm:h-9 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700 bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] sm:text-xs font-semibold shadow-2xs transition-colors" 
-                    style="display: none;">
-                <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                <span>Hapus (<span x-text="selectedRows.length"></span>)</span>
-            </button>
 
-            {{-- Tombol Batal Pilihan --}}
-            <button type="button" 
-                    x-show="selectedRows.length > 0" 
-                    @click="selectedRows = []; selectAll = false" 
-                    class="h-8.5 sm:h-9 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] sm:text-xs font-semibold shadow-2xs transition-colors active:scale-95" 
-                    style="display: none;">
-                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                <span>Batal</span>
-            </button>
-
-            {{-- Tombol Segarkan --}}
-            <button type="button" @click="fetchData(null, true)" class="h-8.5 sm:h-9 px-3 sm:px-3.5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs transition active:scale-95">
-                <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                <span>Segarkan</span>
-            </button>
-
-            {{-- Tombol Tambah Pengguna --}}
-            <button type="button" @click="openModal = true" class="h-8.5 sm:h-9 px-3.5 sm:px-4 inline-flex items-center gap-1.5 sm:gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-bold shadow-sm transition active:scale-95">
-                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span>Tambah Pengguna</span>
-            </button>
-
-            {{-- Modal Tambah Pengguna --}}
-            <div x-show="openModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md" style="display: none;" x-transition>
-                <div @click.away="if(!isSubmittingStore) openModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[92vh] overflow-y-auto">
-                    <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
-                        <div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Formulir Akun</div>
-                            <h3 class="font-bold text-base text-slate-800 dark:text-white">Tambah Pengguna Baru</h3>
-                        </div>
-                        <button type="button" @click="openModal = false" :disabled="isSubmittingStore" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        {{-- Row 2: Outlined Filter Form --}}
+        <div x-show="showFilterSection"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
+            <form id="filterForm" @submit.prevent="fetchData()" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
+                
+                {{-- Select: Peran / Role (Outlined Floating Label) --}}
+                <div class="sm:col-span-1 lg:col-span-4 relative" @click.outside="openRoleFilter = false">
+                    <div class="relative bg-white dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-700 focus-within:border-slate-500 dark:focus-within:border-slate-400 transition group">
+                        <label class="absolute -top-2.5 left-3 px-1.5 bg-white dark:bg-slate-900 text-[10.5px] sm:text-[11px] font-medium text-slate-600 dark:text-slate-400 tracking-wider uppercase z-10 pointer-events-none rounded">
+                            Peran (Role)
+                        </label>
+                        <input type="hidden" name="role" :value="role">
+                        <button type="button" @click.stop="openRoleFilter = !openRoleFilter"
+                                class="w-full h-11 px-3.5 flex items-center justify-between text-left text-xs sm:text-sm font-semibold rounded-lg bg-transparent focus:outline-none">
+                            <span class="truncate text-slate-800 dark:text-slate-100 uppercase" x-text="{
+                                '': 'SEMUA PERAN',
+                                'admin': 'ADMIN',
+                                'kepala_lab': 'KEPALA LAB',
+                                'koordinator_lab': 'KOORDINATOR LAB',
+                                'guru': 'GURU',
+                                'siswa': 'SISWA'
+                            }[role] || 'SEMUA PERAN'">SEMUA PERAN</span>
+                            <div class="flex items-center text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition shrink-0 ml-1.5">
+                                <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': openRoleFilter}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
                         </button>
                     </div>
 
-                    <form action="{{ route('pengguna.store') }}" method="POST" class="space-y-4 text-xs"
-                          @submit="isSubmittingStore = true"
-                          x-data="{ selectedRole: 'siswa', openRoleForm: false, openLabForm: false, selectedLab: '' }"
-                          @click.outside.of=$el="openRoleForm = false; openLabForm = false">
-                        @csrf
-                        <div>
-                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                            <input type="text" name="name" required placeholder="Contoh: Muhammad Rizky" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Alamat Email <span class="text-rose-500">*</span></label>
-                                <input type="email" name="email" required placeholder="rizky@sekolah.sch.id" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
-                            </div>
-                            
-                            {{-- Dropdown Role: Tambah --}}
-                            <div class="relative" @click.outside="openRoleForm = false">
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Peran (Role) <span class="text-rose-500">*</span></label>
-                                <input type="hidden" name="role" :value="selectedRole" required>
-
-                                <button type="button" @click="openRoleForm = !openRoleForm"
-                                        class="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800': openRoleForm}">
-                                    <span class="text-slate-800 dark:text-slate-200" x-text="{
-                                        'admin': 'Admin',
-                                        'kepala_lab': 'Kepala Laboratorium',
-                                        'koordinator_lab': 'Koordinator Lab',
-                                        'guru': 'Guru',
-                                        'siswa': 'Siswa'
-                                    }[selectedRole] || selectedRole"></span>
-                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180 text-indigo-600': openRoleForm}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </button>
-
-                                <div x-show="openRoleForm"
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-2 scale-95"
-                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                     class="absolute z-30 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
-                                     style="display: none;">
-                                    @foreach(['siswa' => 'Siswa', 'guru' => 'Guru', 'koordinator_lab' => 'Koordinator Laboratorium', 'kepala_lab' => 'Kepala Laboratorium', 'admin' => 'Admin'] as $val => $label)
-                                        <button type="button" @click="selectedRole = '{{ $val }}'; openRoleForm = false"
-                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                :class="{'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400': selectedRole === '{{ $val }}', 'text-slate-700 dark:text-slate-300': selectedRole !== '{{ $val }}'}">
-                                            <span>{{ $label }}</span>
-                                            <svg x-show="selectedRole === '{{ $val }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Field Lab Penugasan: Tambah --}}
-                        <div x-show="selectedRole === 'koordinator_lab'"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 -translate-y-2"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 -translate-y-2"
-                             style="display:none;">
-                            <div class="relative bg-indigo-50/50 dark:bg-indigo-950/30 rounded-2xl p-3.5 border border-indigo-200/70 dark:border-indigo-800/60" @click.outside="openLabForm = false">
-                                <label class="flex items-center gap-1.5 font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider mb-2 text-[10.5px]">
-                                    <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                    </svg>
-                                    <span>Laboratorium Penugasan <span class="text-rose-500">*</span></span>
-                                </label>
-                                <input type="hidden" name="laboratorium_penugasan" :value="selectedLab">
-                                
-                                <button type="button" @click="openLabForm = !openLabForm"
-                                        class="w-full flex items-center justify-between bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800/80 rounded-xl p-2.5 text-xs sm:text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
-                                        :class="{'border-indigo-500 ring-2 ring-indigo-500/20': openLabForm}">
-                                    <span :class="selectedLab ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'" x-text="selectedLab || 'Pilih Laboratorium'"></span>
-                                    <svg class="w-4 h-4 text-indigo-400 transition-transform duration-200" :class="{'rotate-180': openLabForm}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </button>
-
-                                <div x-show="openLabForm"
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                     class="absolute z-40 w-full left-0 mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
-                                     style="display:none;">
-                                    @foreach($laboratoriumList as $labItem)
-                                        <button type="button" @click="selectedLab = '{{ $labItem }}'; openLabForm = false"
-                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                :class="{'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400': selectedLab === '{{ $labItem }}', 'text-slate-700 dark:text-slate-300': selectedLab !== '{{ $labItem }}'}">
-                                            <span>{{ $labItem }}</span>
-                                            <svg x-show="selectedLab === '{{ $labItem }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">NIS / NIP</label>
-                                <input type="text" name="nomor_induk" placeholder="Contoh: 20241005" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
-                            </div>
-
-                            {{-- Dropdown: Kelas / Jabatan (Tambah) --}}
-                            <div class="relative" x-data="{ openJabatan: false, selectedJabatan: 'Guru Produktif TKJ' }" x-show="selectedRole === 'siswa' || selectedRole === 'guru' || selectedRole === 'kepala_lab'" @click.outside="openJabatan = false">
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                                    <span x-text="selectedRole === 'siswa' ? 'Kelas' : 'Jabatan / Posisi Guru'"></span>
-                                    <span x-show="selectedRole === 'siswa'" class="text-rose-500">*</span>
-                                </label>
-                                <input type="hidden" name="kelas_atau_jabatan" :value="selectedJabatan">
-
-                                <button type="button" @click="openJabatan = !openJabatan"
-                                        class="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800': openJabatan}">
-                                    <span class="truncate text-slate-800 dark:text-slate-200" x-text="selectedJabatan || 'Pilih Jabatan/Kelas'"></span>
-                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180 text-indigo-600': openJabatan}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </button>
-
-                                <div x-show="openJabatan"
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-2 scale-95"
-                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                     class="absolute z-30 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 max-h-56 overflow-y-auto"
-                                     style="display: none;">
-                                    @foreach($daftarJabatanKelas as $grup => $items)
-                                        <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-50/80 dark:bg-slate-800/80">{{ $grup }}</div>
-                                        @foreach($items as $itemJabatan)
-                                            <button type="button" @click="selectedJabatan = '{{ $itemJabatan }}'; openJabatan = false"
-                                                    class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                    :class="{'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400': selectedJabatan === '{{ $itemJabatan }}', 'text-slate-700 dark:text-slate-300': selectedJabatan !== '{{ $itemJabatan }}'}">
-                                                <span>{{ $itemJabatan }}</span>
-                                                <svg x-show="selectedJabatan === '{{ $itemJabatan }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </button>
-                                        @endforeach
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">No. WhatsApp / HP</label>
-                                <input type="text" name="telepon" placeholder="081234567890" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Password <span class="text-rose-500">*</span></label>
-                                <input type="password" name="password" required placeholder="Minimal 6 karakter" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-                            <button type="button" @click="openModal = false" :disabled="isSubmittingStore" class="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-medium disabled:opacity-50 transition">Batal</button>
-                            <button type="submit" :disabled="isSubmittingStore" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition active:scale-95 shadow-sm">
-                                <svg x-show="isSubmittingStore" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span x-text="isSubmittingStore ? 'Menyimpan...' : 'Simpan Pengguna'"></span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- CARD UTAMA DATA PENGGUNA --}}
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
-        
-        {{-- Card Header --}}
-        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Semua Pengguna</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar seluruh akun pengguna laboratorium, kontak, dan hak akses.</p>
-            </div>
-        </div>
-
-        {{-- Toolbar: Search & Filters --}}
-        <div class="p-3.5 sm:p-4 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <form id="filterForm" @submit.prevent="fetchData()" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 flex-1">
-                
-                {{-- Search Input (Gentelella Style with Icon) --}}
-                <div class="relative w-full sm:w-72 md:w-80">
-                    <div class="absolute inset-y-0 left-0 pl-3 sm:pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
-                    <input type="text" 
-                           name="search" 
-                           x-model="search" 
-                           placeholder="Cari nama, email, NIS, NIP..." 
-                           class="w-full pl-8 sm:pl-9 pr-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition shadow-2xs">
-                </div>
-
-                {{-- Filter Role Dropdown --}}
-                <div class="relative w-full sm:w-48 md:w-56" @click.outside="openRoleFilter = false">
-                    <input type="hidden" name="role" :value="role">
-                    <button type="button" @click.stop="openRoleFilter = !openRoleFilter"
-                            class="w-full flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold shadow-2xs transition hover:bg-slate-50 dark:hover:bg-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                            :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-950/20': openRoleFilter}">
-                        <span class="truncate text-slate-750 dark:text-slate-200" x-text="{
-                            '': 'Semua Peran (Role)',
-                            'admin': 'Admin',
-                            'kepala_lab': 'Kepala Lab',
-                            'koordinator_lab': 'Koordinator Lab',
-                            'guru': 'Guru',
-                            'siswa': 'Siswa'
-                        }[role] || 'Semua Peran (Role)'">Semua Peran (Role)</span>
-                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ml-1.5" :class="{'rotate-180 text-indigo-600': openRoleFilter}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-
+                    {{-- Dropdown Menu (Overlaid above cards, z-[80]) --}}
                     <div x-show="openRoleFilter"
                          x-transition:enter="transition ease-out duration-150"
                          x-transition:enter-start="opacity-0 translate-y-1.5 scale-95"
@@ -556,22 +378,22 @@
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                          x-transition:leave-end="opacity-0 translate-y-1.5 scale-95"
-                         class="absolute left-0 z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 overflow-hidden"
+                         class="absolute left-0 z-[80] w-full mt-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-700 py-1.5 overflow-hidden"
                          style="display: none;">
                         <button type="button" @click="selectRole('')"
-                                class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200"
-                                :class="{'bg-slate-100 dark:bg-slate-700/80 font-bold': role === ''}">
-                            <span>Semua Peran (Role)</span>
-                            <svg x-show="role === ''" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"
+                                :class="{'bg-slate-100 dark:bg-slate-700 font-bold': role === ''}">
+                            <span>SEMUA PERAN</span>
+                            <svg x-show="role === ''" class="w-3.5 h-3.5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                             </svg>
                         </button>
-                        @foreach(['admin' => 'Admin', 'kepala_lab' => 'Kepala Laboratorium', 'koordinator_lab' => 'Koordinator Lab', 'guru' => 'Guru', 'siswa' => 'Siswa'] as $rVal => $rLabel)
+                        @foreach(['admin' => 'ADMIN', 'kepala_lab' => 'KEPALA LABORATORIUM', 'koordinator_lab' => 'KOORDINATOR LAB', 'guru' => 'GURU', 'siswa' => 'SISWA'] as $rVal => $rLabel)
                             <button type="button" @click="selectRole('{{ $rVal }}')"
-                                    class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200"
-                                    :class="{'bg-slate-100 dark:bg-slate-700/80 font-bold': role === '{{ $rVal }}'}">
+                                    class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"
+                                    :class="{'bg-slate-100 dark:bg-slate-700 font-bold': role === '{{ $rVal }}'}">
                                 <span>{{ $rLabel }}</span>
-                                <svg x-show="role === '{{ $rVal }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg x-show="role === '{{ $rVal }}'" class="w-3.5 h-3.5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </button>
@@ -579,21 +401,280 @@
                     </div>
                 </div>
 
-                {{-- Action Filter Buttons --}}
-                <div class="flex items-center gap-2">
-                    <button type="submit" class="h-9 px-3.5 sm:px-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold transition active:scale-95 shadow-2xs">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <span>Filter</span>
+                {{-- Input Search: Cari Pengguna (Outlined Floating Label with Clear) --}}
+                <div class="sm:col-span-1 lg:col-span-5 relative">
+                    <div class="relative bg-white dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-700 focus-within:border-slate-500 dark:focus-within:border-slate-400 transition group">
+                        <label class="absolute -top-2.5 left-3 px-1.5 bg-white dark:bg-slate-900 text-[10.5px] sm:text-[11px] font-medium text-slate-600 dark:text-slate-400 tracking-wider uppercase z-10 pointer-events-none rounded">
+                            Cari Pengguna
+                        </label>
+                        <div class="flex items-center h-11 px-3">
+                            <div class="text-slate-400 dark:text-slate-500 mr-2 shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <input type="text" 
+                                   name="search" 
+                                   x-model="search" 
+                                   placeholder="Nama, Email, NISN, NIP..." 
+                                   class="w-full bg-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none">
+                            <button type="button" 
+                                    x-show="search" 
+                                    @click="search = ''; fetchData()" 
+                                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 shrink-0"
+                                    style="display: none;">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action Buttons: Cari & Reset --}}
+                <div class="sm:col-span-2 lg:col-span-3 flex items-center gap-2">
+                    <button type="submit" 
+                            class="flex-1 h-11 px-4 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-semibold transition active:scale-50 shadow-sm">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <span>Cari</span>
                     </button>
 
-                    <div x-show="search || role">
-                        <button type="button" @click="resetFilters()" class="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold transition">
-                            Reset
-                        </button>
-                    </div>
+                    <button type="button" 
+                            x-show="search || role"
+                            @click="resetFilters()" 
+                            class="h-11 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs sm:text-sm font-semibold transition active:scale-95 shadow-2xs"
+                            style="display: none;">
+                        <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Reset</span>
+                    </button>
                 </div>
             </form>
         </div>
+
+        {{-- Modal Tambah Pengguna --}}
+        <template x-teleport="body">
+            <div x-cloak
+                 x-show="openModal" 
+                 @keydown.escape.window="if(!isSubmittingStore) openModal = false"
+                 role="dialog"
+                 aria-modal="true"
+                 class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md text-left overflow-y-auto" 
+                 style="display: none;"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+                <div @click.away="if(!isSubmittingStore) openModal = false" 
+                     class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(32rem,calc(100vw-2rem))] sm:max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 overflow-visible relative my-auto"
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95">
+                    <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Formulir Akun</div>
+                        <h3 class="font-bold text-base text-slate-800 dark:text-white">Tambah Pengguna Baru</h3>
+                    </div>
+                    <button type="button" @click="openModal = false" :disabled="isSubmittingStore" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <form action="{{ route('pengguna.store') }}" method="POST" class="space-y-4 text-xs"
+                      @submit="isSubmittingStore = true"
+                      x-data="{ selectedRole: 'siswa', openRoleForm: false, openLabForm: false, selectedLab: '' }"
+                      @click.outside.of=$el="openRoleForm = false; openLabForm = false">
+                    @csrf
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" required placeholder="Contoh: Muhammad Rizky" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Alamat Email <span class="text-rose-500">*</span></label>
+                            <input type="email" name="email" required placeholder="rizky@sekolah.sch.id" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
+                        </div>
+                        
+                        {{-- Dropdown Role: Tambah --}}
+                        <div class="relative" @click.outside="openRoleForm = false">
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Peran (Role) <span class="text-rose-500">*</span></label>
+                            <input type="hidden" name="role" :value="selectedRole" required>
+
+                            <button type="button" @click="openRoleForm = !openRoleForm"
+                                    class="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800': openRoleForm}">
+                                <span class="text-slate-800 dark:text-slate-200" x-text="{
+                                    'admin': 'Admin',
+                                    'kepala_lab': 'Kepala Laboratorium',
+                                    'koordinator_lab': 'Koordinator Lab',
+                                    'guru': 'Guru',
+                                    'siswa': 'Siswa'
+                                }[$data.selectedRole] || selectedRole"></span>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180 text-indigo-600': openRoleForm}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <div x-show="openRoleForm"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                                 class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
+                                 style="display: none;">
+                                @foreach(['siswa' => 'Siswa', 'guru' => 'Guru', 'koordinator_lab' => 'Koordinator Laboratorium', 'kepala_lab' => 'Kepala Laboratorium', 'admin' => 'Admin'] as $val => $label)
+                                    <button type="button" @click="selectedRole = '{{ $val }}'; openRoleForm = false"
+                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                            :class="{'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400': selectedRole === '{{ $val }}', 'text-slate-700 dark:text-slate-300': selectedRole !== '{{ $val }}'}">
+                                        <span>{{ $label }}</span>
+                                        <svg x-show="selectedRole === '{{ $val }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Field Lab Penugasan: Tambah --}}
+                    <div x-show="selectedRole === 'koordinator_lab'"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 -translate-y-2"
+                         style="display:none;">
+                        <div class="relative bg-indigo-50/50 dark:bg-indigo-950/30 rounded-2xl p-3.5 border border-indigo-200/70 dark:border-indigo-800/60" @click.outside="openLabForm = false">
+                            <label class="flex items-center gap-1.5 font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider mb-2 text-[10.5px]">
+                                <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span>Laboratorium Penugasan <span class="text-rose-500">*</span></span>
+                            </label>
+                            <input type="hidden" name="laboratorium_penugasan" :value="selectedLab">
+                            
+                            <button type="button" @click="openLabForm = !openLabForm"
+                                    class="w-full flex items-center justify-between bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800/80 rounded-xl p-2.5 text-xs sm:text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20': openLabForm}">
+                                <span :class="selectedLab ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'" x-text="selectedLab || 'Pilih Laboratorium'"></span>
+                                <svg class="w-4 h-4 text-indigo-400 transition-transform duration-200" :class="{'rotate-180': openLabForm}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <div x-show="openLabForm"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                 class="absolute z-50 w-full left-0 mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
+                                 style="display:none;">
+                                @foreach($laboratoriumList as $labItem)
+                                    <button type="button" @click="selectedLab = '{{ $labItem }}'; openLabForm = false"
+                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                            :class="{'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400': selectedLab === '{{ $labItem }}', 'text-slate-700 dark:text-slate-300': selectedLab !== '{{ $labItem }}'}">
+                                        <span>{{ $labItem }}</span>
+                                        <svg x-show="selectedLab === '{{ $labItem }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">NIS / NIP</label>
+                            <input type="text" name="nomor_induk" placeholder="Contoh: 20241005" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
+                        </div>
+
+                        {{-- Dropdown: Kelas / Jabatan (Tambah) --}}
+                        <div class="relative" x-data="{ openJabatan: false, selectedJabatan: 'Guru Produktif TKJ' }" x-show="selectedRole === 'siswa' || selectedRole === 'guru' || selectedRole === 'kepala_lab'" @click.outside="openJabatan = false">
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                <span x-text="selectedRole === 'siswa' ? 'Kelas' : 'Jabatan / Posisi Guru'"></span>
+                                <span x-show="selectedRole === 'siswa'" class="text-rose-500">*</span>
+                            </label>
+                            <input type="hidden" name="kelas_atau_jabatan" :value="selectedJabatan">
+
+                            <button type="button" @click="openJabatan = !openJabatan"
+                                    class="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800': openJabatan}">
+                                <span class="truncate text-slate-800 dark:text-slate-200" x-text="selectedJabatan || 'Pilih Jabatan/Kelas'"></span>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180 text-indigo-600': openJabatan}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <div x-show="openJabatan"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                                 class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 max-h-56 overflow-y-auto"
+                                 style="display: none;">
+                                @foreach($daftarJabatanKelas as $grup => $items)
+                                    <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-50/80 dark:bg-slate-800/80">{{ $grup }}</div>
+                                    @foreach($items as $itemJabatan)
+                                        <button type="button" @click="selectedJabatan = '{{ $itemJabatan }}'; openJabatan = false"
+                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                                :class="{'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400': selectedJabatan === '{{ $itemJabatan }}', 'text-slate-700 dark:text-slate-300': selectedJabatan !== '{{ $itemJabatan }}'}">
+                                            <span>{{ $itemJabatan }}</span>
+                                            <svg x-show="selectedJabatan === '{{ $itemJabatan }}'" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                        </button>
+                                    @endforeach
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">No. WhatsApp / HP</label>
+                            <input type="text" name="telepon" placeholder="081234567890" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Password <span class="text-rose-500">*</span></label>
+                            <input type="password" name="password" required placeholder="Minimal 6 karakter" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button type="button" @click="openModal = false" :disabled="isSubmittingStore" class="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-medium disabled:opacity-50 transition">Batal</button>
+                        <button type="submit" :disabled="isSubmittingStore" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition active:scale-95 shadow-sm">
+                            <svg x-show="isSubmittingStore" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isSubmittingStore ? 'Menyimpan...' : 'Simpan Pengguna'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </template>
+    </div>
+
+    {{-- CARD UTAMA DATA PENGGUNA --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
 
         {{-- Kontainer Dinamis Data Pengguna (Live Update) --}}
         <div id="usersDataContainer" @click="const a = $event.target.closest('a'); if (a && a.href && (a.closest('nav') || a.closest('.pagination'))) { $event.preventDefault(); fetchData(a.href, false); }">
@@ -612,11 +693,17 @@
                                        :checked="selectedRows.includes('{{ $u->id }}')"
                                        class="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
                                 
-                                <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-gradient-to-tr from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
-                                    @if(!empty($u->foto))
-                                        <img src="{{ asset('storage/' . $u->foto) }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
+                                <button type="button" @click="editModal = true" class="w-6 h-6 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white inline-flex items-center justify-center shrink-0 transition active:scale-95 shadow-2xs" title="Lihat Detail / Edit Pengguna">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </button>
+
+                                <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-semibold shadow-2xs">
+                                    @if($u->foto_url)
+                                        <img src="{{ $u->foto_url }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <span style="display: none;" class="w-full h-full flex items-center justify-center font-bold text-xs">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                                        <span style="display: none;" class="w-full h-full flex items-center justify-center font-semibold text-xs">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
                                     @else
                                         <span>{{ strtoupper(substr($u->name, 0, 1)) }}</span>
                                     @endif
@@ -624,57 +711,40 @@
                                 
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                        <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{{ $u->name }}</p>
-                                        <span x-show="userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }}" class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0" {!! $u->isOnline() ? '' : 'style="display:none;"' !!}>
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <p class="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{{ $u->name }}</p>
+                                        <span x-show="userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }}" class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-700 dark:text-slate-300 shrink-0" {!! $u->isOnline() ? '' : 'style="display:none;"' !!}>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             <span>Aktif</span>
                                         </span>
                                         <span x-show="!(userStatuses[{{ $u->id }}] ?? {{ $u->isOnline() ? 'true' : 'false' }})" class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 dark:text-slate-500 shrink-0" {!! $u->isOnline() ? 'style="display:none;"' : '' !!}>
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                             <span>Terdaftar</span>
                                         </span>
                                     </div>
-                                    <p class="text-slate-400 dark:text-slate-500 text-[11px] truncate">{{ $u->email }}</p>
+                                    <p class="text-slate-500 dark:text-slate-400 text-[11px] truncate">{{ $u->email }}</p>
                                 </div>
                             </div>
 
                             <div class="text-right shrink-0">
                                 @php
-                                    $isKepalaLabUser = $u->role === 'kepala_lab' || ($u->role === 'guru' && (
+                                    $userRole = strtolower($u->role ?? 'siswa');
+                                    $isKepalaLabUser = $userRole === 'kepala_lab' || ($userRole === 'guru' && (
                                         str_contains(strtolower($u->kelas_atau_jabatan ?? ''), 'kepala lab') ||
                                         str_contains(strtolower($u->kelas_atau_jabatan ?? ''), 'kepala laboratorium')
                                     ));
+                                    $roleLabel = match(true) {
+                                        $userRole === 'admin' => 'Admin',
+                                        $isKepalaLabUser => 'Kepala Lab',
+                                        $userRole === 'koordinator_lab' => 'Koordinator',
+                                        $userRole === 'guru' => 'Guru',
+                                        default => 'Siswa'
+                                    };
                                 @endphp
 
-                                @if($isKepalaLabUser)
-                                    <div class="inline-flex flex-col items-end gap-1">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 shadow-2xs">
-                                            Guru
-                                        </span>
-                                        <span class="inline-flex items-center gap-1 text-[9.5px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-md shadow-2xs">
-                                            <svg class="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                                            </svg>
-                                            <span>Kepala Lab</span>
-                                        </span>
-                                    </div>
-                                @elseif($u->role === 'admin')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 shadow-2xs">
-                                        Admin
-                                    </span>
-                                @elseif($u->role === 'koordinator_lab')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide uppercase bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800 shadow-2xs">
-                                        Koordinator
-                                    </span>
-                                @elseif($u->role === 'guru')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 shadow-2xs">
-                                        Guru
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                                        Siswa
-                                    </span>
-                                @endif
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-md border text-[10px] sm:text-[11px] font-medium tracking-wide uppercase bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
+                                    <span>{{ $roleLabel }}</span>
+                                </span>
                             </div>
                         </div>
 
@@ -697,31 +767,34 @@
                             </div>
                         </div>
 
-                        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end gap-2">
-                            <button @click="editModal = true" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg text-xs transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                </svg>
-                                <span>Edit</span>
-                            </button>
-                            @if($u->id !== Auth::id())
-                                <button type="button" @click.stop="$dispatch('open-delete-user', { url: '{{ route('pengguna.destroy', $u->id) }}', name: '{{ addslashes($u->name) }}' })" class="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-semibold rounded-lg text-xs transition flex items-center gap-1.5 border border-rose-100 dark:border-rose-800/50">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                    </svg>
-                                    <span>Hapus</span>
-                                </button>
-                            @endif
-                        </div>
-
                         {{-- Modal Edit Pengguna (Mobile) --}}
-                        <div x-show="editModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md text-left" style="display: none;" x-transition>
-                            <div @click.away="if(!isSubmittingEdit) editModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[92vh] overflow-y-auto">
+                        <template x-teleport="body">
+                            <div x-cloak
+                                 x-show="editModal" 
+                                 @keydown.escape.window="if(!isSubmittingEdit) editModal = false"
+                                 role="dialog"
+                                 aria-modal="true"
+                                 class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md text-left overflow-y-auto" 
+                                 style="display: none;"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0"
+                                 x-transition:enter-end="opacity-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100"
+                                 x-transition:leave-end="opacity-0">
+                                <div @click.away="if(!isSubmittingEdit) editModal = false" 
+                                     class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(32rem,calc(100vw-2rem))] sm:max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 overflow-visible relative my-auto"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95">
                                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full overflow-hidden shadow-2xs border border-indigo-100 dark:border-indigo-900 bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                                            @if(!empty($u->foto))
-                                                <img src="{{ asset('storage/' . $u->foto) }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
+                                        <div class="w-10 h-10 rounded-full overflow-hidden shadow-2xs border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 text-xs font-semibold">
+                                            @if($u->foto_url)
+                                                <img src="{{ $u->foto_url }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
                                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                 <span style="display: none;" class="w-full h-full flex items-center justify-center font-bold text-xs">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
                                             @else
@@ -812,7 +885,7 @@
                                                  x-transition:leave="transition ease-in duration-100"
                                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                  x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                                 class="absolute z-30 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
+                                                 class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
                                                  style="display: none;">
                                                 @foreach(['siswa' => 'Siswa', 'guru' => 'Guru', 'koordinator_lab' => 'Koordinator Laboratorium', 'kepala_lab' => 'Kepala Laboratorium', 'admin' => 'Admin'] as $val => $label)
                                                     <button type="button" @click="selectedRoleMob = '{{ $val }}'; openRoleMob = false"
@@ -862,7 +935,7 @@
                                                  x-transition:leave="transition ease-in duration-100"
                                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                  x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                                 class="absolute z-40 w-full left-0 mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
+                                                 class="absolute z-50 w-full left-0 mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
                                                  style="display:none;">
                                                 @foreach($laboratoriumList as $labItem)
                                                     <button type="button" @click="selectedLabMob = '{{ $labItem }}'; openLabMob = false"
@@ -908,7 +981,7 @@
                                                  x-transition:leave="transition ease-in duration-100"
                                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                  x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                                 class="absolute z-30 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 max-h-56 overflow-y-auto"
+                                                 class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 max-h-56 overflow-y-auto"
                                                  style="display: none;">
                                                 @foreach($daftarJabatanKelas as $grup => $items)
                                                     <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-50/80 dark:bg-slate-800/80">{{ $grup }}</div>
@@ -951,6 +1024,7 @@
                                 </form>
                             </div>
                         </div>
+                        </template>
                     </div>
                 @empty
                     <div class="p-8 text-center text-slate-400 dark:text-slate-500">
@@ -963,55 +1037,115 @@
             <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-left border-collapse" :class="{'has-selection': selectedRows.length > 0}">
                     <thead>
-                        <tr class="bg-slate-50 dark:bg-slate-800/70 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                            <th class="py-3 px-4 w-10 text-center">
+                        <tr class="bg-slate-50 dark:bg-slate-800/70 text-[11px] font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                            <th class="py-3 px-3 w-10 text-center">
                                 <input type="checkbox" @change="toggleSelectAll($event)" :checked="selectAll" class="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
                             </th>
-                            <th class="py-3 px-4 font-bold">Nama & Kontak</th>
-                            <th class="py-3 px-4 font-bold">Nomor Induk</th>
-                            <th class="py-3 px-4 font-bold">Kelas / Jabatan</th>
-                            <th class="py-3 px-4 font-bold">Peran (Role)</th>
-                            <th class="py-3 px-4 font-bold">Status</th>
-                            <th class="py-3 px-4 font-bold">Total Pinjam</th>
-                            <th class="py-3 px-4 text-right font-bold w-20">Aksi</th>
+                            <th class="py-3 px-4 font-semibold">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="order-1">Nama & Kontak</span>
+                                    <div class="flex order-2 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 font-semibold">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="order-1">Nomor Induk</span>
+                                    <div class="flex order-2 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 font-semibold">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="order-1">Kelas / Jabatan</span>
+                                    <div class="flex order-2 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 font-semibold">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="order-1">Peran (Role)</span>
+                                    <div class="flex order-2 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 font-semibold">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="order-1">Status</span>
+                                    <div class="flex order-2 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 font-semibold">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="order-1">Total Pinjam</span>
+                                    <div class="flex order-2 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
                         @forelse($users as $u)
                             <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
-                                :class="{'bg-rose-50/20 dark:bg-rose-950/15': selectedRows.includes('{{ $u->id }}')}"
+                                :class="{'bg-slate-100/60 dark:bg-slate-800/40': selectedRows.includes('{{ $u->id }}')}"
                                 x-data="{ editModal: false, isSubmittingEditDesk: false }">
                                 
                                 {{-- Row Checkbox --}}
-                                <td class="py-3.5 px-4 text-center">
+                                <td class="py-3.5 px-3 text-center">
                                     <input type="checkbox" name="user_select[]" value="{{ $u->id }}"
                                            @change="toggleRow('{{ $u->id }}')"
                                            :checked="selectedRows.includes('{{ $u->id }}')"
                                            class="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
                                 </td>
 
-                                {{-- Cell Customer: Avatar + Name + Email --}}
+                                {{-- Cell Customer: Info Icon + Avatar + Name + Email --}}
                                 <td class="py-3.5 px-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-gradient-to-tr from-slate-700 to-slate-900 text-white flex items-center justify-center text-[11px] font-bold shadow-2xs">
-                                            @if(!empty($u->foto))
-                                                <img src="{{ asset('storage/' . $u->foto) }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
-                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                <span style="display: none;" class="w-full h-full flex items-center justify-center font-bold text-[11px]">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
-                                            @else
-                                                <span>{{ strtoupper(substr($u->name, 0, 1)) }}</span>
-                                            @endif
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="font-bold text-slate-900 dark:text-white leading-tight truncate">{{ $u->name }}</div>
-                                            <div class="text-slate-400 dark:text-slate-500 text-xs mt-0.5 flex items-center gap-2 truncate">
-                                                <span>{{ $u->email }}</span>
-                                                @if($u->telepon)
-                                                    <span class="text-slate-300 dark:text-slate-600">•</span>
-                                                    <span>{{ $u->telepon }}</span>
-                                                @endif
-                                            </div>
-                                        </div>
+                                    <div class="flex items-center gap-3 min-w-0">
+                                         {{-- Tombol Logo "i" di sebelah kiri nama pengguna --}}
+                                         <button type="button" @click="editModal = true" class="w-6 h-6 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white inline-flex items-center justify-center shrink-0 transition active:scale-95 shadow-2xs" title="Lihat Detail / Edit Pengguna">
+                                             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                             </svg>
+                                         </button>
+
+                                         <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center text-[11px] font-semibold shadow-2xs">
+                                             @if($u->foto_url)
+                                                 <img src="{{ $u->foto_url }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
+                                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                 <span style="display: none;" class="w-full h-full flex items-center justify-center font-semibold text-[11px]">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                                             @else
+                                                 <span>{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                                             @endif
+                                         </div>
+                                         <div class="min-w-0">
+                                             <div class="font-semibold text-slate-900 dark:text-white leading-tight truncate">{{ $u->name }}</div>
+                                             <div class="text-slate-500 dark:text-slate-400 text-xs mt-0.5 flex items-center gap-2 truncate">
+                                                 <span>{{ $u->email }}</span>
+                                                 @if($u->telepon)
+                                                     <span class="text-slate-300 dark:text-slate-600">•</span>
+                                                     <span>{{ $u->telepon }}</span>
+                                                 @endif
+                                             </div>
+                                         </div>
                                     </div>
                                 </td>
 
@@ -1024,48 +1158,31 @@
                                 <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
                                     <div>{{ $u->kelas_atau_jabatan ?? '—' }}</div>
                                     @if($u->role !== 'admin' && $u->laboratorium_penugasan)
-                                        <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">{{ $u->laboratorium_penugasan }}</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{{ $u->laboratorium_penugasan }}</div>
                                     @endif
                                 </td>
 
-                                {{-- Chip Role (Gentelella Style) --}}
+                                {{-- Chip Role --}}
                                 <td class="py-3.5 px-4 whitespace-nowrap">
                                     @php
-                                        $isKepalaLabUser = $u->role === 'kepala_lab' || ($u->role === 'guru' && (
+                                        $userRole = strtolower($u->role ?? 'siswa');
+                                        $isKepalaLabUser = $userRole === 'kepala_lab' || ($userRole === 'guru' && (
                                             str_contains(strtolower($u->kelas_atau_jabatan ?? ''), 'kepala lab') ||
                                             str_contains(strtolower($u->kelas_atau_jabatan ?? ''), 'kepala laboratorium')
                                         ));
+                                        $roleLabel = match(true) {
+                                            $userRole === 'admin' => 'Admin',
+                                            $isKepalaLabUser => 'Kepala Lab',
+                                            $userRole === 'koordinator_lab' => 'Koordinator',
+                                            $userRole === 'guru' => 'Guru',
+                                            default => 'Siswa'
+                                        };
                                     @endphp
 
-                                    @if($isKepalaLabUser)
-                                        <div class="inline-flex flex-col items-start gap-1">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10.5px] font-bold tracking-wide uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 shadow-2xs">
-                                                Guru
-                                            </span>
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-md shadow-2xs">
-                                                <svg class="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                                                </svg>
-                                                <span>Kepala Laboratorium</span>
-                                            </span>
-                                        </div>
-                                    @elseif($u->role === 'admin')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10.5px] font-bold tracking-wide uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 shadow-2xs">
-                                            Admin
-                                        </span>
-                                    @elseif($u->role === 'koordinator_lab')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10.5px] font-bold tracking-wide uppercase bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800 shadow-2xs">
-                                            Koordinator
-                                        </span>
-                                    @elseif($u->role === 'guru')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10.5px] font-bold tracking-wide uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 shadow-2xs">
-                                            Guru
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md border text-[10.5px] font-bold tracking-wide uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                                            Siswa
-                                        </span>
-                                    @endif
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10.5px] font-medium tracking-wide uppercase bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
+                                        <span>{{ $roleLabel }}</span>
+                                    </span>
                                 </td>
 
                                 {{-- Status Pulsing Dot --}}
@@ -1083,34 +1200,35 @@
                                 {{-- Total Pinjam --}}
                                 <td class="py-3.5 px-4 font-bold text-slate-800 dark:text-slate-200">
                                     {{ $u->peminjamans_count }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">kali</span>
-                                </td>
-
-                                {{-- Actions --}}
-                                <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                    <div class="inline-flex items-center justify-end gap-1">
-                                        <button type="button" @click="editModal = true" title="Edit Pengguna" class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95 shadow-2xs">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                            </svg>
-                                        </button>
-
-                                        @if($u->id !== Auth::id())
-                                            <button type="button" @click.stop="$dispatch('open-delete-user', { url: '{{ route('pengguna.destroy', $u->id) }}', name: '{{ addslashes($u->name) }}' })" title="Hapus Pengguna" class="w-7 h-7 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center transition active:scale-95 shadow-2xs">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
-                                        @endif
-                                    </div>
 
                                     {{-- Modal Edit Pengguna (Desktop) --}}
-                                    <div x-show="editModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md text-left" style="display: none;" x-transition>
-                                        <div @click.away="if(!isSubmittingEditDesk) editModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[92vh] overflow-y-auto">
-                                            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                                    <template x-teleport="body">
+                                        <div x-cloak
+                                             x-show="editModal" 
+                                             @keydown.escape.window="if(!isSubmittingEditDesk) editModal = false"
+                                             role="dialog"
+                                             aria-modal="true"
+                                             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md text-left overflow-y-auto" 
+                                             style="display: none;"
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:enter-end="opacity-100"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100"
+                                             x-transition:leave-end="opacity-0">
+                                            <div @click.away="if(!isSubmittingEditDesk) editModal = false" 
+                                                 class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(32rem,calc(100vw-2rem))] sm:max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 overflow-visible relative my-auto"
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 scale-95"
+                                                 x-transition:enter-end="opacity-100 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 scale-100"
+                                                 x-transition:leave-end="opacity-0 scale-95">
+                                                <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
                                                 <div class="flex items-center gap-3">
-                                                    <div class="w-10 h-10 rounded-full overflow-hidden shadow-2xs border border-indigo-100 dark:border-indigo-900 bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                                                        @if(!empty($u->foto))
-                                                            <img src="{{ asset('storage/' . $u->foto) }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
+                                                    <div class="w-10 h-10 rounded-full overflow-hidden shadow-2xs border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 text-xs font-semibold">
+                                                        @if($u->foto_url)
+                                                            <img src="{{ $u->foto_url }}" alt="{{ $u->name }}" class="w-full h-full object-cover"
                                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                             <span style="display: none;" class="w-full h-full flex items-center justify-center font-bold text-xs">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
                                                         @else
@@ -1201,7 +1319,7 @@
                                                              x-transition:leave="transition ease-in duration-100"
                                                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                              x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                                             class="absolute z-30 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
+                                                             class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
                                                              style="display: none;">
                                                             @foreach(['siswa' => 'Siswa', 'guru' => 'Guru', 'koordinator_lab' => 'Koordinator Laboratorium', 'kepala_lab' => 'Kepala Laboratorium', 'admin' => 'Admin'] as $val => $label)
                                                                 <button type="button" @click="selectedRole = '{{ $val }}'; openRole = false"
@@ -1251,7 +1369,7 @@
                                                              x-transition:leave="transition ease-in duration-100"
                                                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                              x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                                             class="absolute z-40 w-full left-0 mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
+                                                             class="absolute z-50 w-full left-0 mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 overflow-hidden"
                                                              style="display:none;">
                                                             @foreach($laboratoriumList as $labItem)
                                                                 <button type="button" @click="selectedLabDesk = '{{ $labItem }}'; openLabDesk = false"
@@ -1297,7 +1415,7 @@
                                                              x-transition:leave="transition ease-in duration-100"
                                                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                                              x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                                             class="absolute z-30 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1 max-h-56 overflow-y-auto"
+                                                             class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-slate-700/50 border border-slate-200/80 dark:border-slate-700 py-1 max-h-56 overflow-y-auto"
                                                              style="display: none;">
                                                             @foreach($daftarJabatanKelas as $grup => $items)
                                                                 <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-50/80 dark:bg-slate-800/80">{{ $grup }}</div>
@@ -1340,11 +1458,12 @@
                                             </form>
                                         </div>
                                     </div>
+                                    </template>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-12 text-center">
+                                <td colspan="9" class="px-5 py-12 text-center">
                                     <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                     </div>
@@ -1362,116 +1481,109 @@
                 </table>
             </div>
 
-            {{-- CARD FOOTER (Gentelella v4 Paging & Info) --}}
-            <div class="px-3.5 sm:px-5 py-3 sm:py-3.5 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-800/40">
-                <div class="flex flex-wrap items-center justify-between sm:justify-start gap-2 sm:gap-4 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
-                    <div>
-                        Menampilkan <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }}</span> dari <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->total() }}</span> pengguna
+            {{-- CARD FOOTER (CRM Bottom Pagination: Page Navigation, Go To & Shows) --}}
+            <div id="pagination" class="p-3.5 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-2xl">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+                    <!-- Tombol Angka Pagination -->
+                    <div class="flex items-center justify-center lg:justify-start overflow-x-auto py-1">
+                        <nav role="navigation" aria-label="Pagination Navigation">
+                            <ul class="inline-flex items-center gap-1 sm:gap-1.5 flex-nowrap">
+                                {{-- Previous Page Link --}}
+                                <li>
+                                    @if ($users->onFirstPage())
+                                        <button disabled type="button" aria-label="Previous page" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
+                                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                        </button>
+                                    @else
+                                        <a href="{{ $users->previousPageUrl() }}" aria-label="Previous page" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs sm:text-sm font-semibold shadow-2xs transition active:scale-95">
+                                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                        </a>
+                                    @endif
+                                </li>
+
+                                {{-- First Page (if far from current) --}}
+                                @if ($users->currentPage() > 3)
+                                    <li>
+                                        <a href="{{ $users->url(1) }}" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs sm:text-sm font-semibold shadow-2xs transition active:scale-95">1</a>
+                                    </li>
+                                    @if ($users->currentPage() > 4)
+                                        <li><span class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span></li>
+                                    @endif
+                                @endif
+
+                                {{-- Page Numbers Range --}}
+                                @foreach ($users->getUrlRange(max(1, $users->currentPage() - 2), min($users->lastPage(), $users->currentPage() + 2)) as $page => $url)
+                                    <li>
+                                        @if ($page == $users->currentPage())
+                                            <button type="button" aria-current="true" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-700 text-white border border-slate-900 dark:border-slate-700 text-xs sm:text-sm font-bold shadow-xs select-none">{{ $page }}</button>
+                                        @else
+                                            <a href="{{ $url }}" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs sm:text-sm font-semibold shadow-2xs transition active:scale-95">{{ $page }}</a>
+                                        @endif
+                                    </li>
+                                @endforeach
+
+                                {{-- Last Page (if far from current) --}}
+                                @if ($users->currentPage() < $users->lastPage() - 2)
+                                    @if ($users->currentPage() < $users->lastPage() - 3)
+                                        <li><span class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span></li>
+                                    @endif
+                                    <li>
+                                        <a href="{{ $users->url($users->lastPage()) }}" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs sm:text-sm font-semibold shadow-2xs transition active:scale-95">{{ $users->lastPage() }}</a>
+                                    </li>
+                                @endif
+
+                                {{-- Next Page Link --}}
+                                <li>
+                                    @if ($users->hasMorePages())
+                                        <a href="{{ $users->nextPageUrl() }}" aria-label="Next page" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs sm:text-sm font-semibold shadow-2xs transition active:scale-95">
+                                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    @else
+                                        <button disabled type="button" aria-label="Next page" class="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
+                                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </button>
+                                    @endif
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
 
-                    <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                    <!-- Right Controls: Go To & Shows -->
+                    <div class="flex items-center justify-center lg:justify-end gap-3 sm:gap-4 flex-wrap">
 
-                    {{-- Selector Jumlah Tampilan (Custom Modern Dropup - No Animation) --}}
-                    <div class="flex items-center gap-1.5 relative" @click.outside="openPerPage = false">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Tampilkan:</span>
-                        <div class="relative">
-                            <button type="button" 
-                                    @click="openPerPage = !openPerPage"
-                                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] sm:text-xs font-semibold rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer inline-flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
-                                    :class="{'border-indigo-500 ring-2 ring-indigo-500/20': openPerPage}">
-                                <span x-text="perPage"></span>
-                                <svg class="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" :class="{'rotate-180 text-indigo-600 dark:text-indigo-400': openPerPage}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
+                        <!-- Label & Input "Go To" -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">Go To</span>
+                            <form @submit.prevent="goToPage()" class="relative flex items-center">
+                                <input type="number" min="1" max="{{ $users->lastPage() }}" x-model="goToPageInput" placeholder="..." class="w-16 sm:w-20 h-9 sm:h-10 pl-3 pr-7 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-semibold focus:outline-none focus:border-slate-500 dark:focus:border-slate-400">
+                                <button type="submit" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1" title="Lompat ke halaman">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </form>
+                        </div>
 
-                            <div x-show="openPerPage"
-                                 class="absolute bottom-full mb-1.5 left-0 z-50 w-24 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 overflow-hidden"
-                                 style="display: none;">
-                                @foreach([10, 20, 50, 100] as $option)
-                                    <button type="button" 
-                                            @click="setPerPage({{ $option }})"
-                                            class="w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center justify-between transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/60"
-                                            :class="{'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold': perPage === {{ $option }}, 'text-slate-700 dark:text-slate-300': perPage !== {{ $option }}}">
-                                        <span>{{ $option }}</span>
-                                        <svg x-show="perPage === {{ $option }}" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                    </button>
-                                @endforeach
+                        <!-- Label & Select "Shows" -->
+                        <div class="flex items-center gap-2" @click.outside="openPerPage = false">
+                            <span class="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">Shows</span>
+                            <div class="relative">
+                                <button type="button" @click="openPerPage = !openPerPage" class="h-9 sm:h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center justify-between gap-2 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750 transition min-w-[72px]">
+                                    <span x-text="perPage"></span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{'rotate-180': openPerPage}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                                <div x-show="openPerPage" x-transition class="absolute bottom-full mb-1.5 right-0 z-50 w-24 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1 overflow-hidden" style="display: none;">
+                                    @foreach([10, 20, 50, 100] as $pOption)
+                                        <button type="button" @click="setPerPage({{ $pOption }})" class="w-full text-left px-3 py-1.5 text-xs font-medium flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200" :class="{'bg-slate-100 dark:bg-slate-700 font-bold': perPage === {{ $pOption }}}">
+                                            <span>{{ $pOption }}</span>
+                                            <svg x-show="perPage === {{ $pOption }}" class="w-3.5 h-3.5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">baris</span>
+
                     </div>
-                </div>
-                
-                <div class="shrink-0 flex items-center justify-between sm:justify-end">
-                    @if ($users->hasPages())
-                        <nav role="navigation" aria-label="Navigasi Halaman" class="flex items-center gap-1 sm:gap-1.5">
-                            {{-- Previous Page Link --}}
-                            @if ($users->onFirstPage())
-                                <span aria-disabled="true" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
-                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                    </svg>
-                                </span>
-                            @else
-                                <a href="{{ $users->previousPageUrl() }}" rel="prev" aria-label="Sebelumnya" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                    </svg>
-                                </a>
-                            @endif
 
-                            {{-- First Page (if far from current) --}}
-                            @if ($users->currentPage() > 3)
-                                <a href="{{ $users->url(1) }}" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                    1
-                                </a>
-                                @if ($users->currentPage() > 4)
-                                    <span class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
-                                @endif
-                            @endif
-
-                            {{-- Page Numbers Range --}}
-                            @foreach ($users->getUrlRange(max(1, $users->currentPage() - 2), min($users->lastPage(), $users->currentPage() + 2)) as $page => $url)
-                                @if ($page == $users->currentPage())
-                                    <span aria-current="page" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs select-none">
-                                        {{ $page }}
-                                    </span>
-                                @else
-                                    <a href="{{ $url }}" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                        {{ $page }}
-                                    </a>
-                                @endif
-                            @endforeach
-
-                            {{-- Last Page (if far from current) --}}
-                            @if ($users->currentPage() < $users->lastPage() - 2)
-                                @if ($users->currentPage() < $users->lastPage() - 3)
-                                    <span class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500 select-none">...</span>
-                                @endif
-                                <a href="{{ $users->url($users->lastPage()) }}" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                    {{ $users->lastPage() }}
-                                </a>
-                            @endif
-
-                            {{-- Next Page Link --}}
-                            @if ($users->hasMorePages())
-                                <a href="{{ $users->nextPageUrl() }}" rel="next" aria-label="Berikutnya" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95">
-                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                </a>
-                            @else
-                                <span aria-disabled="true" class="h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 inline-flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 text-xs cursor-not-allowed select-none">
-                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                </span>
-                            @endif
-                        </nav>
-                    @endif
                 </div>
             </div>
 
@@ -1479,102 +1591,122 @@
     </div>
 
     {{-- MODAL KONFIRMASI HAPUS TUNGGAL TENGAH LAYAR DENGAN SPINNER --}}
-    <div x-show="deleteModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-md" style="display: none;"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-        
-        <div @click.away="if(!isDeleting) deleteModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+    <template x-teleport="body">
+        <div x-cloak
+             x-show="deleteModal" 
+             @keydown.escape.window="if(!isDeleting) deleteModal = false"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="deleteUserModalTitle"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
+             style="display: none;"
              x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-90 translate-y-3"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
              x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-             x-transition:leave-end="opacity-0 scale-90 translate-y-3">
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
             
-            <div class="w-14 h-14 bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border border-rose-200/60 dark:border-rose-800/60">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-            </div>
-
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-white">Hapus Pengguna Ini?</h3>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                Anda akan menghapus data akun <span class="font-bold text-slate-800 dark:text-slate-200" x-text="deleteUserName"></span>. Tindakan ini tidak dapat dibatalkan.
-            </p>
-
-            <form id="globalDeletePenggunaForm" :action="deleteActionUrl" method="POST" @submit="isDeleting = true" class="mt-6 flex items-center justify-center gap-3">
-                @csrf
-                @method('DELETE')
+            <div @click.away="if(!isDeleting) deleteModal = false" 
+                 class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-90 translate-y-3"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-90 translate-y-3">
                 
-                <button type="button" :disabled="isDeleting" @click="deleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition">
-                    Batal
-                </button>
-                <button type="submit" :disabled="isDeleting" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
-                    <svg x-show="isDeleting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-inner border border-rose-200/60 dark:border-rose-800/60">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
-                    <span x-text="isDeleting ? 'Menghapus...' : 'Ya, Hapus'"></span>
-                </button>
-            </form>
-        </div>
-    </div>
+                </div>
 
-    {{-- MODAL KONFIRMASI HAPUS BANYAK (BULK DELETE) --}}
-    <div x-show="bulkDeleteModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-md" style="display: none;"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-        
-        <div @click.away="if(!isBulkDeleting) bulkDeleteModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-90 translate-y-3"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-             x-transition:leave-end="opacity-0 scale-90 translate-y-3">
-            
-            <div class="w-14 h-14 bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border border-rose-200/60 dark:border-rose-800/60">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </div>
+                <h3 id="deleteUserModalTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-800 dark:text-white">Hapus Pengguna Ini?</h3>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                    Anda akan menghapus data akun <span class="font-bold text-slate-800 dark:text-slate-200" x-text="deleteUserName"></span>. Tindakan ini tidak dapat dibatalkan.
+                </p>
 
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-white">
-                Hapus <span x-text="selectedRows.length"></span> Pengguna Terpilih?
-            </h3>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                Anda akan menghapus data <span class="font-bold text-slate-800 dark:text-slate-200" x-text="selectedRows.length + ' akun pengguna'"></span> yang telah dicentang. Tindakan ini tidak dapat dibatalkan.
-            </p>
-
-            <form action="{{ route('pengguna.bulk-delete') }}" method="POST" @submit="isBulkDeleting = true" class="mt-6">
-                @csrf
-                <template x-for="id in selectedRows" :key="id">
-                    <input type="hidden" name="ids[]" :value="id">
-                </template>
-                
-                <div class="flex items-center justify-center gap-3">
-                    <button type="button" :disabled="isBulkDeleting" @click="bulkDeleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition">
+                <form id="globalDeletePenggunaForm" :action="deleteActionUrl" method="POST" @submit="isDeleting = true" class="mt-5 sm:mt-6 flex items-center justify-center gap-2.5 sm:gap-3">
+                    @csrf
+                    @method('DELETE')
+                    
+                    <button type="button" :disabled="isDeleting" @click="deleteModal = false" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition">
                         Batal
                     </button>
-                    <button type="submit" :disabled="isBulkDeleting" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
-                        <svg x-show="isBulkDeleting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
+                    <button type="submit" :disabled="isDeleting" class="flex-1 inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
+                        <svg x-show="isDeleting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span x-text="isBulkDeleting ? 'Menghapus...' : 'Ya, Hapus Semua'"></span>
+                        <span x-text="isDeleting ? 'Menghapus...' : 'Ya, Hapus'"></span>
                     </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+    </template>
+
+    {{-- MODAL KONFIRMASI HAPUS BANYAK (BULK DELETE) --}}
+    <template x-teleport="body">
+        <div x-cloak
+             x-show="bulkDeleteModal" 
+             @keydown.escape.window="if(!isBulkDeleting) bulkDeleteModal = false"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="bulkDeleteUsersTitle"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
+             style="display: none;"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            
+            <div @click.away="if(!isBulkDeleting) bulkDeleteModal = false" 
+                 class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-90 translate-y-3"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-90 translate-y-3">
+                
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-inner border border-rose-200/60 dark:border-rose-800/60">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+
+                <h3 id="bulkDeleteUsersTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-800 dark:text-white">
+                    Hapus <span x-text="selectedRows.length"></span> Pengguna Terpilih?
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                    Anda akan menghapus data <span class="font-bold text-slate-800 dark:text-slate-200" x-text="selectedRows.length + ' akun pengguna'"></span> yang telah dicentang. Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <form action="{{ route('pengguna.bulk-delete') }}" method="POST" @submit="isBulkDeleting = true" class="mt-5 sm:mt-6">
+                    @csrf
+                    <template x-for="id in selectedRows" :key="id">
+                        <input type="hidden" name="ids[]" :value="id">
+                    </template>
+                    
+                    <div class="flex items-center justify-center gap-2.5 sm:gap-3">
+                        <button type="button" :disabled="isBulkDeleting" @click="bulkDeleteModal = false" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition">
+                            Batal
+                        </button>
+                        <button type="submit" :disabled="isBulkDeleting" class="flex-1 inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-rose-600/20 transition active:scale-95">
+                            <svg x-show="isBulkDeleting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isBulkDeleting ? 'Menghapus...' : 'Ya, Hapus Semua'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
 
 </div>
 @endsection

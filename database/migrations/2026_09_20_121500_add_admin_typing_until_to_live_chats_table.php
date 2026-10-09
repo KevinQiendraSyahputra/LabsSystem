@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('live_chats', function (Blueprint $table) {
-            $table->timestamp('admin_typing_until')->nullable()->after('status');
+            if (!Schema::hasColumn('live_chats', 'admin_typing_until')) {
+                $table->timestamp('admin_typing_until')->nullable()->after('status');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('live_chats', function (Blueprint $table) {
-            $table->dropColumn('admin_typing_until');
+            if (Schema::hasColumn('live_chats', 'admin_typing_until')) {
+                $table->dropColumn('admin_typing_until');
+            }
         });
     }
 };

@@ -20,6 +20,21 @@
 
     <style>
         * { font-family: 'Inter', sans-serif; }
+        
+        /* Fluid Responsiveness: Menyesuaikan skala elemen dan teks proporsional sesuai layar */
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+            scroll-behavior: smooth;
+        }
+        @media (max-width: 1280px) { html { font-size: 15.5px; } }
+        @media (max-width: 1024px) { html { font-size: 15px; } }
+        @media (max-width: 768px) { html { font-size: 14.5px; } }
+        @media (max-width: 640px) { html { font-size: 14px; } }
+        @media (max-width: 480px) { html { font-size: 13.5px; } }
+        @media (max-width: 375px) { html { font-size: 13px; } }
+        @media (max-width: 320px) { html { font-size: 12px; } }
+
         .auth-bg {
             background: linear-gradient(135deg, #4f46e5 0%, #1e1b4b 50%, #0f172a 100%);
         }
@@ -30,7 +45,7 @@
         .float-anim { animation: float 5s ease-in-out infinite; }
     </style>
 </head>
-<body class="antialiased min-h-screen flex">
+<body class="antialiased min-h-screen flex bg-slate-50 text-slate-800">
 
     {{-- Left: Branding Panel --}}
     <div class="hidden lg:flex lg:w-1/2 auth-bg flex-col items-center justify-center p-12 relative overflow-hidden">

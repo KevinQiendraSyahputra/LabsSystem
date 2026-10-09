@@ -411,8 +411,13 @@
 
     {{-- Modal Konfirmasi Update --}}
     <template x-teleport="body">
-        <div x-show="confirmModal" 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md" 
+        <div x-cloak
+             x-show="confirmModal" 
+             @keydown.escape.window="if(!isSubmitting) confirmModal = false"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="confirmEditMaintenanceTitle"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
              style="display: none;"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0"
@@ -422,7 +427,7 @@
              x-transition:leave-end="opacity-0">
             
             <div @click.away="if(!isSubmitting) confirmModal = false" 
-                 class="bg-white rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 text-center"
+                 class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-90 translate-y-3"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -430,28 +435,28 @@
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-90 translate-y-3">
                 
-                <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border border-amber-200/60">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-inner border border-amber-200/60 dark:border-amber-800/60 shadow-xs">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
 
-                <h3 class="text-base sm:text-lg font-extrabold text-slate-800">Perbarui Data Maintenance?</h3>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
+                <h3 id="confirmEditMaintenanceTitle" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-800 dark:text-white">Perbarui Data Maintenance?</h3>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
                     Apakah Anda yakin ingin menyimpan perubahan data riwayat maintenance ini?
                 </p>
 
-                <div class="mt-6 flex items-center justify-center gap-3">
+                <div class="mt-5 sm:mt-6 flex items-center justify-center gap-2.5 sm:gap-3">
                     <button type="button" 
                             :disabled="isSubmitting"
                             @click="confirmModal = false" 
-                            class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm transition">
+                            class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs sm:text-sm transition">
                         Batal
                     </button>
                     <button type="button" 
                             :disabled="isSubmitting"
                             @click="submitUpdate()" 
-                            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-amber-500/20 transition active:scale-95">
+                            class="flex-1 inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-amber-500/20 transition active:scale-95">
                         <svg x-show="isSubmitting" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -469,6 +474,10 @@ function maintenanceEdit() {
     return {
         confirmModal: false,
         isSubmitting: false,
+
+        init() {
+            this.$watch('confirmModal', val => document.body.classList.toggle('overflow-hidden', !!val));
+        },
         openDropdown: null,
         selectedLaboratorium: '{{ old('laboratorium', $lockedLab ?: ($maintenance->laboratorium ?: 'Laboratorium TKJ')) }}',
         selectedBarangId: '{{ old('barang_id', $maintenance->barang_id) }}',

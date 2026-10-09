@@ -352,7 +352,14 @@
 
 {{-- MODAL KONFIRMASI HAPUS BARANG TENGAH LAYAR --}}
 <template x-teleport="body">
-    <div x-show="deleteModal" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xs" style="display: none;"
+    <div x-cloak
+         x-show="deleteModal" 
+         @keydown.escape.window="deleteModal = false"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-delete-title"
+         class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md" 
+         style="display: none;"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -360,7 +367,8 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div @click.away="deleteModal = false" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 w-full max-w-sm sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
+        <div @click.away="deleteModal = false" 
+             class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-md shadow-2xl border border-slate-100 dark:border-slate-800 text-center"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-90 translate-y-3"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -368,25 +376,25 @@
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
              x-transition:leave-end="opacity-0 scale-90 translate-y-3">
             
-            <div class="w-12 h-12 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200/60 dark:border-rose-800/60">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-rose-200/60 dark:border-rose-800/60 shadow-xs">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
 
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100">Hapus Barang Ini?</h3>
+            <h3 id="modal-delete-title" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 dark:text-slate-100">Hapus Barang Ini?</h3>
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 Anda akan menghapus data <span class="font-bold text-slate-900 dark:text-white">{{ $barang->nama_barang }}</span> ({{ $barang->kode_barang }}) secara permanen. Tindakan ini tidak dapat dibatalkan.
             </p>
 
-            <form action="{{ route('barang.destroy', $barang->id) }}" method="POST" class="mt-6 flex items-center justify-center gap-3">
+            <form action="{{ route('barang.destroy', $barang->id) }}" method="POST" class="mt-5 sm:mt-6 flex items-center justify-center gap-2.5 sm:gap-3">
                 @csrf
                 @method('DELETE')
                 
-                <button type="button" @click="deleteModal = false" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs sm:text-sm transition">
+                <button type="button" @click="deleteModal = false" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs sm:text-sm transition">
                     Batal
                 </button>
-                <button type="submit" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95">
+                <button type="submit" class="flex-1 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-95">
                     Ya, Hapus
                 </button>
             </form>
@@ -413,6 +421,10 @@
                 show: false,
                 message: '',
                 timeout: null
+            },
+
+            init() {
+                this.$watch('deleteModal', val => document.body.classList.toggle('overflow-hidden', !!val));
             },
 
             getUnitKondisi(index) {

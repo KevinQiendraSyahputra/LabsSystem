@@ -15,8 +15,11 @@ class LiveChat extends Model
         'user_name',
         'user_email',
         'user_role',
+        'admin_name',
         'telegram_chat_id',
         'telegram_last_message_id',
+        'discord_channel_id',
+        'discord_last_message_id',
         'status',
         'admin_typing_until',
     ];

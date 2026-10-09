@@ -12,8 +12,10 @@ class LiveChatMessage extends Model
     protected $fillable = [
         'live_chat_id',
         'sender',
+        'sender_name',
         'message',
         'telegram_message_id',
+        'discord_message_id',
         'is_read',
     ];
 

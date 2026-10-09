@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('barangs', function (Blueprint $table) {
-            $table->text('kondisi_per_unit')->nullable()->after('kondisi');
+            if (!Schema::hasColumn('barangs', 'kondisi_per_unit')) {
+                $table->text('kondisi_per_unit')->nullable()->after('kondisi');
+            }
         });
     }
 
@@ -19,7 +21,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('barangs', function (Blueprint $table) {
-            $table->dropColumn('kondisi_per_unit');
+            if (Schema::hasColumn('barangs', 'kondisi_per_unit')) {
+                $table->dropColumn('kondisi_per_unit');
+            }
         });
     }
 };

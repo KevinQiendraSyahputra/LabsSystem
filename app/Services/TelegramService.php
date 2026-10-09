@@ -536,31 +536,31 @@ class TelegramService
                 $msgId = $msg['message_id'] ?? null;
                 $text = trim($msg['text'] ?? '');
                 $chatId = $msg['chat']['id'] ?? null;
+                $from = $msg['from'] ?? [];
+                $adminName = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? ''));
+                if (empty($adminName)) {
+                    $adminName = !empty($from['username']) ? $from['username'] : 'Admin';
+                }
 
                 if (empty($text)) {
                     continue;
                 }
 
-                // Cek apakah pesan sudah pernah dicatat di DB
+                // Cek apakah pesan Telegram ini sudah pernah diproses di DB
                 if ($msgId && \App\Models\LiveChatMessage::where('telegram_message_id', $msgId)->exists()) {
                     continue;
                 }
 
-                // 1. Format Command: /typing atau /t [SESSION_CODE] (Bisa dengan atau tanpa session code)
-                if (preg_match('/^\/(?:typing|t)(?:\s+([A-Za-z0-9\-]+))?$/is', $text, $tMatches)) {
+                // 1. Format Command: /typing atau /t [SESSION_CODE]
+                if (preg_match('/^\/(?:typing|t)(?:\s+\[?([A-Za-z0-9\-]+)\]?)?$/is', $text, $tMatches)) {
                     $sessionCode = !empty($tMatches[1]) ? trim($tMatches[1]) : null;
-                    
                     $liveChat = null;
+
                     if ($sessionCode) {
                         $liveChat = \App\Models\LiveChat::where('session_code', $sessionCode)->first();
                     } elseif (isset($msg['reply_to_message'])) {
-                        $replyTo = $msg['reply_to_message'];
-                        $replyToMessageId = $replyTo['message_id'] ?? null;
-                        $replyToText = $replyTo['text'] ?? '';
-                        if ($replyToMessageId) {
-                            $liveChat = \App\Models\LiveChat::where('telegram_last_message_id', $replyToMessageId)->first();
-                        }
-                        if (!$liveChat && preg_match('/ID Sesi:\s*([A-Za-z0-9\-]+)/i', $replyToText, $sMatch)) {
+                        $replyToText = $msg['reply_to_message']['text'] ?? '';
+                        if (preg_match('/(CS-\d{8}-[A-Za-z0-9]+)/i', $replyToText, $sMatch)) {
                             $liveChat = \App\Models\LiveChat::where('session_code', trim($sMatch[1]))->first();
                         }
                     }
@@ -575,49 +575,103 @@ class TelegramService
                     if ($liveChat) {
                         $liveChat->update(['admin_typing_until' => now()->addSeconds(30)]);
                         self::sendCsMessage(
-                            "✍️ <b>Status Typing Aktif</b> pada web <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
+                            "✍️ <b>Status Typing Aktif</b> pada web pengguna <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
                             $chatId
                         );
                     } else {
                         self::sendCsMessage(
-                            "ℹ️ <b>Petunjuk Typing:</b> Gunakan <code>/t [KODE_SESI]</code> atau balas (Reply) pesan pengguna dengan <code>/t</code>.",
+                            "ℹ️ <b>Petunjuk Typing:</b> Balas (Swipe/Reply) pesan pengguna dengan <code>/t</code> atau gunakan <code>/t [KODE_SESI]</code>.",
                             $chatId
                         );
                     }
                 }
 
-                // 2. Format Command: /reply [SESSION_CODE] [PESAN] atau /reply [SESSION_CODE] PESAN
-                elseif (preg_match('/^\/reply\s+([A-Za-z0-9\-]+)\s+\[?(.+?)\]?$/is', $text, $matches)) {
+                // 2. Format Command Tutup Sesi: /close atau /tutup [SESSION_CODE]
+                elseif (preg_match('/^\/(?:close|tutup|selesai|end)(?:\s+\[?([A-Za-z0-9\-]+)\]?)?$/is', $text, $cMatches)) {
+                    $sessionCode = !empty($cMatches[1]) ? trim($cMatches[1]) : null;
+                    $liveChat = null;
+
+                    if ($sessionCode) {
+                        $liveChat = \App\Models\LiveChat::where('session_code', $sessionCode)->first();
+                    } elseif (isset($msg['reply_to_message'])) {
+                        $replyToText = $msg['reply_to_message']['text'] ?? '';
+                        if (preg_match('/(CS-\d{8}-[A-Za-z0-9]+)/i', $replyToText, $sMatch)) {
+                            $liveChat = \App\Models\LiveChat::where('session_code', trim($sMatch[1]))->first();
+                        }
+                    }
+
+                    if (!$liveChat) {
+                        $activeChats = \App\Models\LiveChat::where('status', 'active')->orderBy('id', 'desc')->get();
+                        if ($activeChats->count() === 1) {
+                            $liveChat = $activeChats->first();
+                        }
+                    }
+
+                    if ($liveChat && $liveChat->status === 'active') {
+                        $liveChat->update([
+                            'status'             => 'closed',
+                            'admin_name'         => $adminName,
+                            'admin_typing_until' => null,
+                        ]);
+
+                        \App\Models\LiveChatMessage::create([
+                            'live_chat_id' => $liveChat->id,
+                            'sender'       => 'system',
+                            'message'      => 'Sesi Customer Service telah diselesaikan dan ditutup oleh Admin CS (' . $adminName . ').',
+                        ]);
+
+                        try {
+                            \App\Services\DiscordService::closeTicketThread($liveChat, 'Admin Telegram (' . $adminName . ')');
+                        } catch (\Throwable $e) {}
+
+                        self::sendCsMessage(
+                            "✅ <b>Sesi Customer Service Ditutup</b>:\nKode: <code>{$liveChat->session_code}</code>\nPengguna: <b>" . htmlspecialchars($liveChat->user_name) . "</b>\nDitutup oleh: <b>" . htmlspecialchars($adminName) . "</b>",
+                            $chatId
+                        );
+                    } else {
+                        self::sendCsMessage(
+                            "⚠️ <b>Gagal Menutup Sesi:</b> Sesi tidak ditemukan atau sudah ditutup sebelumnya.",
+                            $chatId
+                        );
+                    }
+                }
+
+                // 3. Format Command: /reply [SESSION_CODE] [PESAN]
+                elseif (preg_match('/^\/reply\s+\[?([A-Za-z0-9\-]+)\]?[:\s]+(.+)$/is', $text, $matches)) {
                     $sessionCode = trim($matches[1]);
                     $replyBody   = trim($matches[2]);
 
                     $liveChat = \App\Models\LiveChat::where('session_code', $sessionCode)->first();
 
                     if ($liveChat) {
-                        $liveChat->update(['admin_typing_until' => null]);
+                        $liveChat->update([
+                            'admin_name'         => $adminName,
+                            'admin_typing_until' => null,
+                        ]);
 
                         $saved = \App\Models\LiveChatMessage::create([
                             'live_chat_id'        => $liveChat->id,
                             'sender'              => 'admin',
+                            'sender_name'         => $adminName,
                             'message'             => $replyBody,
                             'telegram_message_id' => $msgId,
                         ]);
 
                         self::sendCsMessage(
-                            "✅ <b>Balasan Terkirim</b> ke <b>{$liveChat->user_name}</b> (<code>{$liveChat->session_code}</code>):\n<i>\"" . htmlspecialchars($replyBody) . "\"</i>",
+                            "✅ <b>Balasan Terkirim</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> [<code>{$liveChat->session_code}</code>]:\n<i>\"" . htmlspecialchars($replyBody) . "\"</i>",
                             $chatId
                         );
 
                         $processed[] = $saved->id;
                     } else {
                         self::sendCsMessage(
-                            "❌ <b>Sesi Tidak Ditemukan:</b> Kode sesi <code>{$sessionCode}</code> tidak valid.",
+                            "❌ <b>Sesi Tidak Ditemukan:</b> Kode sesi <code>{$sessionCode}</code> tidak valid atau telah ditutup.",
                             $chatId
                         );
                     }
                 }
 
-                // 3. Format Fitur Reply Bawaan Telegram
+                // 4. Format Fitur Balas (Swipe / Reply) Telegram Bawaan
                 elseif (isset($msg['reply_to_message'])) {
                     $replyTo = $msg['reply_to_message'];
                     $replyToMessageId = $replyTo['message_id'] ?? null;
@@ -625,74 +679,127 @@ class TelegramService
 
                     $liveChat = null;
 
-                    if ($replyToMessageId) {
-                        $liveChat = \App\Models\LiveChat::where('telegram_last_message_id', $replyToMessageId)->first();
-
-                        if (!$liveChat) {
-                            $matchedMsg = \App\Models\LiveChatMessage::where('telegram_message_id', $replyToMessageId)->first();
-                            if ($matchedMsg) {
-                                $liveChat = $matchedMsg->liveChat;
-                            }
-                        }
-                    }
-
-                    if (!$liveChat && preg_match('/ID Sesi:\s*([A-Za-z0-9\-]+)/i', $replyToText, $sessionMatches)) {
+                    // Prioritas 1: Ekstraksi langsung kode sesi CS-YYYYMMDD-XXXXX dari teks pesan yang di-reply
+                    if (preg_match('/(CS-\d{8}-[A-Za-z0-9]+)/i', $replyToText, $sessionMatches)) {
                         $extractedCode = trim($sessionMatches[1]);
                         $liveChat = \App\Models\LiveChat::where('session_code', $extractedCode)->first();
                     }
 
+                    // Prioritas 2: Cari berdasarkan telegram_message_id di riwayat pesan
+                    if (!$liveChat && $replyToMessageId) {
+                        $matchedMsg = \App\Models\LiveChatMessage::where('telegram_message_id', $replyToMessageId)->first();
+                        if ($matchedMsg) {
+                            $liveChat = $matchedMsg->liveChat;
+                        }
+                    }
+
+                    // Prioritas 3: Cari berdasarkan telegram_last_message_id di tabel live_chats
+                    if (!$liveChat && $replyToMessageId) {
+                        $liveChat = \App\Models\LiveChat::where('telegram_last_message_id', $replyToMessageId)->first();
+                    }
+
                     if ($liveChat) {
-                        // Jika admin membalas dengan kata kunci typing
-                        if (in_array(strtolower($text), ['/t', '/typing', 'typing', 'sedang mengetik', '...', '.'])) {
+                        // Jika admin membalas dengan kata kunci penutupan sesi
+                        if (in_array(strtolower(trim($text)), ['/close', 'close', '/tutup', 'tutup', '/selesai', 'selesai', '/end', 'end'])) {
+                            if ($liveChat->status === 'active') {
+                                $liveChat->update([
+                                    'status'             => 'closed',
+                                    'admin_name'         => $adminName,
+                                    'admin_typing_until' => null,
+                                ]);
+
+                                \App\Models\LiveChatMessage::create([
+                                    'live_chat_id' => $liveChat->id,
+                                    'sender'       => 'system',
+                                    'message'      => 'Sesi Customer Service telah diselesaikan dan ditutup oleh Admin CS (' . $adminName . ').',
+                                ]);
+
+                                try {
+                                    \App\Services\DiscordService::closeTicketThread($liveChat, 'Admin Telegram (' . $adminName . ')');
+                                } catch (\Throwable $e) {}
+
+                                self::sendCsMessage(
+                                    "✅ <b>Sesi Customer Service Ditutup</b>:\nKode: <code>{$liveChat->session_code}</code>\nPengguna: <b>" . htmlspecialchars($liveChat->user_name) . "</b>",
+                                    $chatId
+                                );
+                            }
+                        }
+                        // Jika admin membalas dengan kata kunci pengetikan
+                        elseif (in_array(strtolower($text), ['/t', '/typing', 'typing', 'sedang mengetik', '...', '.'])) {
                             $liveChat->update(['admin_typing_until' => now()->addSeconds(30)]);
                             self::sendCsMessage(
                                 "✍️ <b>Status Typing Aktif</b> pada web <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
                                 $chatId
                             );
                         } else {
-                            $liveChat->update(['admin_typing_until' => null]);
+                            $liveChat->update([
+                                'admin_name'         => $adminName,
+                                'admin_typing_until' => null,
+                            ]);
 
                             $saved = \App\Models\LiveChatMessage::create([
                                 'live_chat_id'        => $liveChat->id,
                                 'sender'              => 'admin',
+                                'sender_name'         => $adminName,
                                 'message'             => $text,
                                 'telegram_message_id' => $msgId,
                             ]);
 
                             self::sendCsMessage(
-                                "✅ <b>Pesan Balasan Diteruskan</b> ke web pengguna <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>).",
+                                "✅ <b>Pesan Balasan Diteruskan</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> [<code>{$liveChat->session_code}</code>]:\n<i>\"" . htmlspecialchars($text) . "\"</i>",
                                 $chatId
                             );
 
                             $processed[] = $saved->id;
                         }
+                    } else {
+                        self::sendCsMessage(
+                            "⚠️ <b>Tidak Dapat Menemukan Sesi Pengguna</b> dari pesan yang dibalas.\nMohon gunakan perintah: <code>/reply [KODE_SESI] [Pesan Anda]</code>",
+                            $chatId
+                        );
                     }
                 }
 
-                // 4. Pesan Langsung Tanpa Reply & Bukan Slash Command (Auto-Route jika ada 1 sesi aktif)
+                // 4. Pesan Langsung Tanpa Reply & Bukan Slash Command
                 elseif (!str_starts_with($text, '/')) {
                     $activeChats = \App\Models\LiveChat::where('status', 'active')->orderBy('id', 'desc')->get();
 
                     if ($activeChats->count() === 1) {
                         $liveChat = $activeChats->first();
-                        $liveChat->update(['admin_typing_until' => null]);
+                        $liveChat->update([
+                            'admin_name'         => $adminName,
+                            'admin_typing_until' => null,
+                        ]);
 
                         $saved = \App\Models\LiveChatMessage::create([
                             'live_chat_id'        => $liveChat->id,
                             'sender'              => 'admin',
+                            'sender_name'         => $adminName,
                             'message'             => $text,
                             'telegram_message_id' => $msgId,
                         ]);
 
                         self::sendCsMessage(
-                            "✅ <b>Pesan Diteruskan</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>):\n<i>\"" . htmlspecialchars($text) . "\"</i>",
+                            "✅ <b>Pesan Diteruskan</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> [<code>{$liveChat->session_code}</code>]:\n<i>\"" . htmlspecialchars($text) . "\"</i>",
                             $chatId
                         );
 
                         $processed[] = $saved->id;
                     } elseif ($activeChats->count() > 1) {
+                        $chatList = "";
+                        $idx = 1;
+                        foreach ($activeChats as $ac) {
+                            $chatList .= "{$idx}. " . htmlspecialchars($ac->user_name) . " (<code>{$ac->session_code}</code>)\n";
+                            $idx++;
+                        }
+
                         self::sendCsMessage(
-                            "⚠️ <b>Terdapat " . $activeChats->count() . " Sesi Aktif:</b>\nMohon balas menggunakan fitur <b>Reply</b> Telegram pada pesan pengguna yang ingin dijawab, atau gunakan: <code>/reply [KODE_SESI] [Pesan]</code>",
+                            "⚠️ <b>Terdapat " . $activeChats->count() . " Sesi Aktif Bersamaan:</b>\n"
+                            . "Sistem tidak dapat menebak pengguna tujuan secara otomatis.\n\n"
+                            . "<b>Cara Balas:</b>\n"
+                            . "1. Gunakan fitur <b>Reply (Balas)</b> pada pesan notifikasi pengguna yang dituju.\n"
+                            . "2. Atau gunakan perintah: <code>/reply [KODE_SESI] [Pesan]</code>\n\n"
+                            . "<b>Daftar Sesi Aktif:</b>\n" . $chatList,
                             $chatId
                         );
                     }

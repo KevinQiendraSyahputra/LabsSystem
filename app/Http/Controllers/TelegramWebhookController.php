@@ -25,26 +25,26 @@ class TelegramWebhookController extends Controller
         $text = trim($message['text'] ?? '');
         $chatId = $message['chat']['id'] ?? null;
         $messageId = $message['message_id'] ?? null;
+        $from = $message['from'] ?? [];
+        $adminName = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? ''));
+        if (empty($adminName)) {
+            $adminName = !empty($from['username']) ? $from['username'] : 'Admin';
+        }
 
         if (empty($text)) {
             return response()->json(['status' => 'no_text']);
         }
 
         // 1. Tangani Command Typing: /typing atau /t
-        if (preg_match('/^\/(?:typing|t)(?:\s+([A-Za-z0-9\-]+))?$/is', $text, $tMatches)) {
+        if (preg_match('/^\/(?:typing|t)(?:\s+\[?([A-Za-z0-9\-]+)\]?)?$/is', $text, $tMatches)) {
             $sessionCode = !empty($tMatches[1]) ? trim($tMatches[1]) : null;
             $liveChat = null;
 
             if ($sessionCode) {
                 $liveChat = LiveChat::where('session_code', $sessionCode)->first();
             } elseif (isset($message['reply_to_message'])) {
-                $replyTo = $message['reply_to_message'];
-                $replyToMessageId = $replyTo['message_id'] ?? null;
-                $replyToText = $replyTo['text'] ?? '';
-                if ($replyToMessageId) {
-                    $liveChat = LiveChat::where('telegram_last_message_id', $replyToMessageId)->first();
-                }
-                if (!$liveChat && preg_match('/ID Sesi:\s*([A-Za-z0-9\-]+)/i', $replyToText, $sMatch)) {
+                $replyToText = $message['reply_to_message']['text'] ?? '';
+                if (preg_match('/(CS-\d{8}-[A-Za-z0-9]+)/i', $replyToText, $sMatch)) {
                     $liveChat = LiveChat::where('session_code', trim($sMatch[1]))->first();
                 }
             }
@@ -59,13 +59,13 @@ class TelegramWebhookController extends Controller
             if ($liveChat) {
                 $liveChat->update(['admin_typing_until' => now()->addSeconds(30)]);
                 TelegramService::sendCsMessage(
-                    "✍️ <b>Status Typing Aktif</b> pada web <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
+                    "✍️ <b>Status Typing Aktif</b> pada web pengguna <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
                     $chatId
                 );
                 return response()->json(['status' => 'ok', 'method' => 'typing_activated']);
             } else {
                 TelegramService::sendCsMessage(
-                    "ℹ️ <b>Petunjuk Typing:</b> Gunakan <code>/t [KODE_SESI]</code> atau balas (Reply) pesan pengguna dengan <code>/t</code>.",
+                    "ℹ️ <b>Petunjuk Typing:</b> Balas (Swipe/Reply) pesan pengguna dengan <code>/t</code> atau gunakan <code>/t [KODE_SESI]</code>.",
                     $chatId
                 );
                 return response()->json(['status' => 'typing_no_session']);
@@ -73,32 +73,36 @@ class TelegramWebhookController extends Controller
         }
 
         // 2. Tangani Format Command: /reply [SESSION_CODE] [PESAN]
-        if (preg_match('/^\/reply\s+([A-Za-z0-9\-]+)\s+(.+)$/is', $text, $matches)) {
+        if (preg_match('/^\/reply\s+\[?([A-Za-z0-9\-]+)\]?[:\s]+(.+)$/is', $text, $matches)) {
             $sessionCode = trim($matches[1]);
             $replyBody   = trim($matches[2]);
 
             $liveChat = LiveChat::where('session_code', $sessionCode)->first();
 
             if ($liveChat) {
-                $liveChat->update(['admin_typing_until' => null]);
+                $liveChat->update([
+                    'admin_name'         => $adminName,
+                    'admin_typing_until' => null,
+                ]);
 
                 $savedMsg = LiveChatMessage::create([
                     'live_chat_id'        => $liveChat->id,
                     'sender'              => 'admin',
+                    'sender_name'         => $adminName,
                     'message'             => $replyBody,
                     'telegram_message_id' => $messageId,
                 ]);
 
                 // Kirim konfirmasi balik ke Telegram Admin via CS Bot
                 TelegramService::sendCsMessage(
-                    "✅ <b>Balasan Terkirim</b> ke <b>{$liveChat->user_name}</b> (<code>{$liveChat->session_code}</code>):\n<i>\"" . htmlspecialchars($replyBody) . "\"</i>",
+                    "✅ <b>Balasan Terkirim</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> [<code>{$liveChat->session_code}</code>]:\n<i>\"" . htmlspecialchars($replyBody) . "\"</i>",
                     $chatId
                 );
 
                 return response()->json(['status' => 'ok', 'method' => 'command_reply']);
             } else {
                 TelegramService::sendCsMessage(
-                    "❌ <b>Sesi Tidak Ditemukan:</b> Kode sesi <code>{$sessionCode}</code> tidak valid.",
+                    "❌ <b>Sesi Tidak Ditemukan:</b> Kode sesi <code>{$sessionCode}</code> tidak valid atau telah ditutup.",
                     $chatId
                 );
                 return response()->json(['status' => 'session_not_found']);
@@ -113,54 +117,65 @@ class TelegramWebhookController extends Controller
 
             $liveChat = null;
 
-            // Cari berdasarkan telegram_last_message_id atau telegram_message_id di pesan
-            if ($replyToMessageId) {
-                $liveChat = LiveChat::where('telegram_last_message_id', $replyToMessageId)->first();
+            // Prioritas 1: Ekstraksi langsung kode sesi CS-YYYYMMDD-XXXXX dari teks pesan yang di-reply
+            if (preg_match('/(CS-\d{8}-[A-Za-z0-9]+)/i', $replyToText, $sessionMatches)) {
+                $extractedCode = trim($sessionMatches[1]);
+                $liveChat = LiveChat::where('session_code', $extractedCode)->first();
+            }
 
-                if (!$liveChat) {
-                    $matchedMsg = LiveChatMessage::where('telegram_message_id', $replyToMessageId)->first();
-                    if ($matchedMsg) {
-                        $liveChat = $matchedMsg->liveChat;
-                    }
+            // Prioritas 2: Cari berdasarkan telegram_message_id di riwayat pesan
+            if (!$liveChat && $replyToMessageId) {
+                $matchedMsg = LiveChatMessage::where('telegram_message_id', $replyToMessageId)->first();
+                if ($matchedMsg) {
+                    $liveChat = $matchedMsg->liveChat;
                 }
             }
 
-            // Jika belum ketemu, cari session_code di teks pesan yang di-reply
-            if (!$liveChat && preg_match('/ID Sesi:\s*([A-Za-z0-9\-]+)/i', $replyToText, $sessionMatches)) {
-                $extractedCode = trim($sessionMatches[1]);
-                $liveChat = LiveChat::where('session_code', $extractedCode)->first();
+            // Prioritas 3: Cari berdasarkan telegram_last_message_id di tabel live_chats
+            if (!$liveChat && $replyToMessageId) {
+                $liveChat = LiveChat::where('telegram_last_message_id', $replyToMessageId)->first();
             }
 
             if ($liveChat) {
                 if (in_array(strtolower($text), ['/t', '/typing', 'typing', 'sedang mengetik', '...', '.'])) {
                     $liveChat->update(['admin_typing_until' => now()->addSeconds(30)]);
                     TelegramService::sendCsMessage(
-                        "✍️ <b>Status Typing Aktif</b> pada web <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
+                        "✍️ <b>Status Typing Aktif</b> pada web pengguna <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>) selama 30 detik.",
                         $chatId
                     );
                     return response()->json(['status' => 'ok', 'method' => 'reply_typing']);
                 }
 
-                $liveChat->update(['admin_typing_until' => null]);
+                $liveChat->update([
+                    'admin_name'         => $adminName,
+                    'admin_typing_until' => null,
+                ]);
 
                 $savedMsg = LiveChatMessage::create([
                     'live_chat_id'        => $liveChat->id,
                     'sender'              => 'admin',
+                    'sender_name'         => $adminName,
                     'message'             => $text,
                     'telegram_message_id' => $messageId,
                 ]);
 
                 // Konfirmasi ke admin di Telegram via CS Bot
                 TelegramService::sendCsMessage(
-                    "✅ <b>Pesan Balasan Diteruskan</b> ke web pengguna <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>).",
+                    "✅ <b>Pesan Balasan Diteruskan</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> [<code>{$liveChat->session_code}</code>]:\n<i>\"" . htmlspecialchars($text) . "\"</i>",
                     $chatId
                 );
 
                 return response()->json(['status' => 'ok', 'method' => 'native_reply']);
+            } else {
+                TelegramService::sendCsMessage(
+                    "⚠️ <b>Tidak Dapat Menemukan Sesi Pengguna</b> dari pesan yang dibalas.\nMohon gunakan perintah: <code>/reply [KODE_SESI] [Pesan Anda]</code>",
+                    $chatId
+                );
+                return response()->json(['status' => 'reply_session_not_found']);
             }
         }
 
-        // 4. Pesan Langsung Tanpa Reply & Bukan Slash Command (Auto-Route jika ada 1 sesi aktif)
+        // 4. Pesan Langsung Tanpa Reply & Bukan Slash Command
         if (!str_starts_with($text, '/')) {
             $activeChats = LiveChat::where('status', 'active')->orderBy('id', 'desc')->get();
 
@@ -176,14 +191,26 @@ class TelegramWebhookController extends Controller
                 ]);
 
                 TelegramService::sendCsMessage(
-                    "✅ <b>Pesan Diteruskan</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> (<code>{$liveChat->session_code}</code>):\n<i>\"" . htmlspecialchars($text) . "\"</i>",
+                    "✅ <b>Pesan Diteruskan</b> ke <b>" . htmlspecialchars($liveChat->user_name) . "</b> [<code>{$liveChat->session_code}</code>]:\n<i>\"" . htmlspecialchars($text) . "\"</i>",
                     $chatId
                 );
 
                 return response()->json(['status' => 'ok', 'method' => 'direct_single_active']);
             } elseif ($activeChats->count() > 1) {
+                $chatList = "";
+                $idx = 1;
+                foreach ($activeChats as $ac) {
+                    $chatList .= "{$idx}. " . htmlspecialchars($ac->user_name) . " (<code>{$ac->session_code}</code>)\n";
+                    $idx++;
+                }
+
                 TelegramService::sendCsMessage(
-                    "⚠️ <b>Terdapat " . $activeChats->count() . " Sesi Aktif:</b>\nMohon balas menggunakan fitur <b>Reply</b> Telegram pada pesan pengguna yang ingin dijawab, atau gunakan: <code>/reply [KODE_SESI] [Pesan]</code>",
+                    "⚠️ <b>Terdapat " . $activeChats->count() . " Sesi Aktif Bersamaan:</b>\n"
+                    . "Sistem tidak dapat menebak pengguna tujuan secara otomatis.\n\n"
+                    . "<b>Cara Balas:</b>\n"
+                    . "1. Gunakan fitur <b>Reply (Balas)</b> pada pesan notifikasi pengguna yang dituju.\n"
+                    . "2. Atau gunakan perintah: <code>/reply [KODE_SESI] [Pesan]</code>\n\n"
+                    . "<b>Daftar Sesi Aktif:</b>\n" . $chatList,
                     $chatId
                 );
                 return response()->json(['status' => 'multiple_sessions_need_disambiguation']);

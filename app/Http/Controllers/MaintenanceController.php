@@ -111,6 +111,19 @@ class MaintenanceController extends Controller
         }
 
         try {
+            event(new \App\Events\MaintenanceUpdated([
+                'action'              => 'created',
+                'id'                  => $maintenance->id,
+                'teknisi'             => $maintenance->teknisi,
+                'jenis'               => $maintenance->jenis,
+                'status'              => $maintenance->status,
+                'deskripsi_kerusakan' => $maintenance->deskripsi_kerusakan,
+                'laboratorium'        => $maintenance->laboratorium,
+                'updated_at'          => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
+        try {
             TelegramService::sendMaintenanceBaru($maintenance);
         } catch (\Throwable $e) {
             Log::error("Gagal kirim notifikasi maintenance ke Telegram: " . $e->getMessage());
@@ -197,6 +210,19 @@ class MaintenanceController extends Controller
         }
 
         try {
+            event(new \App\Events\MaintenanceUpdated([
+                'action'              => 'updated',
+                'id'                  => $maintenance->id,
+                'teknisi'             => $maintenance->teknisi,
+                'jenis'               => $maintenance->jenis,
+                'status'              => $maintenance->status,
+                'deskripsi_kerusakan' => $maintenance->deskripsi_kerusakan,
+                'laboratorium'        => $maintenance->laboratorium,
+                'updated_at'          => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
+        try {
             TelegramService::sendMaintenanceUpdate($maintenance);
         } catch (\Throwable $e) {
             Log::error("Gagal kirim notifikasi update maintenance ke Telegram: " . $e->getMessage());
@@ -214,7 +240,17 @@ class MaintenanceController extends Controller
             abort(403, 'Akses Ditolak: Anda hanya memiliki izin menghapus data maintenance yang Anda buat sendiri. Pengguna Admin atau Kepala Lab memiliki hak akses penuh.');
         }
 
+        $id = $maintenance->id;
         $maintenance->delete();
+
+        try {
+            event(new \App\Events\MaintenanceUpdated([
+                'action'     => 'deleted',
+                'id'         => $id,
+                'updated_at' => now()->toDateTimeString(),
+            ]));
+        } catch (\Throwable $e) {}
+
         return redirect()->route('maintenance.index')->with('success', 'Data maintenance berhasil dihapus!');
     }
 

@@ -15,5 +15,8 @@ class VerifyCsrfToken extends Middleware
         'api/telegram/webhook',
         'telegram/webhook',
         'bantuan/webhook',
+        'bantuan/close-cs',
+        'bantuan/start-cs',
+        'bantuan/send-cs',
     ];
 }
